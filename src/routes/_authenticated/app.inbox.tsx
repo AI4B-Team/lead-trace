@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useWorkspaceId } from "@/hooks/use-workspace";
+import { useTeamContext } from "@/hooks/use-team-context";
 import {
   listThreads,
   getThread,
