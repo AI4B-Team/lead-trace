@@ -104,19 +104,94 @@ export async function assertSpendAllowed(
   if (verdict.outcome === "allow") return;
   if (verdict.outcome === "needs_approval") {
     // Record the request so the admin queue has it, then stop the action.
-    await supabase.from("approval_requests").insert({
-      workspace_id: workspaceId,
-      requested_by: userId,
+    const { data: row } = await (supabase as any)
+      .from("approval_requests")
+      .insert({
+        workspace_id: workspaceId,
+        requested_by: userId,
+        kind: "credits",
+        amount: input.amount,
+        summary: input.summary,
+        detail: { action: input.action },
+      })
+      .select("id")
+      .maybeSingle();
+    await announceApprovalRequest(supabase, workspaceId, {
       kind: "credits",
-      amount: input.amount,
       summary: input.summary,
-      detail: { action: input.action },
-    } as never);
+      requesterId: userId,
+      requestId: (row as { id?: string } | null)?.id ?? null,
+    });
   }
   throw new Error("reason" in verdict ? verdict.reason : "Spend Blocked");
 }
 
 export { evaluateExport, evaluateSpend };
+
+/**
+ * Announce an approval request so admins actually see it: an in-app
+ * notification for the workspace plus an activity-feed row. Best-effort — the
+ * request itself is already recorded, so a failed announcement never throws.
+ */
+export async function announceApprovalRequest(
+  supabase: AnyClient,
+  workspaceId: string,
+  input: { kind: string; summary: string; requesterId: string; requestId?: string | null },
+): Promise<void> {
+  try {
+    await supabase.from("notifications").insert({
+      workspace_id: workspaceId,
+      kind: "approval_requested",
+      title: "Approval Needed",
+      body: input.summary,
+    } as never);
+    const { logActivity } = await import("./activity.server");
+    await logActivity(supabase, workspaceId, {
+      type: "approval_requested",
+      summary: `Approval Requested · ${input.summary}`,
+      detail: `Kind: ${input.kind}`,
+      refId: input.requestId ?? null,
+      refType: "approval",
+      actorId: input.requesterId,
+    });
+  } catch {
+    /* the request row is the system of record */
+  }
+}
+
+/** Same for the decision, so the requester learns the outcome. */
+export async function announceApprovalDecision(
+  supabase: AnyClient,
+  workspaceId: string,
+  input: {
+    decision: "approved" | "declined";
+    summary: string;
+    deciderId: string;
+    requestId: string;
+    note?: string | null;
+  },
+): Promise<void> {
+  const label = input.decision === "approved" ? "Approved" : "Declined";
+  try {
+    await supabase.from("notifications").insert({
+      workspace_id: workspaceId,
+      kind: "approval_decided",
+      title: `Request ${label}`,
+      body: input.note ? `${input.summary} — ${input.note}` : input.summary,
+    } as never);
+    const { logActivity } = await import("./activity.server");
+    await logActivity(supabase, workspaceId, {
+      type: "approval_decided",
+      summary: `Request ${label} · ${input.summary}`,
+      detail: input.note ?? null,
+      refId: input.requestId,
+      refType: "approval",
+      actorId: input.deciderId,
+    });
+  } catch {
+    /* decision row is the system of record */
+  }
+}
 
 /**
  * Role gate for any server path that mutates, spends or exports. Client-side

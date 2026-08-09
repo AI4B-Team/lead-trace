@@ -15,7 +15,7 @@ export type ChannelKey = (typeof CHANNELS)[number]["key"];
 export type ChannelPrefs = Partial<Record<ChannelKey, boolean>>;
 export type NotifyPrefs = Record<string, ChannelPrefs>;
 
-type ItemDef = { key: string; label: string; hint: string; legacy?: string };
+type ItemDef = { key: string; label: string; hint: string; legacy?: string; soon?: boolean };
 type GroupDef = { label: string; icon: LucideIcon; items: ItemDef[]; soon?: boolean };
 
 export const NOTIFY_GROUPS: GroupDef[] = [
@@ -68,7 +68,6 @@ export const NOTIFY_GROUPS: GroupDef[] = [
   {
     label: "Team & Compliance",
     icon: Users,
-    soon: true,
     items: [
       {
         key: "approvals",
@@ -79,12 +78,13 @@ export const NOTIFY_GROUPS: GroupDef[] = [
         key: "complianceEvents",
         label: "Compliance Events",
         hint: "Blacklist Additions, DNC Hits, And Quiet-Hours Blocks.",
+        soon: true,
       },
     ],
   },
 ];
 
-const DEFAULT_ON = new Set(["jobComplete", "campaignAlerts", "billingEmails"]);
+const DEFAULT_ON = new Set(["jobComplete", "campaignAlerts", "billingEmails", "approvals"]);
 
 /** Normalizes stored prefs (legacy booleans or channel maps) into the channel model. */
 export function normalizePrefs(stored: unknown): NotifyPrefs {
@@ -156,7 +156,7 @@ export function NotificationPrefs({
                     </div>
                     <div className="flex items-center justify-end gap-6">
                       {CHANNELS.map((c) => {
-                        const disabled = !c.live || group.soon;
+                        const disabled = !c.live || group.soon || item.soon;
                         const control = (
                           <div className="flex w-14 justify-center">
                             <Switch
@@ -174,7 +174,9 @@ export function NotificationPrefs({
                               <span className="cursor-not-allowed opacity-50">{control}</span>
                             </TooltipTrigger>
                             <TooltipContent>
-                              {group.soon ? "This Category Is Coming Soon." : `${c.label} Delivery Is Coming Soon.`}
+                              {group.soon || item.soon
+                                ? "This Notification Is Coming Soon."
+                                : `${c.label} Delivery Is Coming Soon.`}
                             </TooltipContent>
                           </Tooltip>
                         );
