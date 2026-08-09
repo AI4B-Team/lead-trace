@@ -125,12 +125,15 @@ export function auditBooking(thread: BookingThread, now = Date.now()): BookingFi
   }
 
   const confirmed = inbound.some((m) => CONFIRM_RE.test(m.body!));
-  const lastCancelIdx = ordered.findLastIndex(
-    (m) => m.direction === "inbound" && !!m.body && CANCEL_RE.test(m.body),
-  );
-  const lastConfirmIdx = ordered.findLastIndex(
-    (m) => m.direction === "inbound" && !!m.body && CONFIRM_RE.test(m.body),
-  );
+  const lastInboundMatch = (re: RegExp): number => {
+    for (let i = ordered.length - 1; i >= 0; i -= 1) {
+      const m = ordered[i]!;
+      if (m.direction === "inbound" && !!m.body && re.test(m.body)) return i;
+    }
+    return -1;
+  };
+  const lastCancelIdx = lastInboundMatch(CANCEL_RE);
+  const lastConfirmIdx = lastInboundMatch(CONFIRM_RE);
 
   if (inbound.length === 0) {
     add(
