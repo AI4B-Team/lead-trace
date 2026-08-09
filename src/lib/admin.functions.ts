@@ -253,3 +253,16 @@ export const purgeLegacyLeads = createServerFn({ method: "POST" })
     if (error) throw error;
     return { purged: before ?? 0 };
   });
+
+// ---------------------------------------------------------------------------
+// Scheduled task health. Every tick-* endpoint records its outcome; this shows
+// which schedules are running, which are failing, and which have gone quiet.
+// ---------------------------------------------------------------------------
+
+export const listCronHealth = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { readCronHealth } = await import("./cron-health.server");
+    return { tasks: await readCronHealth() };
+  });
