@@ -53,10 +53,16 @@ export const Route = createFileRoute("/sitemap.xml")({
           );
           const { countySlug, recordTypeById } = await import("@/lib/distress-feed.shared");
           const states = await stateSummaries();
+          const guides = await listGuides();
+          // Only list guide state hubs that actually have guides, otherwise the
+          // state route 404s and the sitemap advertises dead URLs.
+          const guideStates = new Set(guides.map((g) => g.state.toUpperCase()));
           for (const s of states) {
             const code = s.state.toLowerCase();
             entries.push({ path: `/distress-feed/counties/${code}`, changefreq: "weekly", priority: "0.7" });
-            entries.push({ path: `/distress-feed/guides/${code}`, changefreq: "monthly", priority: "0.6" });
+            if (guideStates.has(s.state.toUpperCase())) {
+              entries.push({ path: `/distress-feed/guides/${code}`, changefreq: "monthly", priority: "0.6" });
+            }
             for (const c of await countySummaries(s.state)) {
               entries.push({
                 path: `/distress-feed/counties/${code}/${countySlug(c.county)}`,
@@ -65,7 +71,7 @@ export const Route = createFileRoute("/sitemap.xml")({
               });
             }
           }
-          for (const g of await listGuides()) {
+          for (const g of guides) {
             entries.push({
               path: `/distress-feed/guides/${g.state.toLowerCase()}/${countySlug(g.county)}/${
                 recordTypeById(g.record_type)?.slug ?? g.record_type
