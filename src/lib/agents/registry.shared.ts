@@ -63,7 +63,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
       "Re-reads new bookings against what the lead actually asked for and flags the ones that drifted.",
     cadence: "Every 15 Minutes",
     intervalMinutes: 15,
-    implemented: false,
+    implemented: true,
   },
   {
     key: "coach",
