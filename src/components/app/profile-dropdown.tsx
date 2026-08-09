@@ -32,19 +32,9 @@ import { planFor } from "@/lib/plans.shared";
 
 // Deterministic accent so each operator gets a recognizable avatar color
 // without storing anything extra on the profile.
-const AVATAR_TONES = [
-  "bg-blue-600",
-  "bg-emerald-600",
-  "bg-violet-600",
-  "bg-slate-500",
-  "bg-rose-600",
-  "bg-teal-600",
-];
-
-function toneFor(seed: string) {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) % 9973;
-  return AVATAR_TONES[hash % AVATAR_TONES.length]!;
+// Avatar initials always use the LeadTrace brand red so the mark stays on-brand.
+function toneFor(_seed: string) {
+  return "bg-primary";
 }
 
 export function ProfileDropdown({ className }: { className?: string }) {
