@@ -114,6 +114,9 @@ export function activityLink(
     case "template":
       return "/app/assistant";
     case "member":
+      return "/app/team";
+    case "webhook":
+      return "/app/api";
     case "export":
       return "/app/team";
     default:
