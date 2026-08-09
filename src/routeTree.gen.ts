@@ -74,6 +74,7 @@ import { Route as AuthenticatedAppDashboardRouteImport } from './routes/_authent
 import { Route as AuthenticatedAppComplianceRouteImport } from './routes/_authenticated/app.compliance'
 import { Route as AuthenticatedAppBrandsRouteImport } from './routes/_authenticated/app.brands'
 import { Route as AuthenticatedAppBillingRouteImport } from './routes/_authenticated/app.billing'
+import { Route as AuthenticatedAppBackgroundAgentsRouteImport } from './routes/_authenticated/app.background-agents'
 import { Route as AuthenticatedAppAssistantRouteImport } from './routes/_authenticated/app.assistant'
 import { Route as AuthenticatedAppApiRouteImport } from './routes/_authenticated/app.api'
 import { Route as AuthenticatedAppAgentRouteImport } from './routes/_authenticated/app.agent'
@@ -452,6 +453,12 @@ const AuthenticatedAppBillingRoute = AuthenticatedAppBillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppBackgroundAgentsRoute =
+  AuthenticatedAppBackgroundAgentsRouteImport.update({
+    id: '/background-agents',
+    path: '/background-agents',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAssistantRoute =
   AuthenticatedAppAssistantRouteImport.update({
     id: '/assistant',
@@ -716,6 +723,7 @@ export interface FileRoutesByFullPath {
   '/app/agent': typeof AuthenticatedAppAgentRoute
   '/app/api': typeof AuthenticatedAppApiRoute
   '/app/assistant': typeof AuthenticatedAppAssistantRoute
+  '/app/background-agents': typeof AuthenticatedAppBackgroundAgentsRoute
   '/app/billing': typeof AuthenticatedAppBillingRoute
   '/app/brands': typeof AuthenticatedAppBrandsRoute
   '/app/compliance': typeof AuthenticatedAppComplianceRoute
@@ -818,6 +826,7 @@ export interface FileRoutesByTo {
   '/app/agent': typeof AuthenticatedAppAgentRoute
   '/app/api': typeof AuthenticatedAppApiRoute
   '/app/assistant': typeof AuthenticatedAppAssistantRoute
+  '/app/background-agents': typeof AuthenticatedAppBackgroundAgentsRoute
   '/app/billing': typeof AuthenticatedAppBillingRoute
   '/app/brands': typeof AuthenticatedAppBrandsRoute
   '/app/compliance': typeof AuthenticatedAppComplianceRoute
@@ -924,6 +933,7 @@ export interface FileRoutesById {
   '/_authenticated/app/agent': typeof AuthenticatedAppAgentRoute
   '/_authenticated/app/api': typeof AuthenticatedAppApiRoute
   '/_authenticated/app/assistant': typeof AuthenticatedAppAssistantRoute
+  '/_authenticated/app/background-agents': typeof AuthenticatedAppBackgroundAgentsRoute
   '/_authenticated/app/billing': typeof AuthenticatedAppBillingRoute
   '/_authenticated/app/brands': typeof AuthenticatedAppBrandsRoute
   '/_authenticated/app/compliance': typeof AuthenticatedAppComplianceRoute
@@ -1030,6 +1040,7 @@ export interface FileRouteTypes {
     | '/app/agent'
     | '/app/api'
     | '/app/assistant'
+    | '/app/background-agents'
     | '/app/billing'
     | '/app/brands'
     | '/app/compliance'
@@ -1132,6 +1143,7 @@ export interface FileRouteTypes {
     | '/app/agent'
     | '/app/api'
     | '/app/assistant'
+    | '/app/background-agents'
     | '/app/billing'
     | '/app/brands'
     | '/app/compliance'
@@ -1237,6 +1249,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/agent'
     | '/_authenticated/app/api'
     | '/_authenticated/app/assistant'
+    | '/_authenticated/app/background-agents'
     | '/_authenticated/app/billing'
     | '/_authenticated/app/brands'
     | '/_authenticated/app/compliance'
@@ -1819,6 +1832,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppBillingRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/background-agents': {
+      id: '/_authenticated/app/background-agents'
+      path: '/background-agents'
+      fullPath: '/app/background-agents'
+      preLoaderRoute: typeof AuthenticatedAppBackgroundAgentsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/assistant': {
       id: '/_authenticated/app/assistant'
       path: '/assistant'
@@ -2093,6 +2113,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAgentRoute: typeof AuthenticatedAppAgentRoute
   AuthenticatedAppApiRoute: typeof AuthenticatedAppApiRoute
   AuthenticatedAppAssistantRoute: typeof AuthenticatedAppAssistantRoute
+  AuthenticatedAppBackgroundAgentsRoute: typeof AuthenticatedAppBackgroundAgentsRoute
   AuthenticatedAppBillingRoute: typeof AuthenticatedAppBillingRoute
   AuthenticatedAppBrandsRoute: typeof AuthenticatedAppBrandsRoute
   AuthenticatedAppComplianceRoute: typeof AuthenticatedAppComplianceRoute
@@ -2127,6 +2148,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAgentRoute: AuthenticatedAppAgentRoute,
   AuthenticatedAppApiRoute: AuthenticatedAppApiRoute,
   AuthenticatedAppAssistantRoute: AuthenticatedAppAssistantRoute,
+  AuthenticatedAppBackgroundAgentsRoute: AuthenticatedAppBackgroundAgentsRoute,
   AuthenticatedAppBillingRoute: AuthenticatedAppBillingRoute,
   AuthenticatedAppBrandsRoute: AuthenticatedAppBrandsRoute,
   AuthenticatedAppComplianceRoute: AuthenticatedAppComplianceRoute,
