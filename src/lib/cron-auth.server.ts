@@ -80,3 +80,57 @@ export async function claimTick(key: string, minSeconds = 30): Promise<boolean> 
   }
   return data === true;
 }
+
+/**
+ * Standard wrapper for every /api/public/hooks/tick-* endpoint: authenticates
+ * the caller, guards against overlap, times the run, and records the outcome
+ * so the platform admin can see whether the schedule is healthy.
+ */
+export async function runTick(
+  request: Request,
+  key: string,
+  minSeconds: number,
+  fn: () => Promise<unknown>,
+): Promise<Response> {
+  const denied = await requireCronAuth(request);
+  if (denied) return denied;
+
+  if (!(await claimTick(key, minSeconds))) {
+    return Response.json({ ok: true, skipped: "tick_in_progress" }, { status: 202 });
+  }
+
+  const { recordTickResult } = await import("@/lib/cron-health.server");
+  const startedAt = Date.now();
+  try {
+    const result = await fn();
+    const body = (result ?? {}) as Record<string, unknown>;
+    const failed = body["ok"] === false;
+    await recordTickResult(
+      key,
+      failed ? "error" : "ok",
+      failed ? String(body["error"] ?? "Tick Failed") : summarise(body),
+      Date.now() - startedAt,
+    );
+    return Response.json(body, { status: failed ? 500 : 200 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : `${key} failed`;
+    console.error(`${key} failed:`, message);
+    await recordTickResult(key, "error", message, Date.now() - startedAt);
+    return Response.json({ ok: false, error: message }, { status: 500 });
+  }
+}
+
+/** Compact one-line summary of a tick result payload, for the admin health list. */
+function summarise(body: Record<string, unknown>): string {
+  const parts: string[] = [];
+  for (const [k, v] of Object.entries(body)) {
+    if (k === "ok") continue;
+    if (typeof v === "number" || typeof v === "boolean" || typeof v === "string") {
+      parts.push(`${k}=${v}`);
+    } else if (Array.isArray(v)) {
+      parts.push(`${k}=${v.length}`);
+    }
+    if (parts.length >= 5) break;
+  }
+  return parts.join(" · ") || "completed";
+}
