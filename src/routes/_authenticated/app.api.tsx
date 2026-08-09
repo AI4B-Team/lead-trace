@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { KeyRound, ShieldCheck, Gauge, Terminal, BookOpen, Code2, Webhook, Plug, History as HistoryIcon } from "lucide-react";
+import { KeyRound, ShieldCheck, Gauge, Terminal, BookOpen, Code2, Webhook, Plug } from "lucide-react";
 import { PageHeader } from "@/components/app/page-header";
 import { SettingsShell } from "@/components/app/settings-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { WebhookEndpoints } from "@/components/app/webhook-endpoints";
 import { ApiKeysCard } from "@/components/app/api-keys-card";
+import { WebhookDeliveries } from "@/components/app/webhook-deliveries";
 
 export const Route = createFileRoute("/_authenticated/app/api")({
   head: () => ({
@@ -30,8 +31,6 @@ const ENDPOINTS = [
   { method: "GET", path: "/api/public/v1/campaigns", note: "List campaigns and delivery totals." },
 ];
 
-const DELIVERY_COLUMNS = ["Event", "Endpoint", "Status", "Response Code", "Timestamp"];
-
 function DeveloperPage() {
   return (
     <div className="mx-auto max-w-[1400px]">
@@ -54,33 +53,7 @@ function DeveloperPage() {
               <WebhookEndpoints />
             </div>
 
-            <Card className="mt-3">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-sm font-display">
-                  <HistoryIcon className="h-4 w-4 text-muted-foreground" /> Recent Deliveries
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-border text-left text-muted-foreground">
-                        {DELIVERY_COLUMNS.map((c) => (
-                          <th key={c} className="pb-2 pr-4 font-medium">{c}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td colSpan={DELIVERY_COLUMNS.length} className="py-6 text-center text-muted-foreground">
-                          No deliveries yet. Add an endpoint to start receiving events.
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+            <WebhookDeliveries />
 
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <Card>
