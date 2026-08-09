@@ -540,6 +540,66 @@ export type Database = {
           },
         ]
       }
+      bot_profile_versions: {
+        Row: {
+          assembled_prompt: string | null
+          change_kind: string
+          change_note: string | null
+          change_source: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          profile_id: string
+          proposal_id: string | null
+          snapshot: Json
+          version: number
+          workspace_id: string
+        }
+        Insert: {
+          assembled_prompt?: string | null
+          change_kind?: string
+          change_note?: string | null
+          change_source?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          profile_id: string
+          proposal_id?: string | null
+          snapshot: Json
+          version: number
+          workspace_id: string
+        }
+        Update: {
+          assembled_prompt?: string | null
+          change_kind?: string
+          change_note?: string | null
+          change_source?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          profile_id?: string
+          proposal_id?: string | null
+          snapshot?: Json
+          version?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_profile_versions_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "agent_proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bot_profile_versions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bot_profiles: {
         Row: {
           banned_topics: string[]
