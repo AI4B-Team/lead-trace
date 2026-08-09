@@ -26,6 +26,10 @@ async function execute(agent: AgentRow): Promise<RunOutcome> {
       const { runCoach } = await import("./coach.server");
       return runCoach(agent);
     }
+    case "wisdom_miner": {
+      const { runWisdomMiner } = await import("./wisdom.server");
+      return runWisdomMiner(agent);
+    }
     default:
       return { status: "skipped", summary: "not implemented yet" };
   }
