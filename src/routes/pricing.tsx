@@ -15,7 +15,7 @@ export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
       { title: "Pricing — Replace Your Whole Lead Stack | LeadTrace" },
-      { name: "description", content: "Sending numbers, managed number pools, lead credits, DNC and litigator scrubbing, and flat-rate SMS on every plan. Free 10DLC registration, no contracts, 20% off annual billing." },
+      { name: "description", content: "Managed number pools, lead credits, DNC scrubbing and flat-rate SMS on every plan. Free 10DLC registration, no contracts, 20% off annual." },
       { property: "og:title", content: "LeadTrace Pricing" },
       { property: "og:description", content: "One login instead of four. Flat SMS pricing on every tier, free 10DLC registration, and managed number pools." },
       { property: "og:type", content: "website" },
