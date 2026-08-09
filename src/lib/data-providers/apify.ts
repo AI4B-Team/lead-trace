@@ -1,9 +1,10 @@
 import type { BusinessScraper, BusinessScrapeParams, RawLead } from "./index";
 
-// Apify Google Maps scraper adapter. Reads APIFY_TOKEN (and optional
-// APIFY_GMAPS_ACTOR override) at call time from process.env — never at module
-// scope. Real failures propagate to the pipeline's failure path. There is no
-// mock path: an unconfigured or failing scraper surfaces as an error.
+// Apify business-source adapters: Google Maps, Yelp, and LinkedIn companies.
+// Reads APIFY_TOKEN (and optional per-source actor overrides) at call time from
+// process.env — never at module scope. Real failures propagate to the
+// pipeline's failure path. There is no mock path: an unconfigured or failing
+// scraper surfaces as an error.
 
 const APIFY_BASE = "https://api.apify.com/v2";
 const POLL_TIMEOUT_MS = 20 * 60 * 1000;
