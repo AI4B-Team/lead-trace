@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Loader2, Trash2, MessageSquare, Phone, Mail, MapPin, StickyNote } from "lucide-react";
 import { toast } from "sonner";
 import { getLeadDetail, addLeadNote, deleteLeadNote } from "@/lib/lead-detail.functions";
+import { resolvedProfileForLead } from "@/lib/bot-profiles.functions";
 import { LeadTagBar } from "@/components/app/lead-tag-picker";
 import { formatLocation } from "@/lib/location";
 
@@ -141,6 +142,9 @@ export function LeadDetailDrawer({
 
             <section>
               <h3 className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Tags</h3>
+              {data?.primaryLeadId ? (
+                <ResolvedProfileRow workspaceId={workspaceId} leadId={data.primaryLeadId} />
+              ) : null}
               {data?.primaryLeadId ? (
                 <LeadTagBar workspaceId={workspaceId} leadId={data.primaryLeadId} />
               ) : (
