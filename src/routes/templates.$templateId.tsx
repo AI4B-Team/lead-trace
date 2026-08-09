@@ -6,6 +6,7 @@ import { TemplateLogo } from "@/components/marketing/template-logo";
 import { PipelineFunnel } from "@/components/app/pipeline-funnel";
 import { Button } from "@/components/ui/button";
 import {
+import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
   CATEGORY_LABELS,
   getTemplate,
   primaryCategory,
@@ -38,6 +39,7 @@ export const Route = createFileRoute("/templates/$templateId")({
   },
   notFoundComponent: TemplateNotFound,
   component: TemplateDetailPage,
+  errorComponent: RouteErrorState,
 });
 
 const STEPS = [

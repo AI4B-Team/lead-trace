@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
-import { reportLovableError } from "@/lovable/report-error";
+import { reportLovableError } from "@/lib/lovable-error-reporting";
 
 /** Shared error boundary for public routes with loaders. */
 export function RouteErrorState({ error, reset }: { error: Error; reset: () => void }) {

@@ -4,6 +4,7 @@ import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { Button } from "@/components/ui/button";
 import { getGuideDetail } from "@/lib/distress-feed.functions";
 import { countyFromSlug, countySlug, recordTypeBySlug, recordTypeLabel } from "@/lib/distress-feed.shared";
+import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/distress-feed/guides/$state/$county/$recordType")({
   loader: async ({ params }) => {
@@ -65,6 +66,7 @@ export const Route = createFileRoute("/distress-feed/guides/$state/$county/$reco
     };
   },
   component: GuideDetail,
+  errorComponent: RouteErrorState,
   notFoundComponent: () => (
     <MarketingLayout>
       <div className="mx-auto max-w-3xl px-6 py-20 text-center">

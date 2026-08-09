@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { LeadLandingPage } from "@/components/marketing/lead-landing-page";
 import { getLeadPage, type LeadPage } from "@/lib/lead-pages";
+import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/leads/$slug")({
   loader: ({ params }) => {
@@ -33,6 +34,8 @@ export const Route = createFileRoute("/leads/$slug")({
     };
   },
   component: LeadPageRoute,
+  errorComponent: RouteErrorState,
+  notFoundComponent: () => <RouteNotFoundState />,
 });
 
 function LeadPageRoute() {
