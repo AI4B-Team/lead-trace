@@ -50,6 +50,12 @@ export function RouteNotFoundState({
   title?: string;
   message?: string;
 }) {
+  // Fallback 404s inherit whatever title the previous route set, which reads as
+  // a working page in tabs and share cards. Correct it once on mount.
+  useEffect(() => {
+    document.title = `${title} — LeadTrace`;
+  }, [title]);
+
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4 py-16">
       <div className="max-w-md text-center">
