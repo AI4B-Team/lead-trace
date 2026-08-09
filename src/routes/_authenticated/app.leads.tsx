@@ -33,6 +33,7 @@ import { aggregateFields, type LeadField } from "@/lib/lead-fields";
 export const Route = createFileRoute("/_authenticated/app/leads")({
   validateSearch: (search: Record<string, unknown>) => ({
     onlyNew: search.onlyNew === true || search.onlyNew === "true",
+    q: typeof search.q === "string" ? (search.q as string) : undefined,
   }),
   head: () => ({
     meta: [
@@ -198,11 +199,11 @@ function ListMembershipCell({ leadId, count }: { leadId: string; count: number }
 function LeadsPageInner() {
   const { workspaceId } = useWorkspaceId();
   const team = useTeamContext();
-  const { onlyNew: onlyNewParam } = Route.useSearch();
+  const { onlyNew: onlyNewParam, q: qParam } = Route.useSearch();
   const fetchRecords = useServerFn(listLeadRecords);
   const fetchExport = useServerFn(exportLeadRecords);
 
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(qParam ?? "");
   const [disposition, setDisposition] = useState<"all" | "clean" | "dnc" | "litigator">("all");
   const [sourceType, setSourceType] = useState("all");
   const [channel, setChannel] = useState<"all" | "phone" | "email" | "address">("all");

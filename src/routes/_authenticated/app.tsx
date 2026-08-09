@@ -4,7 +4,6 @@ import { AppSidebar } from "@/components/app/app-sidebar";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
-import { WorkspaceSwitcher } from "@/components/app/workspace-switcher";
 import { ProfileDropdown } from "@/components/app/profile-dropdown";
 import { NotificationBell } from "@/components/app/notification-bell";
 import { ActivityPanel } from "@/components/app/activity-panel";
@@ -60,7 +59,6 @@ function AppLayoutInner() {
         <header className="h-14 flex items-center justify-between gap-2 border-b border-border bg-background px-3 sm:px-4">
           <div className="flex min-w-0 items-center gap-2">
             <SidebarTrigger className="md:hidden h-9 w-9 shrink-0" />
-            <div className="hidden md:block"><WorkspaceSwitcher /></div>
           </div>
           <TooltipProvider delayDuration={150}>
             <div className="flex shrink-0 items-center gap-1">
