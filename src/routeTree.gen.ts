@@ -99,6 +99,7 @@ import { Route as ApiPublicHooksTickPlanRenewalRouteImport } from './routes/api/
 import { Route as ApiPublicHooksTickJobsRouteImport } from './routes/api/public/hooks/tick-jobs'
 import { Route as ApiPublicHooksTickDistressFeedRouteImport } from './routes/api/public/hooks/tick-distress-feed'
 import { Route as ApiPublicHooksTickCampaignsRouteImport } from './routes/api/public/hooks/tick-campaigns'
+import { Route as ApiPublicHooksTickAgentsRouteImport } from './routes/api/public/hooks/tick-agents'
 import { Route as ApiPublicHooksTelnyxInboundRouteImport } from './routes/api/public/hooks/telnyx-inbound'
 import { Route as ApiPublicHooksTelnyxDlrRouteImport } from './routes/api/public/hooks/telnyx-dlr'
 import { Route as ApiPublicHooksTelnyxCallRouteImport } from './routes/api/public/hooks/telnyx-call'
@@ -593,6 +594,12 @@ const ApiPublicHooksTickCampaignsRoute =
     path: '/api/public/hooks/tick-campaigns',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksTickAgentsRoute =
+  ApiPublicHooksTickAgentsRouteImport.update({
+    id: '/api/public/hooks/tick-agents',
+    path: '/api/public/hooks/tick-agents',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksTelnyxInboundRoute =
   ApiPublicHooksTelnyxInboundRouteImport.update({
     id: '/api/public/hooks/telnyx-inbound',
@@ -743,6 +750,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/telnyx-call': typeof ApiPublicHooksTelnyxCallRoute
   '/api/public/hooks/telnyx-dlr': typeof ApiPublicHooksTelnyxDlrRoute
   '/api/public/hooks/telnyx-inbound': typeof ApiPublicHooksTelnyxInboundRoute
+  '/api/public/hooks/tick-agents': typeof ApiPublicHooksTickAgentsRoute
   '/api/public/hooks/tick-campaigns': typeof ApiPublicHooksTickCampaignsRoute
   '/api/public/hooks/tick-distress-feed': typeof ApiPublicHooksTickDistressFeedRoute
   '/api/public/hooks/tick-jobs': typeof ApiPublicHooksTickJobsRoute
@@ -844,6 +852,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/telnyx-call': typeof ApiPublicHooksTelnyxCallRoute
   '/api/public/hooks/telnyx-dlr': typeof ApiPublicHooksTelnyxDlrRoute
   '/api/public/hooks/telnyx-inbound': typeof ApiPublicHooksTelnyxInboundRoute
+  '/api/public/hooks/tick-agents': typeof ApiPublicHooksTickAgentsRoute
   '/api/public/hooks/tick-campaigns': typeof ApiPublicHooksTickCampaignsRoute
   '/api/public/hooks/tick-distress-feed': typeof ApiPublicHooksTickDistressFeedRoute
   '/api/public/hooks/tick-jobs': typeof ApiPublicHooksTickJobsRoute
@@ -949,6 +958,7 @@ export interface FileRoutesById {
   '/api/public/hooks/telnyx-call': typeof ApiPublicHooksTelnyxCallRoute
   '/api/public/hooks/telnyx-dlr': typeof ApiPublicHooksTelnyxDlrRoute
   '/api/public/hooks/telnyx-inbound': typeof ApiPublicHooksTelnyxInboundRoute
+  '/api/public/hooks/tick-agents': typeof ApiPublicHooksTickAgentsRoute
   '/api/public/hooks/tick-campaigns': typeof ApiPublicHooksTickCampaignsRoute
   '/api/public/hooks/tick-distress-feed': typeof ApiPublicHooksTickDistressFeedRoute
   '/api/public/hooks/tick-jobs': typeof ApiPublicHooksTickJobsRoute
@@ -1054,6 +1064,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/telnyx-call'
     | '/api/public/hooks/telnyx-dlr'
     | '/api/public/hooks/telnyx-inbound'
+    | '/api/public/hooks/tick-agents'
     | '/api/public/hooks/tick-campaigns'
     | '/api/public/hooks/tick-distress-feed'
     | '/api/public/hooks/tick-jobs'
@@ -1155,6 +1166,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/telnyx-call'
     | '/api/public/hooks/telnyx-dlr'
     | '/api/public/hooks/telnyx-inbound'
+    | '/api/public/hooks/tick-agents'
     | '/api/public/hooks/tick-campaigns'
     | '/api/public/hooks/tick-distress-feed'
     | '/api/public/hooks/tick-jobs'
@@ -1259,6 +1271,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/telnyx-call'
     | '/api/public/hooks/telnyx-dlr'
     | '/api/public/hooks/telnyx-inbound'
+    | '/api/public/hooks/tick-agents'
     | '/api/public/hooks/tick-campaigns'
     | '/api/public/hooks/tick-distress-feed'
     | '/api/public/hooks/tick-jobs'
@@ -1329,6 +1342,7 @@ export interface RootRouteChildren {
   ApiPublicHooksTelnyxCallRoute: typeof ApiPublicHooksTelnyxCallRoute
   ApiPublicHooksTelnyxDlrRoute: typeof ApiPublicHooksTelnyxDlrRoute
   ApiPublicHooksTelnyxInboundRoute: typeof ApiPublicHooksTelnyxInboundRoute
+  ApiPublicHooksTickAgentsRoute: typeof ApiPublicHooksTickAgentsRoute
   ApiPublicHooksTickCampaignsRoute: typeof ApiPublicHooksTickCampaignsRoute
   ApiPublicHooksTickDistressFeedRoute: typeof ApiPublicHooksTickDistressFeedRoute
   ApiPublicHooksTickJobsRoute: typeof ApiPublicHooksTickJobsRoute
@@ -1980,6 +1994,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTickCampaignsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/tick-agents': {
+      id: '/api/public/hooks/tick-agents'
+      path: '/api/public/hooks/tick-agents'
+      fullPath: '/api/public/hooks/tick-agents'
+      preLoaderRoute: typeof ApiPublicHooksTickAgentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/telnyx-inbound': {
       id: '/api/public/hooks/telnyx-inbound'
       path: '/api/public/hooks/telnyx-inbound'
@@ -2242,6 +2263,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksTelnyxCallRoute: ApiPublicHooksTelnyxCallRoute,
   ApiPublicHooksTelnyxDlrRoute: ApiPublicHooksTelnyxDlrRoute,
   ApiPublicHooksTelnyxInboundRoute: ApiPublicHooksTelnyxInboundRoute,
+  ApiPublicHooksTickAgentsRoute: ApiPublicHooksTickAgentsRoute,
   ApiPublicHooksTickCampaignsRoute: ApiPublicHooksTickCampaignsRoute,
   ApiPublicHooksTickDistressFeedRoute: ApiPublicHooksTickDistressFeedRoute,
   ApiPublicHooksTickJobsRoute: ApiPublicHooksTickJobsRoute,
@@ -2266,13 +2288,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
