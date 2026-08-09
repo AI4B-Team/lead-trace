@@ -35,6 +35,8 @@ export const setListMonitor = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertWriter } = await import("./accountability.server");
+    await assertWriter(context.supabase, data.workspaceId, context.userId, "Change Monitoring");
     const nextRun = new Date(
       Date.now() + (data.cadence === "monthly" ? 30 : 91) * 86_400_000,
     ).toISOString();

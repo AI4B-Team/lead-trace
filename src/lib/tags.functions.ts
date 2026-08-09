@@ -30,6 +30,8 @@ export const updateTag = createServerFn({ method: "POST" })
     if (data.name) patch.name = data.name.trim();
     if (data.color) patch.color = data.color;
     if (!Object.keys(patch).length) return { ok: true };
+    const { assertWriterByRow } = await import("./accountability.server");
+    await assertWriterByRow(context.supabase, "tags", data.id, context.userId, "Edit Tags");
     const { error } = await context.supabase.from("tags").update(patch as never).eq("id", data.id);
     if (error) throw error;
     return { ok: true };
@@ -40,6 +42,8 @@ export const deleteTag = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
+    const { assertWriterByRow } = await import("./accountability.server");
+    await assertWriterByRow(context.supabase, "tags", data.id, context.userId, "Delete Tags");
     const { error } = await context.supabase.from("tags").delete().eq("id", data.id);
     if (error) throw error;
     return { ok: true };
@@ -56,6 +60,8 @@ export const createTag = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertWriter } = await import("./accountability.server");
+    await assertWriter(context.supabase, data.workspaceId, context.userId, "Create Tags");
     const { data: tag, error } = await context.supabase
       .from("tags")
       .upsert(
@@ -117,6 +123,8 @@ export const addLeadTag = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertWriter } = await import("./accountability.server");
+    await assertWriter(context.supabase, data.workspaceId, context.userId, "Tag Leads");
     let tagId = data.tagId ?? null;
     if (!tagId) {
       if (!data.name) throw new Error("A Tag Name Is Required");
@@ -151,6 +159,8 @@ export const removeLeadTag = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertWriter } = await import("./accountability.server");
+    await assertWriter(context.supabase, data.workspaceId, context.userId, "Tag Leads");
     const { error } = await context.supabase
       .from("lead_tags")
       .delete()
@@ -171,6 +181,8 @@ export const createQuickReply = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertWriter } = await import("./accountability.server");
+    await assertWriter(context.supabase, data.workspaceId, context.userId, "Save Quick Replies");
     const { data: row, error } = await context.supabase
       .from("quick_replies")
       .insert({ workspace_id: data.workspaceId, title: data.title.trim(), body: data.body.trim() })
@@ -184,6 +196,10 @@ export const deleteQuickReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
+    const { assertWriterByRow } = await import("./accountability.server");
+    await assertWriterByRow(
+      context.supabase, "quick_replies", data.id, context.userId, "Delete Quick Replies",
+    );
     const { error } = await context.supabase.from("quick_replies").delete().eq("id", data.id);
     if (error) throw error;
     return { ok: true };

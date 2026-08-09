@@ -26,6 +26,15 @@ export const enrichLeadRecord = createServerFn({ method: "POST" })
     // RLS-scoped client: queries only return rows the signed-in member can see.
     const { supabase, userId } = context;
 
+    // On-demand enrichment spends a skip-trace credit, so it runs through the
+    // same role + per-member cap gate as any other spend.
+    const { assertSpendAllowed } = await import("./accountability.server");
+    await assertSpendAllowed(supabase, data.workspaceId, userId, {
+      amount: 1,
+      action: "build_list",
+      summary: "Skip Trace One Lead",
+    });
+
     const { data: record } = await supabase
       .from("lead_records")
       .select(
