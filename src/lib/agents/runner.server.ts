@@ -14,6 +14,10 @@ async function execute(agent: AgentRow): Promise<RunOutcome> {
       const { runConversationLabeler } = await import("./labeler.server");
       return runConversationLabeler(agent);
     }
+    case "hot_lead_scorer": {
+      const { runHotLeadScorer } = await import("./scorer.server");
+      return runHotLeadScorer(agent);
+    }
     case "lead_scout": {
       const { runLeadScout } = await import("./scout.server");
       return runLeadScout(agent);
