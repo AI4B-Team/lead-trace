@@ -3987,40 +3987,52 @@ export type Database = {
       }
       webhook_deliveries: {
         Row: {
+          attempt: number
           created_at: string
           duration_ms: number | null
           endpoint_id: string | null
           error: string | null
           event_id: string | null
           event_type: string
+          gave_up: boolean
           id: string
+          next_retry_at: string | null
           ok: boolean
+          request_body: string | null
           status_code: number | null
           url: string
           workspace_id: string
         }
         Insert: {
+          attempt?: number
           created_at?: string
           duration_ms?: number | null
           endpoint_id?: string | null
           error?: string | null
           event_id?: string | null
           event_type: string
+          gave_up?: boolean
           id?: string
+          next_retry_at?: string | null
           ok?: boolean
+          request_body?: string | null
           status_code?: number | null
           url: string
           workspace_id: string
         }
         Update: {
+          attempt?: number
           created_at?: string
           duration_ms?: number | null
           endpoint_id?: string | null
           error?: string | null
           event_id?: string | null
           event_type?: string
+          gave_up?: boolean
           id?: string
+          next_retry_at?: string | null
           ok?: boolean
+          request_body?: string | null
           status_code?: number | null
           url?: string
           workspace_id?: string
