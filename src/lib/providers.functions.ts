@@ -54,3 +54,61 @@ export const checkApifyConnection = createServerFn({ method: "GET" })
     const { verifyApifyToken } = await import("./data-providers/apify");
     return verifyApifyToken();
   });
+
+export type VendorStatus = {
+  key: string;
+  label: string;
+  configured: boolean;
+  detail: string;
+};
+
+/**
+ * Data-vendor readiness for Settings → Integrations. Scrubbing is fail-closed,
+ * so an unconfigured scrub vendor is a hard blocker worth showing plainly.
+ */
+export const getVendorStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const { verifyApifyToken } = await import("./data-providers/apify");
+    const { getDncScrubber } = await import("./data-providers/dnc");
+
+    const apify = await verifyApifyToken().catch((err: unknown) => ({
+      ok: false,
+      message: err instanceof Error ? err.message : "Apify check failed.",
+    }));
+    const scrubber = getDncScrubber();
+    const scrubConfigured = scrubber.isConfigured();
+    const skipProvider = process.env.SKIPTRACE_PROVIDER ?? "realeflow-semi";
+
+    const vendors: VendorStatus[] = [
+      {
+        key: "apify",
+        label: "Business Sources — Google Maps, Yelp, LinkedIn",
+        configured: apify.ok,
+        detail: apify.ok
+          ? "Connected. Google Maps, Yelp, and LinkedIn company searches are live."
+          : apify.message,
+      },
+      {
+        key: "scrub",
+        label:
+          scrubber.key === "dnc.rpv"
+            ? "DNC & Litigator Scrub — RealPhoneValidation"
+            : "DNC & Litigator Scrub",
+        configured: scrubConfigured,
+        detail: scrubConfigured
+          ? "Connected. Federal DNC, state DNC, DMA, and litigator lists are checked before any send."
+          : "Not connected. Outreach stays blocked until a scrub vendor is configured.",
+      },
+      {
+        key: "skiptrace",
+        label: "Skip Trace",
+        configured: true,
+        detail:
+          skipProvider === "realeflow-semi"
+            ? "Semi-trace only: confirmed owner name and mailing address. No phone vendor is connected yet."
+            : `Provider: ${skipProvider}.`,
+      },
+    ];
+    return { vendors };
+  });
