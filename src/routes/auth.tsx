@@ -312,6 +312,8 @@ function AuthPage() {
           <p className="text-xs text-muted-foreground mt-4 text-center">
             By Continuing You Agree To Our <Link to="/compliance" className="text-primary font-medium">Compliance Terms</Link>.
           </p>
+          </>
+          )}
           </div>
           </div>
         </section>
