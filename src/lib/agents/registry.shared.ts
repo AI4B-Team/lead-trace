@@ -73,7 +73,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     cadence: "Weekly",
     intervalMinutes: 10080,
     proposalsOnly: true,
-    implemented: false,
+    implemented: true,
   },
   {
     key: "wisdom_miner",

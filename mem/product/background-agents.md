@@ -17,3 +17,23 @@ Background agents (Conversation Labeler, Lead Scout, Hot-Lead Scorer, Booking Au
 - The Scout skips suppressed/opted-out phones, landlines, terminal dispositions and outcomes, leads already in an active sequence, live conversations (a reply with no recorded outcome belongs to a human), and anything touched in the last 4 days.
 - Lead scoring runs on named signals with weights (`DEFAULT_SIGNAL_WEIGHTS` in `scout.shared.ts`). The Hot-Lead Scorer refits those weights weekly from the workspace's own labeled conversations using conversion-rate lift, clamped to half/double the default, and refuses to fit below 40 conversations / 5 conversions / 12 examples per signal — it says "not enough history" instead of guessing.
 - A weight refit always lands as a `scorer_weights` proposal. Approving it applies the weighting; in active mode the Scorer applies its own weighting and still files the proposal as the audit trail.
+## Coach (P5.8.5) — proposals only, permanently
+
+Reads labeled conversations from the last 60 days, groups them by the bot profile
+that drove them (older threads without a recorded profile fall to the workspace
+default rather than being dropped), and drafts specific wording edits.
+
+Rules baked into `src/lib/agents/coach.shared.ts`:
+- A pattern needs at least 4 separate conversations before anything is drafted.
+- Drafts are additive only: objection answers, FAQs, and escalation triggers are
+  appended; nothing existing is ever removed.
+- The opener is only touched when at least 20 conversations ran and 70%+ ended in
+  no reply or a flat no, and the draft is the operator's own first two sentences.
+- Every draft carries the thread keys and counts behind it.
+
+Application path: the Coach never writes to `bot_profiles`. Approval in
+`reviewAgentProposal` applies the field and records a `bot_profile_versions`
+snapshot with `change_source = agent_proposal`, the proposal id, and the
+approving user — so "what was the bot told to say on this date, and who signed it
+off?" is answerable from one query. The Coach and Wisdom Miner have no active
+mode, enforced in `assertModeAllowed`.
