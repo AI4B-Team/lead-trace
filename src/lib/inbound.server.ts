@@ -117,6 +117,7 @@ async function runBot(ctx: InboundContext): Promise<InboundOutcome["bot"]> {
     config: (campaign.bot_config ?? {}) as Record<string, never>,
     regulated: !!campaign.regulated_vertical,
     knowledge: buildKnowledgeBrief(knowledgeRows ?? []),
+    profile: profile,
   });
 
   if (outcome.action === "reply") {
