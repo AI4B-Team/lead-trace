@@ -79,16 +79,27 @@ async function blacklistAllianceScrub(apiKey: string, phones: string[]): Promise
 
 export function getDncScrubber(): DncScrubber {
   return {
-    key: isRpvConfigured() ? "dnc.rpv" : "dnc.http",
+    key: isRpvConfigured()
+      ? "dnc.rpv"
+      : process.env.BLACKLIST_ALLIANCE_API_KEY
+        ? "dnc.blacklistalliance"
+        : "dnc.http",
     isConfigured() {
-      return isRpvConfigured() || Boolean(process.env.DNC_API_URL && process.env.DNC_API_KEY);
+      return isRpvConfigured() || Boolean(process.env.BLACKLIST_ALLIANCE_API_KEY) || Boolean(process.env.DNC_API_URL && process.env.DNC_API_KEY);
     },
     async scrub(phones) {
       const url = process.env.DNC_API_URL;
       const apiKey = process.env.DNC_API_KEY;
+      const baKey = process.env.BLACKLIST_ALLIANCE_API_KEY;
       if (phones.length === 0) {
         return {
-          provider: isRpvConfigured() ? "realphonevalidation" : url ? new URL(url).hostname : "none",
+          provider: isRpvConfigured()
+            ? "realphonevalidation"
+            : baKey
+              ? "blacklistalliance"
+              : url
+                ? new URL(url).hostname
+                : "none",
           results: [],
           proof: { count: 0, scrubbed_at: new Date().toISOString() },
         };
@@ -96,9 +107,19 @@ export function getDncScrubber(): DncScrubber {
       if (isRpvConfigured()) {
         return rpvScrub(phones);
       }
+      if (baKey) {
+        try {
+          return await blacklistAllianceScrub(baKey, phones);
+        } catch (err) {
+          console.error("[dnc] Blacklist Alliance scrub failed — failing closed:", err);
+          throw new DncUnavailableError(
+            `DNC and litigator scrubbing could not be completed: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        }
+      }
       if (!url || !apiKey) {
         throw new DncUnavailableError(
-          "DNC and litigator scrubbing is not configured. Add RPV_API_TOKEN (RealPhoneValidation) before any list is scrubbed or sent.",
+          "DNC and litigator scrubbing is not configured. Add RPV_API_TOKEN (RealPhoneValidation), BLACKLIST_ALLIANCE_API_KEY, or DNC_API_URL + DNC_API_KEY before any list is scrubbed or sent.",
         );
       }
       try {
