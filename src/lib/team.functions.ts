@@ -223,6 +223,32 @@ export const acceptInvite = createServerFn({ method: "POST" })
       throw new Error(`This invite is for ${inv.email}. Sign in with that email to accept.`);
     }
 
+    // Seat ceiling again at acceptance: the plan can downgrade between invite
+    // and accept, and an already-seated user re-accepting must not be blocked.
+    const { data: ws2 } = await supabaseAdmin
+      .from("workspaces")
+      .select("billing_plan")
+      .eq("id", inv.workspace_id)
+      .maybeSingle();
+    const acceptPlan = planFor((ws2 as { billing_plan?: string | null } | null)?.billing_plan);
+    if (acceptPlan.seats !== null) {
+      const { data: already } = await supabaseAdmin
+        .from("workspace_members")
+        .select("user_id")
+        .eq("workspace_id", inv.workspace_id)
+        .eq("user_id", context.userId)
+        .maybeSingle();
+      if (!already) {
+        const { count } = await supabaseAdmin
+          .from("workspace_members")
+          .select("user_id", { count: "exact", head: true })
+          .eq("workspace_id", inv.workspace_id);
+        if ((count ?? 0) >= acceptPlan.seats) {
+          throw new Error("This workspace has no seats available. Ask an admin to upgrade the plan.");
+        }
+      }
+    }
+
     const { error: memErr } = await supabaseAdmin
       .from("workspace_members")
       .upsert({ workspace_id: inv.workspace_id, user_id: context.userId, role: inv.role }, { onConflict: "workspace_id,user_id" });
