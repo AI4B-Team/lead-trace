@@ -191,6 +191,8 @@ function PlatformDashboard() {
                 <div className="flex min-w-0 items-center gap-2">
                   {task.consecutiveFailures > 0 ? (
                     <XCircle className="h-4 w-4 shrink-0 text-destructive" />
+                  ) : task.neverRan ? (
+                    <XCircle className="h-4 w-4 shrink-0 text-destructive" />
                   ) : task.stale ? (
                     <Clock className="h-4 w-4 shrink-0 text-warn" />
                   ) : (
@@ -199,7 +201,9 @@ function PlatformDashboard() {
                   <div className="min-w-0">
                     <div className="truncate text-sm font-medium">{task.label}</div>
                     <div className="truncate text-[11px] text-muted-foreground">
-                      {task.lastDetail ?? "No Run Recorded Yet"}
+                      {task.neverRan
+                        ? "Never Reached — Check That The Hook Is Deployed"
+                        : (task.lastDetail ?? "No Run Recorded Yet")}
                     </div>
                   </div>
                 </div>
@@ -209,14 +213,18 @@ function PlatformDashboard() {
                     className={
                       task.consecutiveFailures > 0
                         ? "border-destructive/40 text-destructive"
-                        : task.stale
+                        : task.neverRan
+                          ? "border-destructive/40 text-destructive"
+                          : task.stale
                           ? "border-warn/40 text-warn"
                           : "border-border text-muted-foreground"
                     }
                   >
                     {task.consecutiveFailures > 0
                       ? `${task.consecutiveFailures} Failed In A Row`
-                      : task.stale
+                      : task.neverRan
+                        ? "Never Run"
+                        : task.stale
                         ? "No Recent Run"
                         : "Healthy"}
                   </Badge>
