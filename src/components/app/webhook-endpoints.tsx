@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Trash2, Webhook } from "lucide-react";
+import { Loader2, Trash2, Webhook, Pause, Play } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspaceId } from "@/hooks/use-workspace";
-import { deleteWebhook, listWebhooks, saveWebhook } from "@/lib/monitoring.functions";
+import { deleteWebhook, listWebhooks, saveWebhook, setWebhookActive } from "@/lib/monitoring.functions";
 import { EVENT_TYPES } from "@/lib/events.shared";
 
 /**
@@ -21,6 +21,7 @@ export function WebhookEndpoints() {
   const fetchHooks = useServerFn(listWebhooks);
   const save = useServerFn(saveWebhook);
   const remove = useServerFn(deleteWebhook);
+  const setActive = useServerFn(setWebhookActive);
   const qc = useQueryClient();
 
   const [url, setUrl] = useState("");
@@ -62,13 +63,40 @@ export function WebhookEndpoints() {
             {rows.map((r) => (
               <div key={r.id} className="flex items-center justify-between gap-3 p-3">
                 <div className="min-w-0">
-                  <div className="font-medium text-sm text-foreground truncate">{r.url}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-medium text-sm text-foreground truncate">{r.url}</div>
+                    {!r.active && (
+                      <Badge variant="outline" className="border-danger/40 text-danger text-[10px] font-medium">
+                        Paused
+                      </Badge>
+                    )}
+                  </div>
+                  {!r.active && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Turned off after repeated delivery failures. Fix the endpoint, then resume it.
+                    </p>
+                  )}
                   <div className="mt-1 flex flex-wrap gap-1">
                     {(r.event_types?.length ? r.event_types : ["All events"]).map((t) => (
                       <Badge key={t} variant="secondary" className="font-normal text-[10px]">{t}</Badge>
                     ))}
                   </div>
                 </div>
+                <div className="flex items-center gap-1 shrink-0">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="rounded-full"
+                  onClick={async () => {
+                    await setActive({ data: { id: r.id, active: !r.active } });
+                    toast.success(r.active ? "Endpoint paused." : "Endpoint resumed.");
+                    qc.invalidateQueries({ queryKey: ["webhooks", workspaceId] });
+                    qc.invalidateQueries({ queryKey: ["webhook-deliveries", workspaceId] });
+                  }}
+                >
+                  {r.active ? <Pause className="mr-1 h-3.5 w-3.5" /> : <Play className="mr-1 h-3.5 w-3.5" />}
+                  {r.active ? "Pause" : "Resume"}
+                </Button>
                 <Button
                   size="icon"
                   variant="ghost"
@@ -80,6 +108,7 @@ export function WebhookEndpoints() {
                 >
                   <Trash2 className="h-4 w-4 text-danger" />
                 </Button>
+                </div>
               </div>
             ))}
           </div>
