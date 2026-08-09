@@ -26,6 +26,7 @@ import {
   agentDefinition,
   type AgentMode,
 } from "@/lib/agents/registry.shared";
+import { BOOKING_ISSUE_LABEL, type BookingIssue } from "@/lib/agents/booking.shared";
 import {
   OUTCOME_LABEL,
   SENTIMENT_LABEL,
