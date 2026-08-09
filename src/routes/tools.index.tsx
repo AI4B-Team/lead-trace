@@ -120,7 +120,7 @@ function ToolsHub() {
         <h1 className="mt-3 font-display text-5xl font-black text-foreground leading-tight">
           Free Lead &amp; Compliance Tools
         </h1>
-        <p className="mt-4 text-lg text-muted-foreground max-w-2xl whitespace-nowrap">
+        <p className="mt-4 text-lg text-muted-foreground max-w-2xl lg:whitespace-nowrap">
           The same verification tools built into every LeadTrace list — available free, one lookup at a time.
         </p>
         <div className="mt-12 grid gap-5 sm:grid-cols-2">

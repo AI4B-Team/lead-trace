@@ -34,6 +34,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { BRAND_NAME } from "@/config/brand";
+import { WorkspaceSwitcher } from "@/components/app/workspace-switcher";
 
 const ITEMS = [
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -49,7 +50,7 @@ const ITEMS = [
 type Counts = { lists: number; leads: number; campaigns: number };
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile } = useSidebar();
   const { workspaceId } = useWorkspaceId();
   const [counts, setCounts] = useState<Counts>({ lists: 0, leads: 0, campaigns: 0 });
 
@@ -72,7 +73,7 @@ export function AppSidebar() {
     : to === "/app/campaigns" ? counts.campaigns
     : 0;
 
-  const collapsed = state === "collapsed";
+  const collapsed = !isMobile && state === "collapsed";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
@@ -112,6 +113,11 @@ export function AppSidebar() {
               )}
             </Tooltip>
           </div>
+          {isMobile && (
+            <div className="px-2 pb-1">
+              <WorkspaceSwitcher />
+            </div>
+          )}
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>

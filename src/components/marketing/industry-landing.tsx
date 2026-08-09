@@ -158,7 +158,7 @@ export function IndustryLandingPage({ data }: { data: IndustryLanding }) {
       <section className="bg-background pb-24">
         <div className="mx-auto max-w-7xl px-6">
           <div className="rounded-3xl bg-primary text-primary-foreground p-12 md:p-16 text-center">
-            <h2 className="font-display text-3xl md:text-4xl font-black leading-tight whitespace-nowrap">
+            <h2 className="font-display text-3xl md:text-4xl font-black leading-tight lg:whitespace-nowrap">
               Ready To Fill Your {data.industry} Pipeline?
             </h2>
             <p className="mt-4 text-primary-foreground/80 max-w-2xl mx-auto">

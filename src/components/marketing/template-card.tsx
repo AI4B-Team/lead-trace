@@ -80,7 +80,7 @@ export function TemplateCard({
 }) {
   const broken = health === "broken" || comingSoon;
   const className =
-    `group relative flex items-center ${large ? "gap-4" : "gap-3"} rounded-2xl border ${compact ? "p-3" : large ? "p-5" : "p-4"} transition text-left w-full ${
+    `group relative flex min-w-0 items-center ${large ? "gap-3 sm:gap-4" : "gap-3"} rounded-2xl border ${compact ? "p-3" : large ? "p-4 sm:p-5" : "p-4"} transition text-left w-full ${
       broken ? "cursor-not-allowed opacity-60" : "hover:border-primary hover:shadow-sm"
     } ${
       selected ? "border-primary bg-primary/5" : "border-border bg-surface"
@@ -100,11 +100,11 @@ export function TemplateCard({
         iconClassName={large ? "h-6 w-6" : undefined}
         imgClassName={large ? "h-8 w-8" : undefined}
       />
-      <span className="min-w-0">
-        <span className="flex items-center gap-2">
+      <span className="min-w-0 flex-1">
+        <span className="flex min-w-0 items-center gap-2">
           <TemplateHealthDot status={health} />
           <span
-            className={`font-display font-bold text-foreground truncate ${compact ? "text-sm" : large ? "text-lg" : ""}`}
+            className={`min-w-0 font-display font-bold text-foreground truncate ${compact ? "text-sm" : large ? "text-lg" : ""}`}
           >
             {title}
           </span>

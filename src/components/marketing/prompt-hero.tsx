@@ -125,7 +125,7 @@ export function PromptHero({ selectedTemplate }: { selectedTemplate?: Template |
         </div>
 
         <div className="w-screen relative left-1/2 -translate-x-1/2">
-          <h1 className="hero-headline mx-auto mt-6 px-4 font-body font-extrabold text-foreground leading-[1.05] tracking-tight whitespace-nowrap">
+          <h1 className="hero-headline mx-auto mt-6 px-4 font-body font-extrabold text-foreground leading-[1.05] tracking-tight lg:whitespace-nowrap">
             Find Them. <MarkerHighlight>Reach</MarkerHighlight> Them. Close Them.
           </h1>
         </div>

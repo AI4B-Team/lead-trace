@@ -311,15 +311,18 @@
 
 /* §20 Content density: internal app pages render at 80% density.
    Sidebar + top bar stay 100%. Uses `zoom` (reflows) — never transform: scale. */
+/* Phones stay at 100% — 80% of 16px is unreadable on a small screen. */
 @supports (zoom: 0.8) {
-  .app-density {
-    zoom: 0.8;
-  }
-  /* Portal-rendered overlays density-matched to the zoomed content */
-  [role="dialog"],
-  [role="alertdialog"],
-  [data-sonner-toaster] {
-    zoom: 0.8;
+  @media (min-width: 768px) {
+    .app-density {
+      zoom: 0.8;
+    }
+    /* Portal-rendered overlays density-matched to the zoomed content */
+    [role="dialog"],
+    [role="alertdialog"],
+    [data-sonner-toaster] {
+      zoom: 0.8;
+    }
   }
 }
 
@@ -344,7 +347,15 @@ html.site-density :is(p, li, blockquote, dd, dt, label, textarea, input) {
    convert the remaining viewport into the 0.8-zoomed layout space, then remove
    the content padding and the page title/subheadline block. */
 .inbox-shell {
-  height: calc((100vh - 3.5rem) / 0.8 - 4rem - 5.5rem);
+  height: auto;
+  min-height: 32rem;
+}
+
+@media (min-width: 768px) {
+  .inbox-shell {
+    height: calc((100vh - 3.5rem) / 0.8 - 4rem - 5.5rem);
+    min-height: 0;
+  }
 }
 
 /* Full-height AI Assistant shell — scoped to the assistant page only, kept
@@ -352,8 +363,14 @@ html.site-density :is(p, li, blockquote, dd, dt, label, textarea, input) {
    un-zoomed (content renders at 0.8), minus the content padding (4rem) and the
    page title/subheadline block (~5.5rem). Thread and spec rail scroll inside. */
 .assistant-shell {
-  height: calc((100vh - 3.5rem) / 0.8 - 4rem - 5.5rem);
+  height: auto;
   min-height: 30rem;
+}
+
+@media (min-width: 768px) {
+  .assistant-shell {
+    height: calc((100vh - 3.5rem) / 0.8 - 4rem - 5.5rem);
+  }
 }
 
 /* Thin overflow scrollbar — applied only when content actually overflows, so a

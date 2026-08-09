@@ -124,7 +124,7 @@ function Help() {
           <h1 className="mt-3 font-display text-5xl lg:text-6xl font-black text-foreground leading-tight">
             How Can We Help?
           </h1>
-          <p className="mt-5 text-lg text-muted-foreground mx-auto max-w-3xl whitespace-nowrap">
+          <p className="mt-5 text-lg text-muted-foreground mx-auto max-w-3xl lg:whitespace-nowrap">
             Learn how to build lists, launch campaigns, and get the most from LeadTrace.
           </p>
 
