@@ -110,4 +110,12 @@ export function assertModeAllowed(agentKey: string, mode: string): void {
   if (def?.proposalsOnly) {
     fail(`The ${def.name} only ever proposes. It has no active mode.`);
   }
+  // Every other agent reads and records only. Until a runner path genuinely
+  // acts on its own, 'active' would be a switch that changes nothing while
+  // reading as autonomy — so it is refused rather than quietly accepted.
+  if (!def?.activeCapable) {
+    fail(
+      `The ${def?.name ?? agentKey} records what it finds for a person to act on. Flag Only is its highest mode today.`,
+    );
+  }
 }

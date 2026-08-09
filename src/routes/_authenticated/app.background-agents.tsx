@@ -304,12 +304,17 @@ function BackgroundAgentsPage() {
                     <SelectContent>
                       <SelectItem value="off">{AGENT_MODE_LABEL.off}</SelectItem>
                       <SelectItem value="flag_only">{AGENT_MODE_LABEL.flag_only}</SelectItem>
-                      {!def.proposalsOnly && (
+                      {def.activeCapable && (
                         <SelectItem value="active">{AGENT_MODE_LABEL.active}</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
                 </div>
+                {!def.activeCapable && (
+                  <p className="text-xs text-muted-foreground">
+                    Records What It Finds — A Person Decides What Happens Next.
+                  </p>
+                )}
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                   <span className="inline-flex items-center gap-1">
                     <Clock className="h-3 w-3" /> {def.cadence}

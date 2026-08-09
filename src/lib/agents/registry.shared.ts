@@ -25,6 +25,12 @@ export type AgentDefinition = {
   intervalMinutes: number;
   /** Agents that may never be switched to 'active'. */
   proposalsOnly?: boolean;
+  /**
+   * True only when the runner actually does something different in 'active'
+   * mode. Nothing is active-capable today, so the mode is not offered: an
+   * operator flipping a switch that changes nothing is worse than no switch.
+   */
+  activeCapable?: boolean;
   /** Implemented and wired into the runner. */
   implemented: boolean;
 };
