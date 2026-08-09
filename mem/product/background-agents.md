@@ -61,3 +61,19 @@ Rules, all enforced in `wisdom.shared.ts` and unit-tested:
 Capture lands on the workspace default profile. Approval goes through the review
 queue only, which snapshots a new `bot_profile_versions` row carrying the
 proposal id and the approver — so wording on any date is reconstructable.
+
+## Booking Auditor (P5.8.4) — flags only
+
+Audits every thread currently marked "Appointment Set" plus every conversation
+the Labeler recorded as `booked` in the last 14 days. It never changes a status,
+cancels, reschedules, or replies — a booking stays exactly as recorded until a
+person decides.
+
+Issues it raises, worst first: `cancelled_after_booking`, `time_mismatch`,
+`no_lead_confirmation` / `bot_assumed_yes`, `no_time_agreed`,
+`stale_no_confirmation` (48h marked with no confirmation).
+
+Rules in `booking.shared.ts`, unit-tested: the lead's last named day/time counts
+only when it is not a question, so "could you do 5pm instead?" is not agreement;
+a cancel counts only when it lands after the last confirmation; capped at 25
+flags per run so the queue stays readable.
