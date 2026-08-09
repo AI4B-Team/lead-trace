@@ -207,6 +207,9 @@ export const advanceRegistration = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    // 10DLC identity is workspace-level compliance data — admins/owners only.
+    const { assertAction } = await import("./accountability.server");
+    await assertAction(context.supabase, data.workspaceId, context.userId, "manage_limits");
     const { data: existing } = await context.supabase
       .from("registrations")
       .select("*")
@@ -262,6 +265,8 @@ export const submitBrandToProvider = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertAction } = await import("./accountability.server");
+    await assertAction(context.supabase, data.workspaceId, context.userId, "manage_limits");
     const { isProviderConfigured, getProvider } = await import("@/lib/sms");
     const { data: existing } = await context.supabase
       .from("registrations")
@@ -314,6 +319,8 @@ export const submitCampaignToProvider = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertAction } = await import("./accountability.server");
+    await assertAction(context.supabase, data.workspaceId, context.userId, "manage_limits");
     const { isProviderConfigured, getProvider } = await import("@/lib/sms");
     const { data: existing } = await context.supabase
       .from("registrations")
