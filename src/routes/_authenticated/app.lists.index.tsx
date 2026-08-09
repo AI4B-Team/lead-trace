@@ -64,6 +64,9 @@ import { getTemplate, CATEGORY_LABELS, primaryCategory, type Template, type Temp
 import { TemplateLogo } from "@/components/marketing/template-logo";
 
 export const Route = createFileRoute("/_authenticated/app/lists/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    q: typeof search.q === "string" ? (search.q as string) : undefined,
+  }),
   head: () => ({ meta: [{ title: "Lists — LeadTrace" }] }),
   component: Jobs,
 });

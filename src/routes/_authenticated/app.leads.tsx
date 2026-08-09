@@ -33,6 +33,7 @@ import { aggregateFields, type LeadField } from "@/lib/lead-fields";
 export const Route = createFileRoute("/_authenticated/app/leads")({
   validateSearch: (search: Record<string, unknown>) => ({
     onlyNew: search.onlyNew === true || search.onlyNew === "true",
+    q: typeof search.q === "string" ? (search.q as string) : undefined,
   }),
   head: () => ({
     meta: [
