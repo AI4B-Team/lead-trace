@@ -11,6 +11,8 @@ export const Route = createFileRoute("/features")({
       { name: "description", content: "Niche scraper, public records, skip trace, DNC scrub, smart campaigns, list quality score, and compliance built in." },
       { property: "og:title", content: "LeadTrace Features" },
       { property: "og:description", content: "Everything the pipeline needs. Nothing it doesn't." },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:type", content: "website" },
     ],
   }),
   component: Features,

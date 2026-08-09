@@ -33,6 +33,31 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Find them, trace them, scrub them, text them — automatically. Describe who you want to reach; LeadTrace builds the campaign." },
       { property: "og:title", content: "LeadTrace — Stop Buying Lists. Start Closing Deals." },
       { property: "og:description", content: "Find them, trace them, scrub them, text them — automatically. Describe who you want to reach; LeadTrace builds the campaign." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "LeadTrace — Stop Buying Lists. Start Closing Deals." },
+      { name: "twitter:description", content: "Find them, trace them, scrub them, text them — automatically." },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "LeadTrace",
+          applicationCategory: "BusinessApplication",
+          operatingSystem: "Web",
+          url: "https://leadtrace.com",
+          description:
+            "Build compliant outbound lead lists from public records, scrapers, or your own uploads — skip traced, DNC scrubbed, and ready to text.",
+          offers: {
+            "@type": "Offer",
+            price: "0",
+            priceCurrency: "USD",
+            description: "Free plan with 50 Distress Feed records",
+          },
+        }),
+      },
     ],
   }),
   validateSearch: (search: Record<string, unknown>): { prompt?: string; template?: string } => ({
