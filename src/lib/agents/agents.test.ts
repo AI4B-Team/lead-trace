@@ -221,3 +221,71 @@ describe("lead scout", () => {
     expect(skipped["no phone on file"]).toBe(1);
   });
 });
+// ---------------------------------------------------------------------------
+// P5.8.5 — the Coach. It only ever adds wording, and it stays quiet on thin
+// history. Both are safety properties, not preferences.
+// ---------------------------------------------------------------------------
+describe("coach drafts", () => {
+  const profile = {
+    id: "p1",
+    name: "Distress Feed",
+    opener: "Hi, saw your property in county records and wanted to reach out.",
+    objections: [],
+    faqs: [],
+    escalationTriggers: [],
+  };
+
+  function convo(i: number, over: Partial<CoachConversation> = {}): CoachConversation {
+    return {
+      threadKey: `t${i}`,
+      outcome: "not_interested",
+      objectionCategory: null,
+      sentiment: null,
+      inbound: [],
+      noReply: false,
+      ...over,
+    };
+  }
+
+  it("says nothing on thin history", () => {
+    const drafts = draftCoachEdits(profile, [
+      convo(1, { objectionCategory: "price" }),
+      convo(2, { objectionCategory: "price" }),
+    ]);
+    expect(drafts).toHaveLength(0);
+  });
+
+  it("drafts an approved answer once an objection recurs", () => {
+    const convos = [1, 2, 3, 4, 5].map((i) => convo(i, { objectionCategory: "price" }));
+    const drafts = draftCoachEdits(profile, convos);
+    const objection = drafts.find((d) => d.field === "objections");
+    expect(objection).toBeTruthy();
+    expect((objection!.value as unknown[]).length).toBe(1);
+    expect(objection!.evidence.length).toBe(5);
+  });
+
+  it("never removes existing wording", () => {
+    const withExisting = {
+      ...profile,
+      faqs: [{ q: "Existing question?", a: "Existing answer." }],
+      escalationTriggers: ["hospice"],
+    };
+    const convos = [1, 2, 3, 4, 5].map((i) =>
+      convo(i, { inbound: ["where did you get my number", "call me"] }),
+    );
+    const drafts = draftCoachEdits(withExisting, convos);
+    for (const d of drafts) {
+      if (!Array.isArray(d.current)) continue;
+      const after = d.value as unknown[];
+      for (const item of d.current as unknown[]) {
+        expect(after).toContainEqual(item);
+      }
+    }
+  });
+
+  it("does not re-propose an escalation trigger already in the profile", () => {
+    const convos = [1, 2, 3, 4, 5].map((i) => convo(i, { inbound: ["my lawyer said to stop"] }));
+    const drafts = draftCoachEdits({ ...profile, escalationTriggers: ["lawyer"] }, convos);
+    expect(drafts.some((d) => d.field === "escalation_triggers")).toBe(false);
+  });
+});
