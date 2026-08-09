@@ -217,6 +217,7 @@ function Numbers() {
 
       <InboundCallCard
         workspaceId={workspaceId}
+        canManage={canManage}
         unforwarded={unforwarded}
         total={numbers.length}
         currentForward={numbers.find((n) => n.forward_calls_to)?.forward_calls_to ?? ""}
@@ -296,6 +297,7 @@ function Numbers() {
                           cap={perNumberDailyCap(n as never)}
                           override={(n as { daily_cap_override?: number | null }).daily_cap_override ?? null}
                           paused={paused}
+                          canManage={canManage}
                           onSaved={() => qc.invalidateQueries({ queryKey: ["numbers", workspaceId] })}
                         />
                       </td>
@@ -335,6 +337,7 @@ function Numbers() {
 /** Leads call back the numbers that text them: forward or send to voicemail. */
 function InboundCallCard({
   workspaceId,
+  canManage,
   unforwarded,
   total,
   currentForward,
@@ -343,6 +346,7 @@ function InboundCallCard({
   recordingDisclosure = false,
 }: {
   workspaceId: string | null;
+  canManage: boolean;
   unforwarded: number;
   total: number;
   currentForward: string;
@@ -411,7 +415,15 @@ function InboundCallCard({
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="rounded-full">Configure</Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+              disabled={!canManage}
+              title={canManage ? undefined : "Only Admins Can Change Inbound Call Handling"}
+            >
+              Configure
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Inbound Call Handling</DialogTitle></DialogHeader>
@@ -529,12 +541,14 @@ function DailyCapCell({
   cap,
   override,
   paused,
+  canManage,
   onSaved,
 }: {
   numberId: string;
   cap: number;
   override: number | null;
   paused: boolean;
+  canManage: boolean;
   onSaved: () => void;
 }) {
   const save = useServerFn(updateNumberLimits);
@@ -572,11 +586,12 @@ function DailyCapCell({
         inputMode="numeric"
         aria-label="Daily send cap for this number"
         className="h-8 w-20"
-        disabled={busy}
+        disabled={busy || !canManage}
+        title={canManage ? undefined : "Only Admins Can Change Send Throttles"}
       />
       <span className="text-xs text-muted-foreground">/ {cap.toLocaleString()}</span>
       {paused ? (
-        <Button size="sm" variant="outline" disabled={busy} onClick={() => void commit(value, true)}>
+        <Button size="sm" variant="outline" disabled={busy || !canManage} onClick={() => void commit(value, true)}>
           Resume
         </Button>
       ) : null}
