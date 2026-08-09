@@ -66,7 +66,7 @@ export const inviteTeamMember = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, data.workspaceId);
+    await assertAdmin(context.supabase, data.workspaceId, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await supabaseAdmin
       .from("workspace_invites")
@@ -93,7 +93,7 @@ export const revokeInvite = createServerFn({ method: "POST" })
       .eq("id", data.inviteId)
       .maybeSingle();
     if (!inv) throw new Error("Not found");
-    await assertAdmin(context.supabase, inv.workspace_id);
+    await assertAdmin(context.supabase, inv.workspace_id, context.userId);
     const { error } = await supabaseAdmin.from("workspace_invites").delete().eq("id", data.inviteId);
     if (error) throw error;
     return { ok: true };
@@ -105,7 +105,7 @@ export const removeMember = createServerFn({ method: "POST" })
     z.object({ workspaceId: z.string().uuid(), userId: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertMember(context.supabase, data.workspaceId);
+    await assertMember(context.supabase, data.workspaceId, context.userId);
     if (data.userId === context.userId) throw new Error("Cannot remove yourself");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { count } = await supabaseAdmin
