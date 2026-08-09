@@ -14,9 +14,22 @@ import {
 } from "@/components/ui/dialog";
 import {
   listBotProfiles, saveBotProfile, deleteBotProfile, duplicateBotProfile, previewAssembledPrompt,
+  listBotProfileVersions,
 } from "@/lib/bot-profiles.functions";
 import { botProfileSchema, PROFILE_TEMPLATES, TEMPLATE_LABELS, type BotProfile } from "@/lib/bot-profiles.shared";
-import { Copy, Eye, Plus, ShieldCheck, Trash2 } from "lucide-react";
+import { Copy, Eye, History, Plus, ShieldCheck, Trash2 } from "lucide-react";
+
+type VersionRow = {
+  id: string;
+  version: number;
+  snapshot: Record<string, unknown> | null;
+  change_kind: string;
+  change_source: string;
+  proposal_id: string | null;
+  changed_by: string | null;
+  change_note: string | null;
+  created_at: string;
+};
 
 type Row = BotProfile & { id: string; workspace_id: string | null };
 
@@ -40,6 +53,7 @@ export function BotProfiles({ workspaceId }: { workspaceId: string }) {
   const [promptText, setPromptText] = useState<string | null>(null);
   const [dupTarget, setDupTarget] = useState<Row | null>(null);
   const [dupTemplate, setDupTemplate] = useState<string>("google_maps");
+  const [historyFor, setHistoryFor] = useState<Row | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["bot-profiles", workspaceId],
@@ -136,6 +150,11 @@ export function BotProfiles({ workspaceId }: { workspaceId: string }) {
                     <Button size="sm" variant="ghost" onClick={() => showPrompt(row)}>
                       <Eye className="h-3.5 w-3.5 mr-1" /> Prompt
                     </Button>
+                    {row.workspace_id ? (
+                      <Button size="sm" variant="ghost" onClick={() => setHistoryFor(row)}>
+                        <History className="h-3.5 w-3.5 mr-1" /> History
+                      </Button>
+                    ) : null}
                     <Button
                       size="sm"
                       variant="ghost"
@@ -197,6 +216,12 @@ export function BotProfiles({ workspaceId }: { workspaceId: string }) {
           </pre>
         </DialogContent>
       </Dialog>
+
+      <ProfileHistory
+        workspaceId={workspaceId}
+        profile={historyFor}
+        onClose={() => setHistoryFor(null)}
+      />
 
       <Dialog open={!!dupTarget} onOpenChange={(o) => !o && setDupTarget(null)}>
         <DialogContent>
