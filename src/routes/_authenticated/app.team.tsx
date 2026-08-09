@@ -57,7 +57,16 @@ function TeamPage() {
 
   const members = data?.members ?? [];
   const invites = (data?.invites ?? []) as any[];
-  const SEATS = 5;
+  const seatLimit = data?.seats?.limit ?? null;
+  const planName = data?.seats?.planName ?? "";
+  const canManage = team.can("manage_members");
+  const seatsTaken = members.length + invites.length;
+  const seatsFull = seatLimit !== null && seatsTaken >= seatLimit;
+  const seatValue = seatLimit === null ? `${members.length}` : `${members.length} / ${seatLimit}`;
+  const seatHint =
+    seatLimit === null
+      ? `Unlimited Seats On ${planName}`
+      : `${Math.max(0, seatLimit - seatsTaken)} Available${invites.length ? " (Pending Invites Counted)" : ""}`;
   const owner = members.find((m) => m.role === "owner");
   const relative = (iso: string | null) => {
     if (!iso) return "Never";
@@ -111,9 +120,9 @@ function TeamPage() {
         />
         <StatTile
           label="Seats"
-          value={`${members.length} / ${SEATS}`}
+          value={seatValue}
           icon={Armchair}
-          hint={`${Math.max(0, SEATS - members.length)} Available`}
+          hint={seatHint}
         />
       </div>
 
@@ -127,6 +136,7 @@ function TeamPage() {
         <TabsContent value="members">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="space-y-6">
+      {canManage ? (
       <Card>
         <CardHeader>
           <CardTitle className="text-base font-display flex items-center gap-2">
@@ -145,6 +155,7 @@ function TeamPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="mt-1"
+                  disabled={seatsFull}
                 />
               </div>
               <div>
@@ -161,7 +172,7 @@ function TeamPage() {
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <Select value={role} onValueChange={(v) => setRole(v as WorkspaceRole)}>
+                <Select value={role} onValueChange={(v) => setRole(v as WorkspaceRole)} disabled={seatsFull}>
                   <SelectTrigger id="invite-role" className="mt-1"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {WORKSPACE_ROLES.filter((r) => r !== "owner").map((r) => (
@@ -170,16 +181,29 @@ function TeamPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button className="rounded-full" onClick={submitInvite} disabled={busy || !email}>
+              <Button className="rounded-full" onClick={submitInvite} disabled={busy || !email || seatsFull}>
                 {busy ? "Sending..." : "Send Invite"}
               </Button>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-4">
-            An invite link will be generated and copied to your clipboard. Share it with your teammate.
-          </p>
+          {seatsFull ? (
+            <p className="text-xs text-primary mt-4">
+              All {seatLimit} {planName} Seat{seatLimit === 1 ? "" : "s"} Are Taken. Upgrade Your Plan Or Revoke A Seat To Invite More.
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground mt-4">
+              An invite link will be generated and copied to your clipboard. Share it with your teammate.
+            </p>
+          )}
         </CardContent>
       </Card>
+      ) : (
+        <Card>
+          <CardContent className="py-6 text-sm text-muted-foreground">
+            Read-Only Access — Only Workspace Owners And Admins Can Invite Or Remove Teammates.
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader><CardTitle className="text-base font-display">Members</CardTitle></CardHeader>
@@ -249,6 +273,7 @@ function TeamPage() {
         </CardContent>
       </Card>
 
+      {canManage && (
       <Card>
         <CardHeader><CardTitle className="text-base font-display">Pending Invites</CardTitle></CardHeader>
         <CardContent className="space-y-2">
@@ -290,6 +315,7 @@ function TeamPage() {
           )}
         </CardContent>
       </Card>
+      )}
         </div>
 
         <div className="space-y-4">
@@ -299,18 +325,22 @@ function TeamPage() {
               <div>
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>Seats Used</span>
-                  <span className="tabular-nums">{members.length} / {SEATS}</span>
+                  <span className="tabular-nums">{seatLimit === null ? `${members.length} / ∞` : `${seatsTaken} / ${seatLimit}`}</span>
                 </div>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
                   <div
                     className="h-full rounded-full bg-primary"
-                    style={{ width: `${Math.min(100, (members.length / SEATS) * 100)}%` }}
+                    style={{ width: seatLimit === null ? "100%" : `${Math.min(100, (seatsTaken / seatLimit) * 100)}%` }}
                   />
                 </div>
               </div>
+              <SummaryRow label="Plan" value={planName || "—"} />
               <SummaryRow label="Owner" value={owner?.email || "—"} />
               <SummaryRow label="Pending Invites" value={String(invites.length)} />
-              <SummaryRow label="Available Seats" value={String(Math.max(0, SEATS - members.length))} />
+              <SummaryRow
+                label="Available Seats"
+                value={seatLimit === null ? "Unlimited" : String(Math.max(0, seatLimit - seatsTaken))}
+              />
             </CardContent>
           </Card>
         </div>
