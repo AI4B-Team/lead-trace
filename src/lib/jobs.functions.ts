@@ -403,6 +403,10 @@ export const launchCampaignFromJob = createServerFn({ method: "POST" })
       .eq("id", data.jobId)
       .maybeSingle();
     if (jerr || !job) throw new Error("List Not Found");
+    {
+      const { assertAction } = await import("./accountability.server");
+      await assertAction(supabase, job.workspace_id, context.userId, "launch_campaign");
+    }
     if (job.status !== "ready") throw new Error("List Is Not Ready. Scrub Must Complete First.");
 
     // §6: a list older than 30 days must be re-scrubbed before it can send.
@@ -493,6 +497,11 @@ export const setListSchedule = createServerFn({ method: "POST" })
       .select("source_type, workspace_id, name")
       .eq("id", data.jobId)
       .maybeSingle();
+    if (!job?.workspace_id) throw new Error("List Not Found");
+    {
+      const { assertAction } = await import("./accountability.server");
+      await assertAction(context.supabase, job.workspace_id, context.userId, "build_list");
+    }
     if (job?.source_type === "upload" && data.cadence !== "one_time") {
       throw new Error("Uploaded Lists Are One-Time Only — There Is Nothing To Re-Scrape.");
     }
@@ -527,6 +536,8 @@ export const setListScheduleActive = createServerFn({ method: "POST" })
     z.object({ jobId: z.string().uuid(), active: z.boolean() }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertJobAction } = await import("./accountability.server");
+    await assertJobAction(context.supabase, data.jobId, context.userId, "build_list");
     const { data: job } = await context.supabase
       .from("jobs")
       .select("schedule, custom_interval_minutes")
@@ -552,6 +563,8 @@ export const setListAutoLaunch = createServerFn({ method: "POST" })
     z.object({ jobId: z.string().uuid(), autoLaunch: z.boolean() }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertJobAction } = await import("./accountability.server");
+    await assertJobAction(context.supabase, data.jobId, context.userId, "launch_campaign");
     const { error } = await context.supabase
       .from("jobs")
       .update({ auto_launch: data.autoLaunch })
@@ -569,6 +582,8 @@ export const setListChannel = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     // Only SMS lists can auto-send, so switching away turns auto-launch off.
+    const { assertJobAction } = await import("./accountability.server");
+    await assertJobAction(context.supabase, data.jobId, context.userId, "build_list");
     const { error } = await context.supabase
       .from("jobs")
       .update({ channel: data.channel, ...(data.channel === "sms" ? {} : { auto_launch: false }) })
@@ -591,6 +606,10 @@ export const runListNow = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw error;
     if (!list) throw new Error("List Not Found");
+    {
+      const { assertAction } = await import("./accountability.server");
+      await assertAction(context.supabase, list.workspace_id, context.userId, "build_list");
+    }
     const { runListNow: run } = await import("./recurring.server");
     return run(context.supabase, list as never, { manual: true });
   });
