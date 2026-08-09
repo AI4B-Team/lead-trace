@@ -152,3 +152,40 @@ export async function assertJobAction(
   if (!workspaceId) throw new Error("List Not Found");
   return { workspaceId, ctx: await assertAction(supabase, workspaceId, userId, action) };
 }
+
+/**
+ * Generic write gate: any member (owner/admin/member) may proceed, viewers are
+ * read-only. Used by everyday workspace writes that aren't a spend or an
+ * admin-only action (tags, quick replies, inbox actions, list settings).
+ */
+export async function assertWriter(
+  supabase: AnyClient,
+  workspaceId: string,
+  userId: string,
+  what = "Change This",
+): Promise<MemberContext> {
+  const ctx = await memberContext(supabase, workspaceId, userId);
+  if (roleOf(ctx.role) === "viewer") {
+    throw new Error(`Viewers Cannot ${what}. Ask An Admin For Member Access.`);
+  }
+  return ctx;
+}
+
+/** Same write gate, resolved from a row in a workspace-scoped table. */
+export async function assertWriterByRow(
+  supabase: AnyClient,
+  table: string,
+  rowId: string,
+  userId: string,
+  what = "Change This",
+): Promise<string> {
+  const { data: row } = await supabase
+    .from(table)
+    .select("workspace_id")
+    .eq("id", rowId)
+    .maybeSingle();
+  const workspaceId = (row as { workspace_id?: string } | null)?.workspace_id;
+  if (!workspaceId) throw new Error("Not Found");
+  await assertWriter(supabase, workspaceId, userId, what);
+  return workspaceId;
+}

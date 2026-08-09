@@ -17,6 +17,9 @@ export const queueUploadJob = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    // Viewers can't queue work; members and admins can.
+    const { assertAction } = await import("./accountability.server");
+    await assertAction(context.supabase, data.workspaceId, context.userId, "build_list");
     const { queueJob } = await import("./job-submit");
     return queueJob(context.supabase, {
       workspaceId: data.workspaceId,

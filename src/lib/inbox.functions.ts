@@ -397,6 +397,9 @@ export const sendReply = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    // Role gate first: viewers are read-only and must never send outbound SMS.
+    const { assertAction } = await import("./accountability.server");
+    await assertAction(context.supabase, data.workspaceId, context.userId, "launch_campaign");
     const { data: existing } = await context.supabase
       .from("messages")
       .select("lead_id, sending_number_id")

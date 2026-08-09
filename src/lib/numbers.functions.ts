@@ -33,6 +33,9 @@ export const buyNumbers = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    // Buying DIDs is a spend — admins/owners only.
+    const { assertAction } = await import("./accountability.server");
+    await assertAction(context.supabase, data.workspaceId, context.userId, "purchase_credits");
     const codes = data.areaCodes?.length ? data.areaCodes : REGION_AREA_CODES[data.region];
     const { isProviderConfigured, getProvider } = await import("@/lib/sms");
     const useReal = isProviderConfigured();
@@ -115,6 +118,8 @@ export const buySpecificNumber = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertAction } = await import("./accountability.server");
+    await assertAction(context.supabase, data.workspaceId, context.userId, "purchase_credits");
     const { isProviderConfigured, getProvider } = await import("@/lib/sms");
     if (!isProviderConfigured()) throw new Error("Telnyx not configured");
     const provider = getProvider();
@@ -202,6 +207,9 @@ export const advanceRegistration = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    // 10DLC identity is workspace-level compliance data — admins/owners only.
+    const { assertAction } = await import("./accountability.server");
+    await assertAction(context.supabase, data.workspaceId, context.userId, "manage_limits");
     const { data: existing } = await context.supabase
       .from("registrations")
       .select("*")
@@ -257,6 +265,8 @@ export const submitBrandToProvider = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertAction } = await import("./accountability.server");
+    await assertAction(context.supabase, data.workspaceId, context.userId, "manage_limits");
     const { isProviderConfigured, getProvider } = await import("@/lib/sms");
     const { data: existing } = await context.supabase
       .from("registrations")
@@ -309,6 +319,8 @@ export const submitCampaignToProvider = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertAction } = await import("./accountability.server");
+    await assertAction(context.supabase, data.workspaceId, context.userId, "manage_limits");
     const { isProviderConfigured, getProvider } = await import("@/lib/sms");
     const { data: existing } = await context.supabase
       .from("registrations")
@@ -382,6 +394,8 @@ export const updateInboundSettings = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertAction } = await import("./accountability.server");
+    await assertAction(context.supabase, data.workspaceId, context.userId, "manage_limits");
     const digits = data.forwardCallsTo?.replace(/[^0-9]/g, "") ?? "";
     if (data.forwardCallsTo && digits.length !== 10 && digits.length !== 11) {
       throw new Error("Enter a valid 10-digit forwarding number.");
@@ -443,6 +457,12 @@ export const updateNumberLimits = createServerFn({ method: "POST" })
       patch.status = "active";
     }
     if (Object.keys(patch).length === 0) return { ok: true };
+    // Throttles and un-pausing a number affect the whole workspace's sending.
+    const { assertWriterByRow, assertAction } = await import("./accountability.server");
+    const workspaceId = await assertWriterByRow(
+      context.supabase, "sending_numbers", data.numberId, context.userId, "Change Number Limits",
+    );
+    await assertAction(context.supabase, workspaceId, context.userId, "manage_limits");
     const { error } = await context.supabase
       .from("sending_numbers")
       .update(patch as never)

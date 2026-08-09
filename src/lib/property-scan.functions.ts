@@ -35,6 +35,8 @@ export const setListMonitor = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertWriter } = await import("./accountability.server");
+    await assertWriter(context.supabase, data.workspaceId, context.userId, "Change Monitoring");
     const nextRun = new Date(
       Date.now() + (data.cadence === "monthly" ? 30 : 91) * 86_400_000,
     ).toISOString();
@@ -73,6 +75,8 @@ export const setLeadOutcome = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertWriter } = await import("./accountability.server");
+    await assertWriter(context.supabase, data.workspaceId, context.userId, "Set Lead Outcomes");
     const { error } = await context.supabase.from("lead_outcomes").insert({
       workspace_id: data.workspaceId,
       result_id: data.resultId,
