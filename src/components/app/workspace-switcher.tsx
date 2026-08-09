@@ -91,7 +91,7 @@ export function WorkspaceSwitcher() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 gap-1.5 px-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+            className="h-8 w-full justify-center gap-1.5 border border-primary px-2 text-sm font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
           >
             <span className="max-w-[180px] truncate">{workspaceName ?? "Workspace"}</span>
             <ChevronsUpDown className="h-3.5 w-3.5 opacity-60" />
