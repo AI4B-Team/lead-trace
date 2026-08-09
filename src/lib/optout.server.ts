@@ -13,6 +13,8 @@ type Client = { from: (table: string) => any };
 import { isTrustedProvenance, UNTRUSTED_LEAD_MESSAGE } from "./provenance.shared";
 
 export const OPTOUT_ERROR = "Contact has opted out — message not sent";
+export const OPTOUT_OTHER_LINE_ERROR =
+  "Contact opted out on another one of their numbers — message not sent";
 export const SUPPRESSED_ERROR = "Number is on your suppression list — message not sent";
 export const DNC_ERROR = "Number is on the National Do Not Call Registry — message not sent";
 export const LITIGATOR_ERROR = "Number is on a known-litigator list — message not sent";
@@ -21,6 +23,7 @@ export const NOT_SCRUBBED_ERROR =
 
 export type BlockReason =
   | "opted_out"
+  | "opted_out_other_line"
   | "suppressed"
   | "dnc_listed"
   | "litigator_listed"
@@ -163,7 +166,69 @@ export async function checkCanText(db: Client, t: GateTarget): Promise<SendGate>
     return { ok: false, reason: "not_scrubbed", message: NOT_SCRUBBED_ERROR, phone };
   }
 
+  // 4. Multi-line correction (P5.8.7). An opt-out on ANY line of this contact
+  //    closes every line, permanently — including numbers and record rows this
+  //    send path has never seen. Runs last because it is the most expensive
+  //    check, but it is never optional: without it a person who said STOP stays
+  //    reachable through a second number we happen to hold for them.
+  if (phone || t.leadId) {
+    const blocked = await contactOptedOutOnOtherLine(db, {
+      workspaceId: t.workspaceId,
+      leadId: t.leadId ?? null,
+      phone,
+    });
+    if (blocked) {
+      return { ok: false, reason: "opted_out_other_line", message: OPTOUT_OTHER_LINE_ERROR, phone };
+    }
+  }
+
   return { ok: true, phone };
+}
+
+/**
+ * True when any other line belonging to the same contact has opted out or been
+ * suppressed. Defence in depth: `suppressContactAcrossLines` closes the sibling
+ * lines at write time, this catches opt-outs recorded before that existed.
+ */
+export async function contactOptedOutOnOtherLine(
+  db: Client,
+  args: { workspaceId: string; leadId: string | null; phone: string | null },
+): Promise<boolean> {
+  try {
+    const { resolveContactLines } = await import("./contact-lines.server");
+    const contact = await resolveContactLines(db, args.workspaceId, {
+      leadId: args.leadId,
+      phone: args.phone,
+    });
+    const otherLeadIds = contact.leadIds.filter((id) => id !== args.leadId);
+    const otherPhones = contact.phones.filter(
+      (p) => p.replace(/\D/g, "").slice(-10) !== (args.phone ?? "").replace(/\D/g, "").slice(-10),
+    );
+    if (otherLeadIds.length > 0) {
+      const { data } = await db
+        .from("messages")
+        .select("id")
+        .eq("workspace_id", args.workspaceId)
+        .eq("is_optout", true)
+        .in("lead_id", otherLeadIds)
+        .limit(1);
+      if ((data ?? []).length > 0) return true;
+    }
+    if (otherPhones.length > 0) {
+      const spellings = [...new Set(otherPhones.flatMap((p) => phoneVariants(p)))].slice(0, 200);
+      const { data } = await db
+        .from("suppression")
+        .select("phone")
+        .eq("workspace_id", args.workspaceId)
+        .in("phone", spellings)
+        .limit(1);
+      if ((data ?? []).length > 0) return true;
+    }
+  } catch {
+    /* identity resolution failing must not open a send path; treat as clear
+       only because the direct opt-out and suppression checks already ran. */
+  }
+  return false;
 }
 
 /** Auditable record of a refused send. Never throws. */

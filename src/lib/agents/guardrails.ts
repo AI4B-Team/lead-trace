@@ -5,6 +5,7 @@
  *
  * Pure module: no IO, so every rule is directly testable.
  */
+import { AGENT_DEFINITIONS } from "./registry.shared";
 
 /** Tables no agent may ever write to, in any mode. */
 export const AGENT_FORBIDDEN_TABLES = [
@@ -100,8 +101,13 @@ export function isProposalsOnly(agentKey: string): boolean {
 
 /** The Coach has no active mode, ever. */
 export function assertModeAllowed(agentKey: string, mode: string): void {
-  if (mode === "active" && agentKey === "coach") {
-    fail("The Coach only ever proposes. It has no active mode.");
-  }
   if (!["off", "flag_only", "active"].includes(mode)) fail("Unknown agent mode.");
+  if (mode !== "active") return;
+  // Permanent, not a phase-one limitation: an agent that edits what the bot
+  // says to distressed homeowners only ever proposes, so every wording change
+  // has a named approver and a date behind it.
+  const def = AGENT_DEFINITIONS.find((a) => a.key === agentKey);
+  if (def?.proposalsOnly) {
+    fail(`The ${def.name} only ever proposes. It has no active mode.`);
+  }
 }

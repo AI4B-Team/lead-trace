@@ -35,6 +35,18 @@ export type ScoutLead = {
   sequenceStatus: string | null;
   /** Days until the lead's anchor date (auction, sale, hearing), if any. */
   anchorDaysRemaining: number | null;
+  /**
+   * P5.8.7 — multi-line correction. Lines (rows) that belong to the same
+   * contact as this one, so the Scout nominates a person once and can see that
+   * one of their numbers has never been tried.
+   */
+  contactKey?: string | null;
+  /** How many lines we hold for this contact, including this one. */
+  contactLines?: number;
+  /** Outbound touches across every line of the contact. */
+  contactTouches?: number;
+  /** True when ANY line of this contact opted out or is suppressed. */
+  contactOptedOut?: boolean;
 };
 
 export type Nomination = {
@@ -67,6 +79,7 @@ export const SIGNAL_KEYS = [
   "multi_list",
   "mobile_verified",
   "freshly_added",
+  "untried_line",
 ] as const;
 
 export type SignalKey = (typeof SIGNAL_KEYS)[number];
@@ -89,6 +102,7 @@ export const DEFAULT_SIGNAL_WEIGHTS: SignalWeights = {
   multi_list: 4,
   mobile_verified: 6,
   freshly_added: 5,
+  untried_line: 9,
 };
 
 export const SIGNAL_LABEL: Record<SignalKey, string> = {
@@ -108,6 +122,7 @@ export const SIGNAL_LABEL: Record<SignalKey, string> = {
   multi_list: "Seen On Several Lists",
   mobile_verified: "Verified Mobile Number",
   freshly_added: "Added This Week",
+  untried_line: "Another Number Never Tried",
 };
 
 /** Fills any missing key from the defaults so a partial saved fit is safe. */
@@ -140,6 +155,8 @@ function daysSince(iso: string | null, now: number): number | null {
  */
 export function ineligibleReason(lead: ScoutLead, now = Date.now()): string | null {
   if (!lead.phone) return "no phone on file";
+  // The contact said stop somewhere — every line of theirs is closed, forever.
+  if (lead.contactOptedOut) return "contact opted out on another line";
   if (lead.phoneType && lead.phoneType.toLowerCase() === "landline") return "landline";
   if (TERMINAL_DISPOSITIONS.has(lead.disposition)) return `disposition ${lead.disposition}`;
   if (lead.lastOutcome && TERMINAL_OUTCOMES.has(lead.lastOutcome)) return `outcome ${lead.lastOutcome}`;
@@ -223,6 +240,10 @@ export function scoreLead(
     add("freshly_added", "Added within the last week");
   }
 
+  if ((lead.contactLines ?? 1) > 1 && lead.touches === 0 && (lead.contactTouches ?? 0) > 0) {
+    add("untried_line", "We have another number for this contact that has never been tried");
+  }
+
   if (reasons.length === 0) reasons.push("Untouched and unworked, nothing against it");
   return { leadId: lead.id, score: Math.round(score), reasons, signals };
 }
@@ -245,5 +266,20 @@ export function nominateLeads(
     scored.push(scoreLead(lead, now, weights));
   }
   scored.sort((a, b) => b.score - a.score || a.leadId.localeCompare(b.leadId));
-  return { nominations: scored.slice(0, limit), skipped };
+  // One nomination per contact: the same person held under two record types is
+  // one person to call, and the best line wins.
+  const contactOf = new Map(leads.map((l) => [l.id, l.contactKey ?? `line:${l.id}`]));
+  const seen = new Set<string>();
+  const unique: Nomination[] = [];
+  for (const nom of scored) {
+    const key = contactOf.get(nom.leadId) ?? nom.leadId;
+    if (seen.has(key)) {
+      skipped["another line of the same contact ranked higher"] =
+        (skipped["another line of the same contact ranked higher"] ?? 0) + 1;
+      continue;
+    }
+    seen.add(key);
+    unique.push(nom);
+  }
+  return { nominations: unique.slice(0, limit), skipped };
 }
