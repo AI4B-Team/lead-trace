@@ -88,8 +88,8 @@ function PlatformLayout() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4">
-          <div className="flex items-center gap-2 overflow-x-auto lg:hidden">
+        <header className="flex h-14 items-center justify-between gap-2 border-b border-border bg-background px-3 sm:px-4">
+          <div className="flex min-w-0 items-center gap-2 overflow-x-auto lg:hidden">
             {NAV.map((item) => (
               <Link
                 key={item.to}
@@ -101,14 +101,14 @@ function PlatformLayout() {
             ))}
           </div>
           <div className="hidden font-display text-sm font-semibold lg:block">Platform Admin</div>
-          <Button asChild size="sm" variant="outline" className="rounded-full text-xs">
+          <Button asChild size="sm" variant="outline" className="shrink-0 rounded-full text-xs">
             <Link to="/app/dashboard">
               <ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> My Workspace
             </Link>
           </Button>
         </header>
         <main className="flex-1 overflow-auto">
-          <div className="app-density p-6 md:p-8">
+          <div className="app-density p-4 sm:p-6 md:p-8">
             <AdminGate gate={gate}>
               <Outlet />
             </AdminGate>
