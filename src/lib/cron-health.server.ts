@@ -46,11 +46,14 @@ export const TICK_SCHEDULE: { key: string; label: string; everyMinutes: number }
   { key: "tick-sequences", label: "Follow-Up Sequences", everyMinutes: 5 },
   { key: "tick-jobs", label: "Recurring Lists", everyMinutes: 5 },
   { key: "tick-records-requests", label: "Records Requests", everyMinutes: 60 },
+  { key: "tick-webhook-retries", label: "Webhook Retries", everyMinutes: 1 },
+  { key: "tick-agents", label: "Background Agents", everyMinutes: 60 },
   { key: "tick-distress-feed", label: "Distress Feed Sweep", everyMinutes: 1440 },
   { key: "tick-realeflow-sourcing", label: "Licensed Data Sourcing", everyMinutes: 1440 },
   { key: "tick-registrations", label: "10DLC Status Sync", everyMinutes: 1440 },
   { key: "tick-template-health", label: "Template Health Canary", everyMinutes: 1440 },
   { key: "tick-plan-renewal", label: "Plan Renewals", everyMinutes: 1440 },
+  { key: "tick-compliance-digest", label: "Compliance Digest", everyMinutes: 1440 },
 ];
 
 export type CronHealthRow = {
