@@ -39,6 +39,92 @@ function lines(v: string): string[] {
   return v.split("\n").map((s) => s.trim()).filter(Boolean);
 }
 
+const CHANGE_KIND_LABEL: Record<string, string> = {
+  create: "Created",
+  edit: "Edited",
+  duplicate: "Copied",
+  delete: "Deleted",
+};
+
+/**
+ * The instruction history for one profile. Append-only: this is how you answer
+ * "what was the bot told to say on the day this person complained, and who
+ * approved that wording?".
+ */
+function ProfileHistory({
+  workspaceId,
+  profile,
+  onClose,
+}: {
+  workspaceId: string;
+  profile: (BotProfile & { id: string }) | null;
+  onClose: () => void;
+}) {
+  const listVersions = useServerFn(listBotProfileVersions);
+  const [open, setOpen] = useState<string | null>(null);
+  const { data, isLoading } = useQuery({
+    queryKey: ["bot-profile-versions", workspaceId, profile?.id],
+    queryFn: () =>
+      listVersions({ data: { workspaceId, profileId: profile!.id } }) as unknown as Promise<VersionRow[]>,
+    enabled: !!profile?.id,
+  });
+
+  return (
+    <Dialog open={!!profile} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Instruction History — {profile?.name}</DialogTitle>
+        </DialogHeader>
+        {isLoading ? (
+          <div className="py-8 text-center text-sm text-muted-foreground">Loading History…</div>
+        ) : (data ?? []).length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
+            No Changes Recorded Yet. The Next Save Starts The History.
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {(data ?? []).map((v) => (
+              <div key={v.id} className="rounded-xl border border-border px-4 py-3">
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="font-semibold text-foreground">Version {v.version}</span>
+                  <Badge variant="secondary">{CHANGE_KIND_LABEL[v.change_kind] ?? v.change_kind}</Badge>
+                  {v.change_source === "agent_proposal" ? (
+                    <Badge variant="outline">Approved Agent Proposal</Badge>
+                  ) : (
+                    <Badge variant="outline">Changed By A Person</Badge>
+                  )}
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {new Date(v.created_at).toLocaleString()}
+                  </span>
+                </div>
+                {v.change_note ? (
+                  <p className="mt-1.5 text-xs text-muted-foreground">{v.change_note}</p>
+                ) : null}
+                <p className="mt-1.5 text-xs text-muted-foreground line-clamp-2">
+                  {String((v.snapshot ?? {})["opener"] ?? "")}
+                </p>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="mt-1 px-0"
+                  onClick={() => setOpen(open === v.id ? null : v.id)}
+                >
+                  {open === v.id ? "Hide Full Wording" : "Show Full Wording"}
+                </Button>
+                {open === v.id ? (
+                  <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-muted p-3 text-xs text-foreground">
+                    {JSON.stringify(v.snapshot, null, 2)}
+                  </pre>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /** Template-scoped conversation profiles. Sender identity is unaffected. */
 export function BotProfiles({ workspaceId }: { workspaceId: string }) {
   const qc = useQueryClient();
