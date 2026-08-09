@@ -1,26 +1,25 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { isWorkspaceAdmin, isWorkspaceMember } from "./access-checks";
 
-async function assertMember(supabase: any, workspaceId: string) {
-  const { data, error } = await supabase.rpc("is_workspace_member", { _workspace_id: workspaceId });
-  if (error) throw error;
-  if (!data) throw new Error("Forbidden");
+async function assertMember(supabase: any, workspaceId: string, userId: string) {
+  if (!(await isWorkspaceMember(supabase, workspaceId, userId))) throw new Error("Forbidden");
 }
 
 /** Invite management is owner/admin only — a member must not mint admin seats. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function assertAdmin(supabase: any, workspaceId: string) {
-  const { data, error } = await supabase.rpc("is_workspace_admin", { _workspace_id: workspaceId });
-  if (error) throw error;
-  if (!data) throw new Error("Only workspace owners and admins can manage invites.");
+async function assertAdmin(supabase: any, workspaceId: string, userId: string) {
+  if (!(await isWorkspaceAdmin(supabase, workspaceId, userId))) {
+    throw new Error("Only workspace owners and admins can manage invites.");
+  }
 }
 
 export const listTeam = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ workspaceId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    await assertMember(context.supabase, data.workspaceId);
+    await assertMember(context.supabase, data.workspaceId, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: members } = await supabaseAdmin
       .from("workspace_members")
@@ -43,9 +42,7 @@ export const listTeam = createServerFn({ method: "GET" })
       });
     }
     // Invite rows carry the join token, so only owners/admins receive them.
-    const { data: isAdmin } = await context.supabase.rpc("is_workspace_admin", {
-      _workspace_id: data.workspaceId,
-    });
+    const isAdmin = await isWorkspaceAdmin(context.supabase, data.workspaceId, context.userId);
     const invites = isAdmin
       ? (
           await supabaseAdmin
