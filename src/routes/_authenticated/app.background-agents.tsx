@@ -315,7 +315,9 @@ function BackgroundAgentsPage() {
                           ? "Updated Lead Weighting"
                           : p.proposal_type === "bot_copy_edit"
                             ? (p.proposed_value as { title?: string } | null)?.title ?? "Wording Change"
-                            : p.proposal_type}
+                            : p.proposal_type === "booking_review"
+                              ? "Check This Booking Before Anyone Drives"
+                              : p.proposal_type}
                     </span>
                     {p.proposal_type === "lead_nomination" &&
                       typeof (p.proposed_value as { score?: number } | null)?.score === "number" && (
@@ -328,6 +330,26 @@ function BackgroundAgentsPage() {
                     )}
                   </div>
                   <p className="mt-1.5 text-sm text-muted-foreground">{p.rationale}</p>
+                  {p.proposal_type === "booking_review" && (
+                    <div className="mt-2 rounded-lg border border-border p-2.5 text-xs">
+                      <div className="flex flex-wrap gap-1.5">
+                        {((p.proposed_value as { issues?: BookingIssue[] } | null)?.issues ?? []).map((issue) => (
+                          <Badge key={issue} variant="destructive">
+                            {BOOKING_ISSUE_LABEL[issue] ?? issue}
+                          </Badge>
+                        ))}
+                      </div>
+                      <div className="mt-1.5 text-muted-foreground">
+                        Lead Said: {(p.proposed_value as { lead_time?: string | null } | null)?.lead_time ?? "No Time"}
+                        {" · "}
+                        Your Side Said:{" "}
+                        {(p.proposed_value as { bot_time?: string | null } | null)?.bot_time ?? "No Time"}
+                      </div>
+                      <p className="mt-1.5 text-muted-foreground">
+                        Nothing Was Changed. The Thread Still Reads As An Appointment Until You Decide.
+                      </p>
+                    </div>
+                  )}
                   {(p.proposed_value as { captured?: { trigger?: string; approved_response?: string } } | null)
                     ?.captured?.approved_response && (
                     <div className="mt-2 space-y-1.5 rounded-lg border border-border p-2.5 text-xs">
