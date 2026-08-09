@@ -20,6 +20,7 @@ import {
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { ActivityList, useActivity } from "@/components/app/activity-feed";
 import { NeedsReplyCard } from "@/components/app/needs-reply";
+import { WaitingOnYou } from "@/components/app/waiting-on-you";
 
 export const Route = createFileRoute("/_authenticated/app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — LeadTrace" }] }),
@@ -319,6 +320,10 @@ function Dashboard() {
           The needs-reply callout sits first: a hot lead who just replied outranks everything. */}
       <div className="mb-6">
         <NeedsReplyCard />
+      </div>
+      {/* Approvals are part of the daily brief, not a destination of their own. */}
+      <div className="mb-6">
+        <WaitingOnYou workspaceId={workspaceId ?? null} />
       </div>
       <ScanDigest workspaceId={workspaceId ?? null} />
       <TooltipProvider>
