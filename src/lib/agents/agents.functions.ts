@@ -14,7 +14,7 @@ export const getBackgroundAgents = createServerFn({ method: "GET" })
     const { ensureAgentRows } = await import("./store.server");
     const agents = await ensureAgentRows(data.workspaceId);
     const { supabase } = context;
-    const [{ data: runs }, { data: proposals }, { data: outcomes }] = await Promise.all([
+    const [{ data: runs }, { data: proposals }, { data: outcomes }, { data: decided }] = await Promise.all([
       supabase
         .from("agent_runs")
         .select("id, agent_key, started_at, finished_at, status, items_examined, items_actioned, items_flagged, summary, error")
@@ -35,7 +35,36 @@ export const getBackgroundAgents = createServerFn({ method: "GET" })
         .is("superseded_at", null)
         .order("labeled_at", { ascending: false })
         .limit(1000),
+      // The decision trail. Six months after a complaint, this is the answer to
+      // "who approved that, and when?" — kept next to the pending queue so the
+      // record is visible without an export.
+      supabase
+        .from("agent_proposals")
+        .select(
+          "id, agent_key, proposal_type, target_field, rationale, status, reviewed_at, reviewed_by, review_note",
+        )
+        .eq("workspace_id", data.workspaceId)
+        .in("status", ["approved", "rejected"])
+        .order("reviewed_at", { ascending: false })
+        .limit(25),
     ]);
+
+    // Reviewer emails: a user id in an audit trail is not an answer.
+    const reviewerIds = Array.from(
+      new Set(
+        ((decided ?? []) as Array<{ reviewed_by: string | null }>)
+          .map((d) => d.reviewed_by)
+          .filter((v): v is string => Boolean(v)),
+      ),
+    );
+    const reviewers: Record<string, string> = {};
+    if (reviewerIds.length > 0) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      for (const uid of reviewerIds) {
+        const { data: u } = await supabaseAdmin.auth.admin.getUserById(uid);
+        reviewers[uid] = u?.user?.email ?? uid.slice(0, 8);
+      }
+    }
     return {
       agents: agents.map((a) => ({
         id: a.id,
@@ -50,6 +79,8 @@ export const getBackgroundAgents = createServerFn({ method: "GET" })
       runs: runs ?? [],
       proposals: proposals ?? [],
       outcomes: outcomes ?? [],
+      decisions: decided ?? [],
+      reviewers,
     };
   });
 
