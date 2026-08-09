@@ -3,6 +3,8 @@ import { classifyThread } from "./labeler.shared";
 import { fitSignalWeights, MIN_SAMPLES } from "./scorer.shared";
 import { DEFAULT_SIGNAL_WEIGHTS, type SignalKey } from "./scout.shared";
 import { AgentGuardrailError, assertAgentMayWrite, assertModeAllowed, assertProposalAllowed } from "./guardrails";
+import { draftWisdom } from "./wisdom.shared";
+import { extractTakeovers } from "./wisdom.server";
 import { ineligibleReason, nominateLeads, scoreLead, type ScoutLead } from "./scout.shared";
 import { draftCoachEdits, type CoachConversation } from "./coach.shared";
 
@@ -288,5 +290,76 @@ describe("coach drafts", () => {
     const convos = [1, 2, 3, 4, 5].map((i) => convo(i, { inbound: ["my lawyer said to stop"] }));
     const drafts = draftCoachEdits({ ...profile, escalationTriggers: ["lawyer"] }, convos);
     expect(drafts.some((d) => d.field === "escalation_triggers")).toBe(false);
+  });
+});
+
+describe("wisdom miner (P5.8.6)", () => {
+  const state = { id: "p1", name: "Default", objections: [], faqs: [] };
+  const base = { threadKey: "t1", question: "how did you get my info?", gapHours: 1, outcome: null, sentiment: null };
+  const goodReply =
+    "It's public county records — the filing is listed publicly, and I can take you off my list right now if you'd rather not hear from me.";
+
+  it("captures a solid human answer as additive wording", () => {
+    const { drafts } = draftWisdom(state, [{ ...base, humanReply: goodReply }]);
+    expect(drafts).toHaveLength(1);
+    expect(drafts[0]!.field).toBe("objections");
+    expect(drafts[0]!.value).toHaveLength(1);
+    expect(drafts[0]!.captured.approved_response).toBe(goodReply);
+  });
+
+  it("never removes wording that already exists", () => {
+    const seeded = { ...state, objections: [{ trigger: "cost", approved_response: "No fee." }] };
+    const { drafts } = draftWisdom(seeded, [{ ...base, humanReply: goodReply }]);
+    expect(drafts[0]!.value[0]).toEqual({ trigger: "cost", approved_response: "No fee." });
+    expect(drafts[0]!.value).toHaveLength(2);
+  });
+
+  it("drops replies carrying one person's details or a specific commitment", () => {
+    for (const reply of [
+      "Sure, call me back on 305-555-1212 any time and we can talk through the whole situation together.",
+      "I can swing by 421 Oak Street tomorrow afternoon and walk the property with you, no obligation at all.",
+      "I'll be there Tuesday at 3pm to look at it with you, and we can talk numbers after that walkthrough.",
+      "We can pay you $42,000 for it this week, all cash, and cover the closing costs on our side too.",
+    ]) {
+      const { drafts, rejected } = draftWisdom(state, [{ ...base, humanReply: reply }]);
+      expect(drafts).toHaveLength(0);
+      expect(rejected["personal_detail"]).toBe(1);
+    }
+  });
+
+  it("stays quiet on thin replies and on threads that ended badly", () => {
+    expect(draftWisdom(state, [{ ...base, humanReply: "yes" }]).drafts).toHaveLength(0);
+    expect(
+      draftWisdom(state, [{ ...base, humanReply: goodReply, outcome: "opted_out" }]).drafts,
+    ).toHaveLength(0);
+    expect(
+      draftWisdom(state, [{ ...base, humanReply: goodReply, gapHours: 96 }]).drafts,
+    ).toHaveLength(0);
+  });
+
+  it("keeps the fullest answer when the same question was handled repeatedly", () => {
+    const longer = `${goodReply} There is no cost to you either way.`;
+    const { drafts } = draftWisdom(state, [
+      { ...base, humanReply: goodReply },
+      { ...base, threadKey: "t2", humanReply: longer },
+    ]);
+    expect(drafts).toHaveLength(1);
+    expect(drafts[0]!.captured.approved_response).toBe(longer);
+    expect(drafts[0]!.evidence).toEqual(["t1", "t2"]);
+  });
+
+  it("only mines threads the bot was driving, and pairs the right question", () => {
+    const rows = [
+      { thread_key: "a", direction: "outbound", body: "Hi, saw your filing.", is_bot: true, channel: "sms", created_at: "2026-01-01T10:00:00Z" },
+      { thread_key: "a", direction: "inbound", body: "how did you get my info?", is_bot: false, channel: "sms", created_at: "2026-01-01T10:05:00Z" },
+      { thread_key: "a", direction: "outbound", body: goodReply, is_bot: false, channel: "sms", created_at: "2026-01-01T10:20:00Z" },
+      { thread_key: "b", direction: "inbound", body: "who is this?", is_bot: false, channel: "sms", created_at: "2026-01-01T10:00:00Z" },
+      { thread_key: "b", direction: "outbound", body: "Just me.", is_bot: false, channel: "sms", created_at: "2026-01-01T10:01:00Z" },
+    ];
+    const moments = extractTakeovers(rows);
+    expect(moments).toHaveLength(1);
+    expect(moments[0]!.threadKey).toBe("a");
+    expect(moments[0]!.question).toBe("how did you get my info?");
+    expect(moments[0]!.gapHours).toBeCloseTo(0.25, 2);
   });
 });

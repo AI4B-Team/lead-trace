@@ -328,6 +328,24 @@ function BackgroundAgentsPage() {
                     )}
                   </div>
                   <p className="mt-1.5 text-sm text-muted-foreground">{p.rationale}</p>
+                  {(p.proposed_value as { captured?: { trigger?: string; approved_response?: string } } | null)
+                    ?.captured?.approved_response && (
+                    <div className="mt-2 space-y-1.5 rounded-lg border border-border p-2.5 text-xs">
+                      <div>
+                        <span className="font-medium text-foreground">They Asked:</span>{" "}
+                        <span className="text-muted-foreground">
+                          {(p.proposed_value as { captured: { trigger?: string } }).captured.trigger}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-foreground">Your Team Answered:</span>{" "}
+                        <span className="text-muted-foreground">
+                          {(p.proposed_value as { captured: { approved_response?: string } }).captured
+                            .approved_response}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   {p.proposal_type === "bot_copy_edit" && (
                     <div className="mt-2 rounded-lg border border-border bg-muted/40 p-2.5 text-xs">
                       <div className="font-medium text-foreground">
