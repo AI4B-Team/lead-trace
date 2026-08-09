@@ -6,7 +6,7 @@ import { History as HistoryIcon } from "lucide-react";
 import { useWorkspaceId } from "@/hooks/use-workspace";
 import { listWebhookDeliveries } from "@/lib/monitoring.functions";
 
-const COLUMNS = ["Event", "Endpoint", "Status", "Response Code", "Timestamp"];
+const COLUMNS = ["Event", "Endpoint", "Status", "Attempt", "Response Code", "Timestamp"];
 
 /** Delivery history for outbound webhooks — written by the event dispatcher. */
 export function WebhookDeliveries() {
@@ -54,9 +54,20 @@ export function WebhookDeliveries() {
                       {r.url}
                     </td>
                     <td className="py-2 pr-4">
-                      <Badge variant={r.ok ? "secondary" : "destructive"} className="text-[10px]">
-                        {r.ok ? "Delivered" : "Failed"}
+                      <Badge
+                        variant={r.ok ? "secondary" : r.gave_up ? "destructive" : "outline"}
+                        className="text-[10px]"
+                      >
+                        {r.ok ? "Delivered" : r.gave_up ? "Gave Up" : "Retrying"}
                       </Badge>
+                    </td>
+                    <td className="py-2 pr-4 text-muted-foreground">
+                      #{r.attempt ?? 1}
+                      {!r.ok && !r.gave_up && r.next_retry_at ? (
+                        <span className="block text-[10px]">
+                          Next {new Date(r.next_retry_at).toLocaleTimeString()}
+                        </span>
+                      ) : null}
                     </td>
                     <td className="py-2 pr-4 text-muted-foreground">
                       {r.status_code ?? "—"}
