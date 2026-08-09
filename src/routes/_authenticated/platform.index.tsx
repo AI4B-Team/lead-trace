@@ -28,8 +28,13 @@ import {
 import { toast } from "sonner";
 import { AlertTriangle } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/platform/")({
+function formatEvery(minutes: number): string {
+  if (minutes >= 1440) return `Every ${minutes / 1440 === 1 ? "Day" : `${minutes / 1440} Days`}`;
+  if (minutes >= 60) return `Every ${minutes / 60 === 1 ? "Hour" : `${minutes / 60} Hours`}`;
+  return `Every ${minutes === 1 ? "Minute" : `${minutes} Minutes`}`;
+}
 
+export const Route = createFileRoute("/_authenticated/platform/")({
   head: () => ({
     meta: [
       { title: "Platform Dashboard — LeadTrace" },
