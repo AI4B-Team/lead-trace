@@ -318,6 +318,57 @@ export const getWorkspacePerformance = createServerFn({ method: "GET" })
       ? Math.round(numberRows.reduce((n, r) => n + Number(r.health_score ?? 0), 0) / numberRows.length)
       : 0;
 
+    /**
+     * Per-number deliverability. Outbound rows attribute sends/delivery, and
+     * an inbound reply is credited to the number it came back on, so rotation
+     * problems ("one DID is eating the opt-outs") are visible per DID.
+     */
+    const numAgg = new Map<string, Bucket>();
+    for (const m of inWindow) {
+      if (!m.sending_number_id) continue;
+      const cur = numAgg.get(m.sending_number_id) ?? emptyBucket();
+      if (m.direction === "outbound") cur.sent += 1;
+      if (m.status === "delivered") cur.delivered += 1;
+      if (m.is_optout) cur.optOuts += 1;
+      if (m.direction === "inbound") cur.replies += 1;
+      numAgg.set(m.sending_number_id, cur);
+    }
+    const byNumber = numberRows
+      .map((n) => {
+        const b = numAgg.get(n.id) ?? emptyBucket();
+        return {
+          id: n.id,
+          phone: n.phone,
+          status: n.status ?? "active",
+          health: Number(n.health_score ?? 0),
+          sent: b.sent,
+          delivered: Math.min(b.delivered, b.sent),
+          replies: b.replies,
+          optOuts: b.optOuts,
+          deliverRate: b.sent ? Math.min(b.delivered, b.sent) / b.sent : 0,
+          replyRate: b.sent ? b.replies / b.sent : 0,
+          optOutRate: b.sent ? b.optOuts / b.sent : 0,
+        };
+      })
+      .filter((n) => n.sent > 0)
+      .sort((a, b) => b.sent - a.sent);
+
+    /**
+     * A/B variant table: distinct outbound openers ranked by reply rate. Each
+     * distinct body is a variant, which is exactly what spintax / A-B copy
+     * produces, so no separate variant column is needed to compare them.
+     */
+    const variants = Array.from(copyAgg.values())
+      .map((c) => ({
+        body: c.body,
+        sent: c.sent,
+        replies: c.replies,
+        replyRate: c.sent ? c.replies / c.sent : 0,
+        campaigns: c.campaigns.size,
+      }))
+      .sort((a, b) => b.sent - a.sent || b.replyRate - a.replyRate)
+      .slice(0, 8);
+
     // Contacts reached in the window (unique threads touched outbound).
     const contacts = new Set(
       inWindow.filter((m) => m.direction === "outbound").map((m) => m.thread_key ?? m.lead_id ?? m.id),
@@ -449,5 +500,7 @@ export const getWorkspacePerformance = createServerFn({ method: "GET" })
       insights,
       timing: { bands: bandStats.map((b) => ({ ...b, rate: rate(b) })), bestBand: bestBand?.label ?? null, bestDay: bestDay?.label ?? null },
       numbers: { rows: numberRows, healthy, cooling, flagged, avgReputation, rotation: numberRows.length > 1 },
+      byNumber,
+      variants,
     };
   });

@@ -381,3 +381,79 @@ export const deleteWebhook = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true };
   });
+
+/**
+ * Export the Leads library exactly as it is filtered on screen. Rows come back
+ * flat and already labelled, so the download matches the table the operator is
+ * looking at. RLS scopes it to the workspace; the caller still routes the file
+ * through guardedExport so it is attributed, capped and watermarked.
+ */
+export const exportLeadRecords = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        workspaceId: z.string().uuid(),
+        disposition: z.enum(["all", "clean", "dnc", "litigator"]).default("all"),
+        sourceType: z.string().max(40).default("all"),
+        lineType: z.enum(["all", "mobile", "landline", "voip", "unknown"]).default("all"),
+        channel: z.enum(["all", "phone", "email", "address"]).default("all"),
+        onlyNew: z.boolean().default(false),
+        multiList: z.boolean().default(false),
+        search: z.string().max(120).optional(),
+        limit: z.number().int().min(1).max(25_000).default(25_000),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    let q = context.supabase
+      .from("lead_records")
+      .select(
+        "full_name, business_name, phone, phone_type, email, address, city, state, zip, website, handle, platform, followers, engagement, disposition, source_types, record_types, list_count, first_seen_at, last_seen_at",
+      )
+      .eq("workspace_id", data.workspaceId)
+      .order("last_seen_at", { ascending: false })
+      .limit(data.limit);
+
+    if (data.disposition !== "all") q = q.eq("disposition", data.disposition);
+    if (data.lineType !== "all") q = q.eq("phone_type", data.lineType);
+    if (data.channel === "phone") q = q.not("phone", "is", null);
+    if (data.channel === "email") q = q.not("email", "is", null);
+    if (data.channel === "address") q = q.not("address", "is", null);
+    if (data.sourceType !== "all") q = q.contains("source_types", [data.sourceType]);
+    if (data.onlyNew) q = q.eq("is_new", true);
+    if (data.multiList) q = q.gt("list_count", 1);
+    if (data.search?.trim()) {
+      const s = `%${data.search.trim()}%`;
+      q = q.or(
+        `full_name.ilike.${s},business_name.ilike.${s},phone.ilike.${s},email.ilike.${s},city.ilike.${s},state.ilike.${s}`,
+      );
+    }
+
+    const { data: rows, error } = await q;
+    if (error) throw error;
+
+    const out = (rows ?? []).map((r) => ({
+      full_name: r.full_name ?? "",
+      business_name: r.business_name ?? "",
+      phone: r.phone ?? "",
+      phone_type: r.phone_type ?? "",
+      email: r.email ?? "",
+      address: r.address ?? "",
+      city: r.city ?? "",
+      state: r.state ?? "",
+      zip: r.zip ?? "",
+      website: r.website ?? "",
+      handle: r.handle ?? "",
+      platform: r.platform ?? "",
+      followers: r.followers ?? "",
+      engagement: r.engagement ?? "",
+      disposition: r.disposition ?? "",
+      sources: (r.source_types ?? []).join(" | "),
+      record_types: (r.record_types ?? []).join(" | "),
+      lists: r.list_count ?? 1,
+      first_seen: r.first_seen_at ?? "",
+      last_seen: r.last_seen_at ?? "",
+    }));
+    return { rows: out };
+  });

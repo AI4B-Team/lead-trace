@@ -49,7 +49,7 @@ function Performance() {
     );
   }
 
-  const { kpis, deltas, daily, funnel, campaigns, bestMessage, insights, timing, historyReady } = data;
+  const { kpis, deltas, daily, funnel, campaigns, bestMessage, insights, timing, historyReady, byNumber, variants } = data;
 
   const week = weekOverWeek(daily);
   const bestCampaign = campaigns[0] ? { id: campaigns[0].id, name: campaigns[0].name } : null;
@@ -168,7 +168,97 @@ function Performance() {
         <h2 className="mb-3 font-display text-base font-black text-foreground">Campaign Performance</h2>
         <CampaignLeaderboard campaigns={campaigns} />
       </div>
+
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        <NumberDeliverability rows={byNumber} />
+        <VariantTable rows={variants} />
+      </div>
     </div>
+  );
+}
+
+/**
+ * Per-number deliverability: rotation is only safe when you can see which DID
+ * is carrying the sends and which one is absorbing the opt-outs.
+ */
+function NumberDeliverability({
+  rows,
+}: {
+  rows: Array<{ id: string; phone: string; status: string; health: number; sent: number; delivered: number; replies: number; optOuts: number; deliverRate: number; replyRate: number; optOutRate: number }>;
+}) {
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <h2 className="mb-1 font-display text-base font-black text-foreground">Deliverability By Number</h2>
+        <p className="mb-3 text-xs text-muted-foreground">Last 30 Days · Sends, Delivery, Replies And Opt-Outs Per Sending Number</p>
+        {rows.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No Number Has Sent Yet — Per-Number Deliverability Appears After Your First Campaign Sends.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <th className="py-2 pr-3">Number</th>
+                  <th className="py-2 pr-3">Sent</th>
+                  <th className="py-2 pr-3">Delivered</th>
+                  <th className="py-2 pr-3">Replies</th>
+                  <th className="py-2 pr-3">Opt-Outs</th>
+                  <th className="py-2">Health</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((n) => (
+                  <tr key={n.id} className="border-b border-border/60 last:border-0">
+                    <td className="py-2 pr-3 font-medium text-foreground">
+                      {n.phone}
+                      {n.status === "cooling" && <span className="ml-2 text-[11px] text-warn">Cooling</span>}
+                    </td>
+                    <td className="py-2 pr-3 text-muted-foreground">{n.sent.toLocaleString()}</td>
+                    <td className="py-2 pr-3 text-success">{pct(n.deliverRate)}</td>
+                    <td className="py-2 pr-3 text-muted-foreground">{pct(n.replyRate)}</td>
+                    <td className={`py-2 pr-3 ${n.optOutRate > 0.05 ? "text-danger" : "text-muted-foreground"}`}>{pct(n.optOutRate)}</td>
+                    <td className="py-2 text-muted-foreground">{n.health}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** A/B copy comparison: every distinct opener is a variant, ranked by volume. */
+function VariantTable({
+  rows,
+}: {
+  rows: Array<{ body: string; sent: number; replies: number; replyRate: number; campaigns: number }>;
+}) {
+  const best = rows.reduce((acc, r) => (r.sent >= 10 && r.replyRate > acc ? r.replyRate : acc), 0);
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <h2 className="mb-1 font-display text-base font-black text-foreground">Message Variants</h2>
+        <p className="mb-3 text-xs text-muted-foreground">Last 30 Days · Reply Rate By Opener, So You Can Retire The Losers</p>
+        {rows.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No Outbound Copy Yet — Variant Comparison Appears Once Messages Go Out.</p>
+        ) : (
+          <div className="space-y-3">
+            {rows.map((v, i) => (
+              <div key={i} className="border-b border-border/60 pb-3 last:border-0 last:pb-0">
+                <p className="line-clamp-2 text-sm text-foreground">{v.body}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {v.sent.toLocaleString()} Sent · {v.replies.toLocaleString()} Replies ·{" "}
+                  <span className={best > 0 && v.replyRate === best ? "font-semibold text-success" : ""}>{pct(v.replyRate)} Reply Rate</span>
+                  {v.sent < 10 && <span> · Early Signal</span>}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
