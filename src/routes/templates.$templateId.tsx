@@ -18,7 +18,7 @@ export const Route = createFileRoute("/templates/$templateId")({
   loader: ({ params }) => {
     const template = getTemplate(params.templateId);
     if (!template) throw notFound();
-    return { title: template.title, subtitle: template.subtitle };
+    return { title: template.title, subtitle: template.subtitle, templateId: params.templateId };
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
