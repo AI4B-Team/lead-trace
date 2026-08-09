@@ -43,8 +43,10 @@ export const getBilling = createServerFn({ method: "GET" })
     };
   });
 
-// Demo top-up: adds credits + writes a ledger row. In prod this fires after
-// a successful Stripe/Paddle webhook.
+// Manual credit grant. Until a payment provider is wired up, this is the only
+// way credits enter a workspace, so it is restricted to platform admins —
+// customers must never be able to grant themselves unpaid credits. When
+// checkout lands, the payment webhook calls applyCreditDelta directly.
 export const topUpCredits = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -56,16 +58,10 @@ export const topUpCredits = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    // Membership check runs as the caller (RLS); the balance write itself is
-    // atomic and service-role only, so clients can never set a balance directly.
-    const { data: member, error: memErr } = await supabase
-      .from("workspace_members")
-      .select("role")
-      .eq("workspace_id", data.workspaceId)
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (memErr) throw new Error(memErr.message);
-    if (!member || !["owner", "admin"].includes(member.role)) throw new Error("Forbidden");
+    // Checks run as the caller (RLS); the balance write itself is atomic and
+    // service-role only, so clients can never set a balance directly.
+    const { isSuperAdmin } = await import("./access-checks");
+    if (!(await isSuperAdmin(supabase, context.userId))) throw new Error("Forbidden");
 
     const { applyCreditDelta } = await import("./credits.server");
     const next = await applyCreditDelta(null, {
