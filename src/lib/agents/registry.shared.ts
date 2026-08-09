@@ -54,7 +54,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
       "Ranks leads against what your own workspace has actually converted, and refits its weighting once a week.",
     cadence: "Retrains Weekly",
     intervalMinutes: 10080,
-    implemented: false,
+    implemented: true,
   },
   {
     key: "booking_auditor",
