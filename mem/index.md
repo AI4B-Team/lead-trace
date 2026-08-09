@@ -23,3 +23,4 @@ One spec object per builder flow: panel edits patch it, never rebuild it, and th
 - [Real Elite identity spine](mem://product/identity-spine.md) — Federated SSO handoff, canonical org/user IDs, hub event payloads
 - [Enrichment profiles](mem://product/enrichment-profiles.md) — Creator vs B2B vs standard toggles, Email Found funnel stage, creator export columns
 - [App separation](mem://product/app-separation.md) — Customer app (/app) vs Platform Admin (/platform): personas, nav, what must never mix
+- [Background agents](mem://product/background-agents.md) — Flag-only default, proposal approval, guardrails agents may never touch

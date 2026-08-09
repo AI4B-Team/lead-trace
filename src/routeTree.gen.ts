@@ -74,6 +74,7 @@ import { Route as AuthenticatedAppDashboardRouteImport } from './routes/_authent
 import { Route as AuthenticatedAppComplianceRouteImport } from './routes/_authenticated/app.compliance'
 import { Route as AuthenticatedAppBrandsRouteImport } from './routes/_authenticated/app.brands'
 import { Route as AuthenticatedAppBillingRouteImport } from './routes/_authenticated/app.billing'
+import { Route as AuthenticatedAppBackgroundAgentsRouteImport } from './routes/_authenticated/app.background-agents'
 import { Route as AuthenticatedAppAssistantRouteImport } from './routes/_authenticated/app.assistant'
 import { Route as AuthenticatedAppApiRouteImport } from './routes/_authenticated/app.api'
 import { Route as AuthenticatedAppAgentRouteImport } from './routes/_authenticated/app.agent'
@@ -99,6 +100,7 @@ import { Route as ApiPublicHooksTickPlanRenewalRouteImport } from './routes/api/
 import { Route as ApiPublicHooksTickJobsRouteImport } from './routes/api/public/hooks/tick-jobs'
 import { Route as ApiPublicHooksTickDistressFeedRouteImport } from './routes/api/public/hooks/tick-distress-feed'
 import { Route as ApiPublicHooksTickCampaignsRouteImport } from './routes/api/public/hooks/tick-campaigns'
+import { Route as ApiPublicHooksTickAgentsRouteImport } from './routes/api/public/hooks/tick-agents'
 import { Route as ApiPublicHooksTelnyxInboundRouteImport } from './routes/api/public/hooks/telnyx-inbound'
 import { Route as ApiPublicHooksTelnyxDlrRouteImport } from './routes/api/public/hooks/telnyx-dlr'
 import { Route as ApiPublicHooksTelnyxCallRouteImport } from './routes/api/public/hooks/telnyx-call'
@@ -451,6 +453,12 @@ const AuthenticatedAppBillingRoute = AuthenticatedAppBillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppBackgroundAgentsRoute =
+  AuthenticatedAppBackgroundAgentsRouteImport.update({
+    id: '/background-agents',
+    path: '/background-agents',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAssistantRoute =
   AuthenticatedAppAssistantRouteImport.update({
     id: '/assistant',
@@ -593,6 +601,12 @@ const ApiPublicHooksTickCampaignsRoute =
     path: '/api/public/hooks/tick-campaigns',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksTickAgentsRoute =
+  ApiPublicHooksTickAgentsRouteImport.update({
+    id: '/api/public/hooks/tick-agents',
+    path: '/api/public/hooks/tick-agents',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksTelnyxInboundRoute =
   ApiPublicHooksTelnyxInboundRouteImport.update({
     id: '/api/public/hooks/telnyx-inbound',
@@ -709,6 +723,7 @@ export interface FileRoutesByFullPath {
   '/app/agent': typeof AuthenticatedAppAgentRoute
   '/app/api': typeof AuthenticatedAppApiRoute
   '/app/assistant': typeof AuthenticatedAppAssistantRoute
+  '/app/background-agents': typeof AuthenticatedAppBackgroundAgentsRoute
   '/app/billing': typeof AuthenticatedAppBillingRoute
   '/app/brands': typeof AuthenticatedAppBrandsRoute
   '/app/compliance': typeof AuthenticatedAppComplianceRoute
@@ -743,6 +758,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/telnyx-call': typeof ApiPublicHooksTelnyxCallRoute
   '/api/public/hooks/telnyx-dlr': typeof ApiPublicHooksTelnyxDlrRoute
   '/api/public/hooks/telnyx-inbound': typeof ApiPublicHooksTelnyxInboundRoute
+  '/api/public/hooks/tick-agents': typeof ApiPublicHooksTickAgentsRoute
   '/api/public/hooks/tick-campaigns': typeof ApiPublicHooksTickCampaignsRoute
   '/api/public/hooks/tick-distress-feed': typeof ApiPublicHooksTickDistressFeedRoute
   '/api/public/hooks/tick-jobs': typeof ApiPublicHooksTickJobsRoute
@@ -810,6 +826,7 @@ export interface FileRoutesByTo {
   '/app/agent': typeof AuthenticatedAppAgentRoute
   '/app/api': typeof AuthenticatedAppApiRoute
   '/app/assistant': typeof AuthenticatedAppAssistantRoute
+  '/app/background-agents': typeof AuthenticatedAppBackgroundAgentsRoute
   '/app/billing': typeof AuthenticatedAppBillingRoute
   '/app/brands': typeof AuthenticatedAppBrandsRoute
   '/app/compliance': typeof AuthenticatedAppComplianceRoute
@@ -844,6 +861,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/telnyx-call': typeof ApiPublicHooksTelnyxCallRoute
   '/api/public/hooks/telnyx-dlr': typeof ApiPublicHooksTelnyxDlrRoute
   '/api/public/hooks/telnyx-inbound': typeof ApiPublicHooksTelnyxInboundRoute
+  '/api/public/hooks/tick-agents': typeof ApiPublicHooksTickAgentsRoute
   '/api/public/hooks/tick-campaigns': typeof ApiPublicHooksTickCampaignsRoute
   '/api/public/hooks/tick-distress-feed': typeof ApiPublicHooksTickDistressFeedRoute
   '/api/public/hooks/tick-jobs': typeof ApiPublicHooksTickJobsRoute
@@ -915,6 +933,7 @@ export interface FileRoutesById {
   '/_authenticated/app/agent': typeof AuthenticatedAppAgentRoute
   '/_authenticated/app/api': typeof AuthenticatedAppApiRoute
   '/_authenticated/app/assistant': typeof AuthenticatedAppAssistantRoute
+  '/_authenticated/app/background-agents': typeof AuthenticatedAppBackgroundAgentsRoute
   '/_authenticated/app/billing': typeof AuthenticatedAppBillingRoute
   '/_authenticated/app/brands': typeof AuthenticatedAppBrandsRoute
   '/_authenticated/app/compliance': typeof AuthenticatedAppComplianceRoute
@@ -949,6 +968,7 @@ export interface FileRoutesById {
   '/api/public/hooks/telnyx-call': typeof ApiPublicHooksTelnyxCallRoute
   '/api/public/hooks/telnyx-dlr': typeof ApiPublicHooksTelnyxDlrRoute
   '/api/public/hooks/telnyx-inbound': typeof ApiPublicHooksTelnyxInboundRoute
+  '/api/public/hooks/tick-agents': typeof ApiPublicHooksTickAgentsRoute
   '/api/public/hooks/tick-campaigns': typeof ApiPublicHooksTickCampaignsRoute
   '/api/public/hooks/tick-distress-feed': typeof ApiPublicHooksTickDistressFeedRoute
   '/api/public/hooks/tick-jobs': typeof ApiPublicHooksTickJobsRoute
@@ -1020,6 +1040,7 @@ export interface FileRouteTypes {
     | '/app/agent'
     | '/app/api'
     | '/app/assistant'
+    | '/app/background-agents'
     | '/app/billing'
     | '/app/brands'
     | '/app/compliance'
@@ -1054,6 +1075,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/telnyx-call'
     | '/api/public/hooks/telnyx-dlr'
     | '/api/public/hooks/telnyx-inbound'
+    | '/api/public/hooks/tick-agents'
     | '/api/public/hooks/tick-campaigns'
     | '/api/public/hooks/tick-distress-feed'
     | '/api/public/hooks/tick-jobs'
@@ -1121,6 +1143,7 @@ export interface FileRouteTypes {
     | '/app/agent'
     | '/app/api'
     | '/app/assistant'
+    | '/app/background-agents'
     | '/app/billing'
     | '/app/brands'
     | '/app/compliance'
@@ -1155,6 +1178,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/telnyx-call'
     | '/api/public/hooks/telnyx-dlr'
     | '/api/public/hooks/telnyx-inbound'
+    | '/api/public/hooks/tick-agents'
     | '/api/public/hooks/tick-campaigns'
     | '/api/public/hooks/tick-distress-feed'
     | '/api/public/hooks/tick-jobs'
@@ -1225,6 +1249,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/agent'
     | '/_authenticated/app/api'
     | '/_authenticated/app/assistant'
+    | '/_authenticated/app/background-agents'
     | '/_authenticated/app/billing'
     | '/_authenticated/app/brands'
     | '/_authenticated/app/compliance'
@@ -1259,6 +1284,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/telnyx-call'
     | '/api/public/hooks/telnyx-dlr'
     | '/api/public/hooks/telnyx-inbound'
+    | '/api/public/hooks/tick-agents'
     | '/api/public/hooks/tick-campaigns'
     | '/api/public/hooks/tick-distress-feed'
     | '/api/public/hooks/tick-jobs'
@@ -1329,6 +1355,7 @@ export interface RootRouteChildren {
   ApiPublicHooksTelnyxCallRoute: typeof ApiPublicHooksTelnyxCallRoute
   ApiPublicHooksTelnyxDlrRoute: typeof ApiPublicHooksTelnyxDlrRoute
   ApiPublicHooksTelnyxInboundRoute: typeof ApiPublicHooksTelnyxInboundRoute
+  ApiPublicHooksTickAgentsRoute: typeof ApiPublicHooksTickAgentsRoute
   ApiPublicHooksTickCampaignsRoute: typeof ApiPublicHooksTickCampaignsRoute
   ApiPublicHooksTickDistressFeedRoute: typeof ApiPublicHooksTickDistressFeedRoute
   ApiPublicHooksTickJobsRoute: typeof ApiPublicHooksTickJobsRoute
@@ -1805,6 +1832,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppBillingRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/background-agents': {
+      id: '/_authenticated/app/background-agents'
+      path: '/background-agents'
+      fullPath: '/app/background-agents'
+      preLoaderRoute: typeof AuthenticatedAppBackgroundAgentsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/assistant': {
       id: '/_authenticated/app/assistant'
       path: '/assistant'
@@ -1980,6 +2014,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTickCampaignsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/tick-agents': {
+      id: '/api/public/hooks/tick-agents'
+      path: '/api/public/hooks/tick-agents'
+      fullPath: '/api/public/hooks/tick-agents'
+      preLoaderRoute: typeof ApiPublicHooksTickAgentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/telnyx-inbound': {
       id: '/api/public/hooks/telnyx-inbound'
       path: '/api/public/hooks/telnyx-inbound'
@@ -2072,6 +2113,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAgentRoute: typeof AuthenticatedAppAgentRoute
   AuthenticatedAppApiRoute: typeof AuthenticatedAppApiRoute
   AuthenticatedAppAssistantRoute: typeof AuthenticatedAppAssistantRoute
+  AuthenticatedAppBackgroundAgentsRoute: typeof AuthenticatedAppBackgroundAgentsRoute
   AuthenticatedAppBillingRoute: typeof AuthenticatedAppBillingRoute
   AuthenticatedAppBrandsRoute: typeof AuthenticatedAppBrandsRoute
   AuthenticatedAppComplianceRoute: typeof AuthenticatedAppComplianceRoute
@@ -2106,6 +2148,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAgentRoute: AuthenticatedAppAgentRoute,
   AuthenticatedAppApiRoute: AuthenticatedAppApiRoute,
   AuthenticatedAppAssistantRoute: AuthenticatedAppAssistantRoute,
+  AuthenticatedAppBackgroundAgentsRoute: AuthenticatedAppBackgroundAgentsRoute,
   AuthenticatedAppBillingRoute: AuthenticatedAppBillingRoute,
   AuthenticatedAppBrandsRoute: AuthenticatedAppBrandsRoute,
   AuthenticatedAppComplianceRoute: AuthenticatedAppComplianceRoute,
@@ -2242,6 +2285,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksTelnyxCallRoute: ApiPublicHooksTelnyxCallRoute,
   ApiPublicHooksTelnyxDlrRoute: ApiPublicHooksTelnyxDlrRoute,
   ApiPublicHooksTelnyxInboundRoute: ApiPublicHooksTelnyxInboundRoute,
+  ApiPublicHooksTickAgentsRoute: ApiPublicHooksTickAgentsRoute,
   ApiPublicHooksTickCampaignsRoute: ApiPublicHooksTickCampaignsRoute,
   ApiPublicHooksTickDistressFeedRoute: ApiPublicHooksTickDistressFeedRoute,
   ApiPublicHooksTickJobsRoute: ApiPublicHooksTickJobsRoute,
@@ -2266,13 +2310,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

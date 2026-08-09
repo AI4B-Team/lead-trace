@@ -239,6 +239,144 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_proposals: {
+        Row: {
+          agent_id: string | null
+          agent_key: string | null
+          created_at: string
+          current_value: Json | null
+          evidence_refs: Json
+          expires_at: string
+          id: string
+          proposal_type: string
+          proposed_value: Json | null
+          rationale: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          target_field: string | null
+          target_id: string | null
+          target_table: string | null
+          workspace_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          agent_key?: string | null
+          created_at?: string
+          current_value?: Json | null
+          evidence_refs?: Json
+          expires_at?: string
+          id?: string
+          proposal_type: string
+          proposed_value?: Json | null
+          rationale: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          target_field?: string | null
+          target_id?: string | null
+          target_table?: string | null
+          workspace_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          agent_key?: string | null
+          created_at?: string
+          current_value?: Json | null
+          evidence_refs?: Json
+          expires_at?: string
+          id?: string
+          proposal_type?: string
+          proposed_value?: Json | null
+          rationale?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          target_field?: string | null
+          target_id?: string | null
+          target_table?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_proposals_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "background_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_proposals_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_runs: {
+        Row: {
+          agent_id: string | null
+          agent_key: string | null
+          error: string | null
+          finished_at: string | null
+          id: string
+          items_actioned: number
+          items_examined: number
+          items_flagged: number
+          started_at: string
+          status: string
+          summary: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          agent_key?: string | null
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          items_actioned?: number
+          items_examined?: number
+          items_flagged?: number
+          started_at?: string
+          status?: string
+          summary?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          agent_key?: string | null
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          items_actioned?: number
+          items_examined?: number
+          items_flagged?: number
+          started_at?: string
+          status?: string
+          summary?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_runs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "background_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_runs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approval_requests: {
         Row: {
           amount: number
@@ -288,6 +426,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "approval_requests_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      background_agents: {
+        Row: {
+          agent_key: string
+          config: Json
+          consecutive_failures: number
+          created_at: string
+          enabled: boolean
+          id: string
+          interval_minutes: number
+          last_run_at: string | null
+          mode: string
+          next_run_at: string | null
+          updated_at: string
+          workspace_id: string | null
+        }
+        Insert: {
+          agent_key: string
+          config?: Json
+          consecutive_failures?: number
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          interval_minutes: number
+          last_run_at?: string | null
+          mode?: string
+          next_run_at?: string | null
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Update: {
+          agent_key?: string
+          config?: Json
+          consecutive_failures?: number
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          interval_minutes?: number
+          last_run_at?: string | null
+          mode?: string
+          next_run_at?: string | null
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "background_agents_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -758,6 +949,104 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "compliance_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_outcomes: {
+        Row: {
+          anchor_days_remaining: number | null
+          bot_profile_id: string | null
+          campaign_step_id: string | null
+          case_id: string | null
+          confidence: number | null
+          flagged: boolean
+          id: string
+          labeled_at: string
+          labeler_version: string
+          last_message_at: string | null
+          lead_id: string | null
+          objection_category: string | null
+          outcome: string
+          sentiment: string | null
+          superseded_at: string | null
+          thread_id: string | null
+          thread_key: string | null
+          touches_before_outcome: number | null
+          variant_hash: string | null
+          workspace_id: string
+        }
+        Insert: {
+          anchor_days_remaining?: number | null
+          bot_profile_id?: string | null
+          campaign_step_id?: string | null
+          case_id?: string | null
+          confidence?: number | null
+          flagged?: boolean
+          id?: string
+          labeled_at?: string
+          labeler_version?: string
+          last_message_at?: string | null
+          lead_id?: string | null
+          objection_category?: string | null
+          outcome: string
+          sentiment?: string | null
+          superseded_at?: string | null
+          thread_id?: string | null
+          thread_key?: string | null
+          touches_before_outcome?: number | null
+          variant_hash?: string | null
+          workspace_id: string
+        }
+        Update: {
+          anchor_days_remaining?: number | null
+          bot_profile_id?: string | null
+          campaign_step_id?: string | null
+          case_id?: string | null
+          confidence?: number | null
+          flagged?: boolean
+          id?: string
+          labeled_at?: string
+          labeler_version?: string
+          last_message_at?: string | null
+          lead_id?: string | null
+          objection_category?: string | null
+          outcome?: string
+          sentiment?: string | null
+          superseded_at?: string | null
+          thread_id?: string | null
+          thread_key?: string | null
+          touches_before_outcome?: number | null
+          variant_hash?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_outcomes_bot_profile_id_fkey"
+            columns: ["bot_profile_id"]
+            isOneToOne: false
+            referencedRelation: "bot_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_outcomes_campaign_step_id_fkey"
+            columns: ["campaign_step_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_steps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_outcomes_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_outcomes_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
