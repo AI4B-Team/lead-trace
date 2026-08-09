@@ -27,19 +27,53 @@ async function httpScrub(url: string, apiKey: string, phones: string[]): Promise
     throw new Error(`DNC scrub failed: ${res.status} ${text.slice(0, 200)}`);
   }
   const body = (await res.json()) as {
-    results: Array<{ phone: string; dnc?: boolean; litigator?: boolean }>;
+    results?: Array<{ phone?: string; dnc?: boolean; litigator?: boolean }>;
     proof?: Record<string, unknown>;
   };
-  const results = body.results.map((r) => {
+  const results = (body.results ?? []).map((r) => {
     let status: ScrubStatus = "clean";
     if (r.litigator) status = "litigator";
     else if (r.dnc) status = "dnc";
-    return { phone: r.phone, status };
+    return { phone: r.phone ?? "", status };
   });
   return {
     provider: new URL(url).hostname,
     results,
     proof: body.proof ?? { source: url, count: phones.length, scrubbed_at: new Date().toISOString() },
+  };
+}
+
+// Blacklist Alliance native contract. POST { phones: string[] } with a Bearer
+// API key and read back { results: [{ phone, dnc, litigator }] }.
+async function blacklistAllianceScrub(apiKey: string, phones: string[]): Promise<ScrubResult> {
+  const baseUrl = (process.env.BLACKLIST_ALLIANCE_URL ?? "https://api.blacklistalliance.com").replace(/\/+$/, "");
+  const res = await fetch(`${baseUrl}/api/v1/lookup`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      "User-Agent": "LeadTrace-Integration/1.0",
+    },
+    body: JSON.stringify({ phones }),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Blacklist Alliance ${res.status}: ${text.slice(0, 200)}`);
+  }
+  const body = (await res.json()) as {
+    results?: Array<{ phone?: string; dnc?: boolean; litigator?: boolean }>;
+    proof?: Record<string, unknown>;
+  };
+  const results = (body.results ?? []).map((r) => {
+    let status: ScrubStatus = "clean";
+    if (r.litigator) status = "litigator";
+    else if (r.dnc) status = "dnc";
+    return { phone: r.phone ?? "", status };
+  });
+  return {
+    provider: "blacklistalliance",
+    results,
+    proof: body.proof ?? { count: phones.length, scrubbed_at: new Date().toISOString() },
   };
 }
 
