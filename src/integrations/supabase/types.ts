@@ -897,17 +897,35 @@ export type Database = {
       }
       cron_locks: {
         Row: {
+          consecutive_failures: number
           key: string
+          last_detail: string | null
+          last_duration_ms: number | null
+          last_finished_at: string | null
+          last_status: string | null
+          last_success_at: string | null
           last_tick_at: string | null
           locked_at: string
         }
         Insert: {
+          consecutive_failures?: number
           key: string
+          last_detail?: string | null
+          last_duration_ms?: number | null
+          last_finished_at?: string | null
+          last_status?: string | null
+          last_success_at?: string | null
           last_tick_at?: string | null
           locked_at?: string
         }
         Update: {
+          consecutive_failures?: number
           key?: string
+          last_detail?: string | null
+          last_duration_ms?: number | null
+          last_finished_at?: string | null
+          last_status?: string | null
+          last_success_at?: string | null
           last_tick_at?: string | null
           locked_at?: string
         }
