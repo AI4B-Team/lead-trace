@@ -33,7 +33,7 @@ export const listLeadRecords = createServerFn({ method: "GET" })
     let q = supabase
       .from("lead_records")
       .select(
-        "id, full_name, business_name, phone, phone_type, email, address, website, socials, handle, platform, followers, engagement, city, state, zip, disposition, source_types, record_types, list_count, first_seen_at, last_seen_at, is_new",
+        "id, full_name, business_name, phone, phone_type, email, address, website, socials, handle, platform, followers, engagement, city, state, zip, disposition, source_types, record_types, list_count, first_seen_at, last_seen_at, is_new, nominated_at, nominated_score, nominated_reason",
       )
       .eq("workspace_id", data.workspaceId)
       .order("last_seen_at", { ascending: false })
@@ -47,6 +47,8 @@ export const listLeadRecords = createServerFn({ method: "GET" })
     if (data.sourceType !== "all") q = q.contains("source_types", [data.sourceType]);
     if (data.onlyNew) q = q.eq("is_new", true);
     if (data.multiList) q = q.gt("list_count", 1);
+    // "Shortlist" = records a person accepted from a Lead Scout nomination.
+    if (data.onlyNominated) q = q.not("nominated_at", "is", null);
     if (data.search?.trim()) {
       const s = `%${data.search.trim()}%`;
       q = q.or(
