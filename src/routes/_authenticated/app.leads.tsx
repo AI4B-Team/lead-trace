@@ -12,10 +12,16 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link } from "@tanstack/react-router";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Users, ShieldCheck, ShieldAlert, Ban, Sparkles, Layers, HelpCircle, Wand2, Loader2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Search, Users, ShieldCheck, ShieldAlert, Ban, Sparkles, Layers, HelpCircle, Wand2, Loader2, Download } from "lucide-react";
 import { useWorkspaceId } from "@/hooks/use-workspace";
 import { formatLocation } from "@/lib/location";
-import { listLeadRecords, getLeadListMemberships } from "@/lib/monitoring.functions";
+import { listLeadRecords, getLeadListMemberships, exportLeadRecords } from "@/lib/monitoring.functions";
+import { useTeamContext } from "@/hooks/use-team-context";
+import { denialMessage } from "@/lib/team-roles.shared";
+import { guardedExport } from "@/lib/guarded-export";
+import { brandedFileName } from "@/lib/download-name";
+import { type ExportFormat } from "@/lib/export-file";
 import { enrichLeadRecord } from "@/lib/enrich-lead.functions";
 import { RECORD_TYPE_LABEL } from "@/lib/monitoring.shared";
 import { LeadTagChips } from "@/components/app/lead-tag-picker";
