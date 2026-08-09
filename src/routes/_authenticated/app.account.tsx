@@ -43,6 +43,10 @@ function AccountPage() {
   const { tab } = Route.useSearch();
   const navigate = Route.useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const avatarUrl = useAvatarUrl();
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
