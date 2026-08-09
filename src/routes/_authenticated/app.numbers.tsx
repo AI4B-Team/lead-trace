@@ -28,6 +28,7 @@ import {
 import { Plus, ShieldAlert, Loader2, PhoneForwarded, Voicemail } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspaceId } from "@/hooks/use-workspace";
+import { useTeamContext } from "@/hooks/use-team-context";
 import {
   listNumbers,
   buyNumbers,
@@ -47,6 +48,11 @@ type Region = "east" | "central" | "mountain" | "west";
 
 function Numbers() {
   const { workspaceId } = useWorkspaceId();
+  const team = useTeamContext();
+  // Purchases and throttle/inbound changes are admin-gated server-side; mirror
+  // that here so members don't hit a rejected write.
+  const canBuy = team.can("purchase_credits");
+  const canManage = team.can("manage_limits");
   const list = useServerFn(listNumbers);
   const buy = useServerFn(buyNumbers);
   const reg = useServerFn(getRegistration);
@@ -123,7 +129,13 @@ function Numbers() {
         actions={
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="rounded-full"><Plus className="mr-1 h-4 w-4" /> Buy Numbers</Button>
+              <Button
+                className="rounded-full"
+                disabled={!canBuy}
+                title={canBuy ? undefined : "Only Admins Can Purchase Numbers"}
+              >
+                <Plus className="mr-1 h-4 w-4" /> Buy Numbers
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Buy Numbers Into A Region</DialogTitle></DialogHeader>
