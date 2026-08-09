@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { AppRouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -13,6 +14,15 @@ export const Route = createFileRoute("/_authenticated")({
     return { user: data.session.user };
   },
   component: AuthenticatedShell,
+  // Scope failures to the app shell so a single screen's error doesn't fall
+  // through to the marketing-styled root boundary.
+  errorComponent: AppRouteErrorState,
+  notFoundComponent: () => (
+    <RouteNotFoundState
+      title="Screen Not Found"
+      message="That page doesn't exist in your workspace. Use the sidebar to get back on track."
+    />
+  ),
 });
 
 function AuthenticatedShell() {
