@@ -22,6 +22,10 @@ async function execute(agent: AgentRow): Promise<RunOutcome> {
       const { runLeadScout } = await import("./scout.server");
       return runLeadScout(agent);
     }
+    case "coach": {
+      const { runCoach } = await import("./coach.server");
+      return runCoach(agent);
+    }
     default:
       return { status: "skipped", summary: "not implemented yet" };
   }
