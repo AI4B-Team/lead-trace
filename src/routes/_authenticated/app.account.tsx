@@ -155,7 +155,7 @@ function AccountPage() {
       <SettingsShell current={tab ?? "profile"}>
       <PageHeader
         title="Settings"
-        description="Manage Your Profile, Workspace, Billing, Compliance, And Team."
+        description="Manage Your Profile, Subscription, API Keys, And Notifications."
       />
       <Tabs
         value={tab ?? "profile"}
