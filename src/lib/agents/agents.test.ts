@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { classifyThread } from "./labeler.shared";
+import { fitSignalWeights, MIN_SAMPLES } from "./scorer.shared";
+import { DEFAULT_SIGNAL_WEIGHTS, type SignalKey } from "./scout.shared";
 import { AgentGuardrailError, assertAgentMayWrite, assertModeAllowed, assertProposalAllowed } from "./guardrails";
 import { ineligibleReason, nominateLeads, scoreLead, type ScoutLead } from "./scout.shared";
 
@@ -59,6 +61,62 @@ describe("conversation labeler", () => {
 });
 
 describe("agent guardrails", () => {
+  it("stub", () => expect(true).toBe(true));
+});
+
+describe("hot-lead scorer", () => {
+  const sample = (signals: SignalKey[], converted: boolean) => ({ signals, converted });
+
+  it("refuses to refit on thin history", () => {
+    const fit = fitSignalWeights([sample(["never_touched"], true), sample(["gone_cold"], false)]);
+    expect(fit.status).toBe("insufficient");
+    expect(fit.weights).toEqual(DEFAULT_SIGNAL_WEIGHTS);
+    expect(fit.note).toMatch(/not enough/i);
+  });
+
+  it("raises a signal that converts better than baseline", () => {
+    const samples = [
+      ...Array.from({ length: 20 }, () => sample(["price_question"], true)),
+      ...Array.from({ length: 40 }, () => sample(["gone_cold"], false)),
+    ];
+    const fit = fitSignalWeights(samples);
+    expect(fit.status).toBe("fitted");
+    expect(fit.samples).toBeGreaterThanOrEqual(MIN_SAMPLES);
+    expect(fit.weights.price_question).toBeGreaterThan(DEFAULT_SIGNAL_WEIGHTS.price_question);
+    expect(fit.changes.some((c) => c.key === "price_question")).toBe(true);
+  });
+
+  it("shrinks a penalty when the penalised signal still converts", () => {
+    const samples = [
+      ...Array.from({ length: 20 }, () => sample(["heavily_touched"], true)),
+      ...Array.from({ length: 40 }, () => sample(["multi_list"], false)),
+    ];
+    const fit = fitSignalWeights(samples);
+    expect(fit.weights.heavily_touched).toBeGreaterThan(DEFAULT_SIGNAL_WEIGHTS.heavily_touched);
+    expect(fit.weights.heavily_touched).toBeLessThanOrEqual(0);
+  });
+
+  it("ignores signals with too few examples to judge", () => {
+    const samples = [
+      ...Array.from({ length: 5 }, () => sample(["freshly_added"], true)),
+      ...Array.from({ length: 50 }, () => sample(["gone_cold"], false)),
+    ];
+    const fit = fitSignalWeights(samples);
+    expect(fit.changes.some((c) => c.key === "freshly_added")).toBe(false);
+  });
+
+  it("never moves a weight beyond half or double its default", () => {
+    const samples = [
+      ...Array.from({ length: 30 }, () => sample(["mobile_verified"], true)),
+      ...Array.from({ length: 30 }, () => sample(["multi_source"], false)),
+    ];
+    const fit = fitSignalWeights(samples);
+    expect(fit.weights.mobile_verified).toBeLessThanOrEqual(DEFAULT_SIGNAL_WEIGHTS.mobile_verified * 2);
+    expect(fit.weights.multi_source).toBeGreaterThanOrEqual(DEFAULT_SIGNAL_WEIGHTS.multi_source * 0.5);
+  });
+});
+
+describe("agent guardrails (rules)", () => {
   it("blocks writes to compliance tables", () => {
     expect(() => assertAgentMayWrite("suppression")).toThrow(AgentGuardrailError);
     expect(() => assertAgentMayWrite("compliance_events")).toThrow();
