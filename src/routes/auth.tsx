@@ -23,6 +23,7 @@ export const Route = createFileRoute("/auth")({
       { property: "og:title", content: "Sign In To LeadTrace" },
       { property: "og:description", content: "Sign in or start free with email and password, or a magic link." },
     ],
+    links: [{ rel: "canonical", href: "/auth" }],
   }),
   component: AuthPage,
 });

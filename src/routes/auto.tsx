@@ -12,6 +12,7 @@ export const Route = createFileRoute("/auto")({
       { property: "og:title", content: "Auto Dealer & Detail Leads — LeadTrace" },
       { property: "og:description", content: "Lease-end buybacks, service reactivation, and fleet accounts. Move more inventory, book more service bays." },
     ],
+    links: [{ rel: "canonical", href: "/auto" }],
   }),
   component: () => <IndustryLandingPage data={data} />,
 });

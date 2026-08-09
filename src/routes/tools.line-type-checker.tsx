@@ -17,6 +17,7 @@ export const Route = createFileRoute("/tools/line-type-checker")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "/tools/line-type-checker" }],
   }),
   component: LineTypeChecker,
 });

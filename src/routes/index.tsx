@@ -59,6 +59,7 @@ export const Route = createFileRoute("/")({
         }),
       },
     ],
+    links: [{ rel: "canonical", href: "/" }],
   }),
   validateSearch: (search: Record<string, unknown>): { prompt?: string; template?: string } => ({
     ...(typeof search.prompt === "string" ? { prompt: search.prompt } : {}),

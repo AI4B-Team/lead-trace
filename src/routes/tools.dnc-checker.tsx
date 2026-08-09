@@ -17,6 +17,7 @@ export const Route = createFileRoute("/tools/dnc-checker")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "/tools/dnc-checker" }],
   }),
   component: DncChecker,
 });

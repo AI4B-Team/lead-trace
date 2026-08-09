@@ -12,6 +12,7 @@ export const Route = createFileRoute("/realestate")({
       { property: "og:title", content: "Real Estate Lead Generation — LeadTrace" },
       { property: "og:description", content: "Distressed property leads pulled from live code enforcement data — scored, skip-traced, ready to contact." },
     ],
+    links: [{ rel: "canonical", href: "/realestate" }],
   }),
   component: () => <IndustryLandingPage data={data} />,
 });
