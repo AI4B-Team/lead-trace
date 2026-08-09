@@ -166,6 +166,24 @@ function AppTemplates() {
           />
         ))}
       </div>
+
+      {items.length === 0 && (
+        <div className="mt-8 rounded-xl border border-dashed border-border px-6 py-12 text-center">
+          <p className="text-sm font-medium text-foreground">No Templates Match These Filters</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Try another category, or clear the beta-only filter.
+          </p>
+          <button
+            onClick={() => {
+              setFilter("all");
+              setBetaOnly(false);
+            }}
+            className="mt-4 inline-flex items-center rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+          >
+            Clear Filters
+          </button>
+        </div>
+      )}
     </div>
   );
 }
