@@ -14,6 +14,7 @@ import {
   Sparkles,
   Users,
   Home,
+  Search,
 } from "lucide-react";
 import {
   Sidebar,
@@ -53,7 +54,7 @@ const ITEMS = [
 type Counts = { lists: number; leads: number; campaigns: number };
 
 export function AppSidebar() {
-  const { state, isMobile } = useSidebar();
+  const { state, isMobile, setOpen } = useSidebar();
   const { workspaceId } = useWorkspaceId();
   const [counts, setCounts] = useState<Counts>({ lists: 0, leads: 0, campaigns: 0 });
 
@@ -120,6 +121,25 @@ export function AppSidebar() {
             <div className="space-y-1.5 px-2 pb-1.5">
               <WorkspaceSwitcher />
               <SidebarSearch />
+            </div>
+          )}
+          {collapsed && (
+            <div className="flex justify-center pb-1.5">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="Search"
+                    onClick={() => setOpen(true)}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  >
+                    <Search className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="bg-popover text-popover-foreground border-border shadow-md">
+                  Search
+                </TooltipContent>
+              </Tooltip>
             </div>
           )}
         </SidebarHeader>
