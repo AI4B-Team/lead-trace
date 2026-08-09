@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import {
   Camera,
   KeyRound,
-  Smartphone,
   MonitorSmartphone,
   History,
   Mail,
@@ -22,6 +21,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { SettingsShell } from "@/components/app/settings-shell";
+import { TwoFactorCard } from "@/components/app/two-factor-card";
 import {
   NotificationPrefs,
   normalizePrefs,
@@ -264,25 +264,7 @@ function AccountPage() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base font-display">
-                    <Smartphone className="h-4 w-4 text-muted-foreground" /> Two-Factor Authentication
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-center justify-between gap-4">
-                  <p className="text-sm text-muted-foreground">
-                    Require A One-Time Code From Your Phone On Every New Sign-In.
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="rounded-full"
-                    onClick={() => toast.info("Two-Factor Setup Is Coming Soon.")}
-                  >
-                    Enable
-                  </Button>
-                </CardContent>
-              </Card>
+              <TwoFactorCard />
 
               <Card>
                 <CardHeader>
