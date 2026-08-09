@@ -31,7 +31,7 @@ import { mailingAddress } from "@/lib/contact-channels";
 import { aggregateFields, type LeadField } from "@/lib/lead-fields";
 
 export const Route = createFileRoute("/_authenticated/app/leads")({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): { onlyNew?: boolean; q?: string } => ({
     onlyNew: search.onlyNew === true || search.onlyNew === "true",
     q: typeof search.q === "string" ? (search.q as string) : undefined,
   }),
