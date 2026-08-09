@@ -7,7 +7,7 @@
  * opted-out phones are dropped before scoring — the Scout is not allowed to
  * be the place a compliance mistake originates.
  */
-import { nominateLeads, SCOUT_VERSION, type ScoutLead } from "./scout.shared";
+import { nominateLeads, normaliseWeights, SCOUT_VERSION, type ScoutLead } from "./scout.shared";
 import { writeProposal } from "./store.server";
 import type { AgentRow, RunOutcome } from "./store.server";
 
@@ -137,7 +137,17 @@ export async function runLeadScout(agent: AgentRow): Promise<RunOutcome> {
     });
   }
 
-  const { nominations, skipped } = nominateLeads(candidates, limit, now);
+  // The Hot-Lead Scorer keeps the learned weighting on its own row; until it has
+  // fit anything, this falls back to the defaults.
+  const { data: scorerRow } = await db
+    .from("background_agents")
+    .select("config")
+    .eq("workspace_id", workspaceId)
+    .eq("agent_key", "hot_lead_scorer")
+    .maybeSingle();
+  const weights = normaliseWeights((scorerRow as { config?: { weights?: unknown } } | null)?.config?.weights);
+
+  const { nominations, skipped } = nominateLeads(candidates, limit, now, weights);
   if (nominations.length === 0) {
     return {
       status: "ok",
