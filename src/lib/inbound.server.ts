@@ -167,14 +167,17 @@ export async function processInbound(ctx: InboundContext): Promise<InboundOutcom
   const { isOptOut, isHelp } = classifyInbound(ctx.body);
 
   if (isOptOut) {
-    // Suppression is written before any reply can be generated.
-    await ctx.db
-      .from("suppression")
-      .upsert({ workspace_id: ctx.workspaceId, phone: ctx.fromPhone, reason: "optout" });
-    if (ctx.leadId) {
-      const { stopSequenceForOptOut } = await import("@/lib/sequence-runner.server");
-      await stopSequenceForOptOut(ctx.db, { workspaceId: ctx.workspaceId, leadId: ctx.leadId });
-    }
+    // Suppression is written before any reply can be generated — and it closes
+    // EVERY line we hold for this contact, not just the number that texted
+    // STOP. A second phone on the same owner must never become a way back in.
+    const { suppressContactAcrossLines } = await import("@/lib/contact-lines.server");
+    await suppressContactAcrossLines(ctx.db, {
+      workspaceId: ctx.workspaceId,
+      phone: ctx.fromPhone,
+      leadId: ctx.leadId ?? null,
+      reason: "optout",
+      source: "inbound",
+    });
     try {
       const res = await ctx.send(ctx.toPhone, ctx.fromPhone, OPTOUT_CONFIRMATION);
       await logOutbound(ctx, OPTOUT_CONFIRMATION, res);
@@ -245,9 +248,11 @@ async function checkNegativeKeywords(ctx: InboundContext): Promise<string | null
   );
   if (!hit) return null;
 
-  await ctx.db.from("suppression").upsert({
-    workspace_id: ctx.workspaceId,
+  const { suppressContactAcrossLines } = await import("@/lib/contact-lines.server");
+  await suppressContactAcrossLines(ctx.db, {
+    workspaceId: ctx.workspaceId,
     phone: ctx.fromPhone,
+    leadId: ctx.leadId ?? null,
     reason: "negative_keyword",
     source: "inbound",
     note: `Matched "${hit.matched}"`,
