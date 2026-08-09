@@ -225,5 +225,29 @@ export const reviewAgentProposal = createServerFn({ method: "POST" })
         });
       }
     }
+
+    // Every decision lands in the activity feed under the deciding member's
+    // name, whether it was an approval or a refusal. A rejected proposal is
+    // part of the record too: it says a person looked and said no.
+    {
+      const meta = (reviewed ?? {}) as {
+        agent_key?: string | null;
+        proposal_type?: string | null;
+        target_field?: string | null;
+        rationale?: string | null;
+      };
+      const { agentDefinition } = await import("./registry.shared");
+      const agentName = agentDefinition(meta.agent_key ?? "")?.name ?? meta.agent_key ?? "Agent";
+      const verb = data.decision === "approved" ? "Approved" : "Rejected";
+      const { logActivity } = await import("@/lib/activity.server");
+      await logActivity(context.supabase, data.workspaceId, {
+        type: "agent_decision",
+        summary: `${verb} ${agentName} Proposal${meta.target_field ? ` On ${meta.target_field}` : ""}`,
+        detail: data.note ?? meta.rationale ?? null,
+        refId: data.proposalId,
+        refType: "agent_proposal",
+        actorId: context.userId,
+      });
+    }
     return { ok: true };
   });
