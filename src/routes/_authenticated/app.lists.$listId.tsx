@@ -85,9 +85,22 @@ function JobDetail() {
   const { plan: planContext } = usePlanContext();
   const smsRate = planFor(planContext.plan).smsPerSegment;
 
+  const [loadFailed, setLoadFailed] = useState<string | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ["job-review", jobId],
-    queryFn: () => fetchReview({ data: { jobId, timeZone: LOCAL_TZ } }),
+    // A missing or out-of-workspace list must land on a plain message, never an
+    // endless spinner, so the failure is captured instead of left pending.
+    queryFn: async () => {
+      try {
+        const res = await fetchReview({ data: { jobId, timeZone: LOCAL_TZ } });
+        setLoadFailed(null);
+        return res;
+      } catch (e) {
+        setLoadFailed(e instanceof Error ? e.message : "unknown");
+        return null;
+      }
+    },
+    retry: false,
     refetchInterval: (q) => {
       const s = q.state.data?.job?.status;
       return s && s !== "ready" && s !== "failed" && s !== "paused" ? 2000 : false;
@@ -99,6 +112,29 @@ function JobDetail() {
     queryFn: () => fetchEvents({ data: { jobId } }),
     refetchInterval: (q) => (data?.job?.status === "ready" || data?.job?.status === "failed" ? false : 2000),
   });
+
+  if (loadFailed) {
+    const msg = loadFailed;
+    return (
+      <Card className="max-w-lg">
+        <CardHeader>
+          <CardTitle className="font-display">
+            {/List Not Found/i.test(msg) ? "This List Isn't Available" : "Could Not Load This List"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
+          <p>
+            {/List Not Found/i.test(msg)
+              ? "It may have been deleted, or it belongs to a different workspace than the one you have open."
+              : "Something went wrong loading this pipeline. Try again in a moment."}
+          </p>
+          <Button asChild size="sm" variant="outline" className="rounded-full">
+            <Link to="/app/lists">Back To Lists</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading || !data) {
     return <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading Pipeline…</div>;
