@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/tooltip";
 import { BRAND_NAME } from "@/config/brand";
 import { WorkspaceSwitcher } from "@/components/app/workspace-switcher";
+import { SidebarSearch } from "@/components/app/sidebar-search";
 
 const ITEMS = [
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -115,9 +116,10 @@ export function AppSidebar() {
               )}
             </Tooltip>
           </div>
-          {isMobile && (
-            <div className="px-2 pb-1">
+          {!collapsed && (
+            <div className="space-y-1.5 px-2 pb-1.5">
               <WorkspaceSwitcher />
+              <SidebarSearch />
             </div>
           )}
         </SidebarHeader>

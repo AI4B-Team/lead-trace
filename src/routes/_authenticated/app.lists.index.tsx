@@ -172,7 +172,8 @@ function Jobs() {
     refetchInterval: 5000,
   });
 
-  const [q, setQ] = useState("");
+  const { q: qParam } = Route.useSearch();
+  const [q, setQ] = useState(qParam ?? "");
   const [source, setSource] = useState<string>("all");
   const [status, setStatus] = useState<string>("all");
   const [range, setRange] = useState<string>("all");
