@@ -99,28 +99,26 @@ export const deleteBotProfile = createServerFn({ method: "POST" })
     z.object({ workspaceId: z.string().uuid(), id: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
+    // Snapshot the wording before it disappears: a deleted profile still has to
+    // be reconstructable for any conversation it drove.
+    const { data: existing } = await context.supabase
       .from("bot_profiles")
-      .select("id, name, opener, context_framing, objections, screening_questions, faqs, tone, escalation_triggers, banned_topics, dispositions, template_id, record_type")
+      .select(COLUMNS)
       .eq("id", data.id)
       .eq("workspace_id", data.workspaceId)
-      .maybeSingle()
-      .then(async ({ data: existing }: { data: unknown }) => {
-        if (existing) {
-          const { recordProfileVersion } = await import("@/lib/bot-profile-versions.server");
-          await recordProfileVersion(context.supabase as never, {
-            workspaceId: data.workspaceId,
-            profileId: data.id,
-            snapshot: existing as Record<string, unknown>,
-            changeKind: "delete",
-            changeSource: "manual",
-            changedBy: context.userId,
-            changeNote: "Profile deleted — last known wording preserved here.",
-          });
-        }
-        return { error: null };
+      .maybeSingle();
+    if (existing) {
+      const { recordProfileVersion } = await import("@/lib/bot-profile-versions.server");
+      await recordProfileVersion(context.supabase as never, {
+        workspaceId: data.workspaceId,
+        profileId: data.id,
+        snapshot: existing as Record<string, unknown>,
+        changeKind: "delete",
+        changeSource: "manual",
+        changedBy: context.userId,
+        changeNote: "Profile deleted — last known wording preserved here.",
       });
-    if (error) throw error;
+    }
     const { error: delErr } = await context.supabase
       .from("bot_profiles")
       .delete()
