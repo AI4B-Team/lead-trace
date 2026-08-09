@@ -313,7 +313,9 @@ function BackgroundAgentsPage() {
                         ? "Worth A Touch Today"
                         : p.proposal_type === "scorer_weights"
                           ? "Updated Lead Weighting"
-                          : p.proposal_type}
+                          : p.proposal_type === "bot_copy_edit"
+                            ? (p.proposed_value as { title?: string } | null)?.title ?? "Wording Change"
+                            : p.proposal_type}
                     </span>
                     {p.proposal_type === "lead_nomination" &&
                       typeof (p.proposed_value as { score?: number } | null)?.score === "number" && (
@@ -326,6 +328,21 @@ function BackgroundAgentsPage() {
                     )}
                   </div>
                   <p className="mt-1.5 text-sm text-muted-foreground">{p.rationale}</p>
+                  {p.proposal_type === "bot_copy_edit" && (
+                    <div className="mt-2 rounded-lg border border-border bg-muted/40 p-2.5 text-xs">
+                      <div className="font-medium text-foreground">
+                        {(p.proposed_value as { profile_name?: string } | null)?.profile_name ?? "Bot Profile"} —
+                        {" "}
+                        Read The Exact Wording Before You Approve
+                      </div>
+                      <pre className="mt-1.5 max-h-56 overflow-auto whitespace-pre-wrap text-muted-foreground">
+                        {JSON.stringify((p.proposed_value as { value?: unknown } | null)?.value, null, 2)}
+                      </pre>
+                      <p className="mt-1.5 text-muted-foreground">
+                        Approving Records A New Version Of This Profile Under Your Name.
+                      </p>
+                    </div>
+                  )}
                   {p.proposal_type === "scorer_weights" &&
                     Array.isArray((p.proposed_value as { changes?: unknown } | null)?.changes) && (
                       <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
