@@ -515,7 +515,8 @@ function TopUpDialog({
             <span className="font-display text-lg font-bold">{formatUsd(price)}</span>
           </div>
           <div className="text-xs text-muted-foreground">
-            Demo mode: credits are added instantly. Real billing wires to your payment provider.
+            Platform grant: credits are added instantly and recorded in the ledger. Customer
+            self-serve top-ups unlock when checkout goes live.
           </div>
         </div>
         <DialogFooter>
