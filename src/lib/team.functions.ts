@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { isWorkspaceAdmin, isWorkspaceMember } from "./access-checks";
+import { planFor } from "./plans.shared";
 
 async function assertMember(supabase: any, workspaceId: string, userId: string) {
   if (!(await isWorkspaceMember(supabase, workspaceId, userId))) throw new Error("Forbidden");
@@ -53,7 +54,18 @@ export const listTeam = createServerFn({ method: "GET" })
             .order("created_at", { ascending: false })
         ).data
       : [];
-    return { members: enriched, invites: invites ?? [] };
+    // Seats come from the plan catalog so the UI never shows a made-up number.
+    const { data: ws } = await supabaseAdmin
+      .from("workspaces")
+      .select("billing_plan")
+      .eq("id", data.workspaceId)
+      .maybeSingle();
+    const plan = planFor((ws as { billing_plan?: string | null } | null)?.billing_plan);
+    return {
+      members: enriched,
+      invites: invites ?? [],
+      seats: { limit: plan.seats, planName: plan.name, planId: plan.id },
+    };
   });
 
 export const inviteTeamMember = createServerFn({ method: "POST" })
@@ -68,6 +80,41 @@ export const inviteTeamMember = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, data.workspaceId, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Seat ceiling is enforced here: pending invites count against the plan so
+    // a workspace can't over-invite and then discover the wall on acceptance.
+    const { data: ws } = await supabaseAdmin
+      .from("workspaces")
+      .select("billing_plan")
+      .eq("id", data.workspaceId)
+      .maybeSingle();
+    const plan = planFor((ws as { billing_plan?: string | null } | null)?.billing_plan);
+    if (plan.seats !== null) {
+      const [{ count: memberCount }, { count: inviteCount }] = await Promise.all([
+        supabaseAdmin
+          .from("workspace_members")
+          .select("user_id", { count: "exact", head: true })
+          .eq("workspace_id", data.workspaceId),
+        supabaseAdmin
+          .from("workspace_invites")
+          .select("id", { count: "exact", head: true })
+          .eq("workspace_id", data.workspaceId)
+          .is("accepted_at", null),
+      ]);
+      const taken = (memberCount ?? 0) + (inviteCount ?? 0);
+      if (taken >= plan.seats) {
+        throw new Error(
+          `The ${plan.name} plan includes ${plan.seats} seat${plan.seats === 1 ? "" : "s"}. Upgrade to invite more teammates.`,
+        );
+      }
+    }
+    const { data: existing } = await supabaseAdmin
+      .from("workspace_invites")
+      .select("id")
+      .eq("workspace_id", data.workspaceId)
+      .eq("email", data.email.toLowerCase())
+      .is("accepted_at", null)
+      .maybeSingle();
+    if (existing) throw new Error("That email already has a pending invite.");
     const { data: row, error } = await supabaseAdmin
       .from("workspace_invites")
       .insert({
@@ -174,6 +221,32 @@ export const acceptInvite = createServerFn({ method: "POST" })
     const email = userRes?.user?.email?.toLowerCase();
     if (email && email !== inv.email.toLowerCase()) {
       throw new Error(`This invite is for ${inv.email}. Sign in with that email to accept.`);
+    }
+
+    // Seat ceiling again at acceptance: the plan can downgrade between invite
+    // and accept, and an already-seated user re-accepting must not be blocked.
+    const { data: ws2 } = await supabaseAdmin
+      .from("workspaces")
+      .select("billing_plan")
+      .eq("id", inv.workspace_id)
+      .maybeSingle();
+    const acceptPlan = planFor((ws2 as { billing_plan?: string | null } | null)?.billing_plan);
+    if (acceptPlan.seats !== null) {
+      const { data: already } = await supabaseAdmin
+        .from("workspace_members")
+        .select("user_id")
+        .eq("workspace_id", inv.workspace_id)
+        .eq("user_id", context.userId)
+        .maybeSingle();
+      if (!already) {
+        const { count } = await supabaseAdmin
+          .from("workspace_members")
+          .select("user_id", { count: "exact", head: true })
+          .eq("workspace_id", inv.workspace_id);
+        if ((count ?? 0) >= acceptPlan.seats) {
+          throw new Error("This workspace has no seats available. Ask an admin to upgrade the plan.");
+        }
+      }
     }
 
     const { error: memErr } = await supabaseAdmin
