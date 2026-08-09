@@ -19,7 +19,19 @@ export const listNumbers = createServerFn({ method: "GET" })
       .eq("workspace_id", data.workspaceId)
       .order("created_at", { ascending: false });
     if (error) throw error;
-    return { rows: rows ?? [] };
+    const { numberCapacity } = await import("./numbers-capacity.server");
+    const cap = await numberCapacity(context.supabase, data.workspaceId);
+    return {
+      rows: rows ?? [],
+      allowance: {
+        planName: cap.plan.name,
+        included: cap.included,
+        owned: cap.owned,
+        extras: cap.extras,
+        extraMonthly: cap.extraMonthly,
+        canBuy: cap.canBuy,
+      },
+    };
   });
 
 export const buyNumbers = createServerFn({ method: "POST" })
@@ -36,6 +48,8 @@ export const buyNumbers = createServerFn({ method: "POST" })
     // Buying DIDs is a spend — admins/owners only.
     const { assertAction } = await import("./accountability.server");
     await assertAction(context.supabase, data.workspaceId, context.userId, "purchase_credits");
+    const { assertCanBuyNumbers } = await import("./numbers-capacity.server");
+    await assertCanBuyNumbers(context.supabase, data.workspaceId);
     const codes = data.areaCodes?.length ? data.areaCodes : REGION_AREA_CODES[data.region];
     const { isProviderConfigured, getProvider } = await import("@/lib/sms");
     const useReal = isProviderConfigured();
@@ -120,6 +134,8 @@ export const buySpecificNumber = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { assertAction } = await import("./accountability.server");
     await assertAction(context.supabase, data.workspaceId, context.userId, "purchase_credits");
+    const { assertCanBuyNumbers } = await import("./numbers-capacity.server");
+    await assertCanBuyNumbers(context.supabase, data.workspaceId);
     const { isProviderConfigured, getProvider } = await import("@/lib/sms");
     if (!isProviderConfigured()) throw new Error("Telnyx not configured");
     const provider = getProvider();
