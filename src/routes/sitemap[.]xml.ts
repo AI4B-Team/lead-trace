@@ -3,7 +3,7 @@ import type {} from "@tanstack/react-start";
 import { INDUSTRY_LANDINGS } from "@/lib/industry-landings";
 import { LEAD_PAGES } from "@/lib/lead-pages";
 
-const BASE_URL = "";
+
 
 interface SitemapEntry {
   path: string;
@@ -14,7 +14,8 @@ interface SitemapEntry {
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }: { request: Request }) => {
+        const origin = new URL(request.url).origin;
         const entries: SitemapEntry[] = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
           { path: "/how-it-works", changefreq: "monthly", priority: "0.8" },
@@ -28,6 +29,9 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/compliance", changefreq: "monthly", priority: "0.7" },
           { path: "/leads", changefreq: "weekly", priority: "0.9" },
           { path: "/tools", changefreq: "monthly", priority: "0.8" },
+          { path: "/templates", changefreq: "weekly", priority: "0.8" },
+          { path: "/tutorials", changefreq: "monthly", priority: "0.6" },
+          { path: "/help", changefreq: "monthly", priority: "0.5" },
           { path: "/tools/dnc-checker", changefreq: "monthly", priority: "0.8" },
           { path: "/tools/line-type-checker", changefreq: "monthly", priority: "0.8" },
           ...LEAD_PAGES.map((p) => ({
@@ -78,7 +82,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           .map((e) =>
             [
               `  <url>`,
-              `    <loc>${BASE_URL}${e.path}</loc>`,
+              `    <loc>${origin}${e.path}</loc>`,
               e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
               e.priority ? `    <priority>${e.priority}</priority>` : null,
               `  </url>`,

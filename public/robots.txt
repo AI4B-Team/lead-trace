@@ -1,4 +1,9 @@
 User-agent: *
 Allow: /
 
-Sitemap: /sitemap.xml
+Disallow: /app/
+Disallow: /platform/
+Disallow: /start
+Disallow: /auth
+
+Sitemap: https://leadtrace.com/sitemap.xml
