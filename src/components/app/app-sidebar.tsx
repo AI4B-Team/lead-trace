@@ -57,6 +57,7 @@ export function AppSidebar() {
   const { state, isMobile, setOpen } = useSidebar();
   const { workspaceId } = useWorkspaceId();
   const [counts, setCounts] = useState<Counts>({ lists: 0, leads: 0, campaigns: 0 });
+  const [focusSearch, setFocusSearch] = useState(false);
 
   useEffect(() => {
     if (!workspaceId) return;
