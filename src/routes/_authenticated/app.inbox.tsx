@@ -7,7 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Bot, Inbox as InboxIcon, Loader2, MoreVertical, PhoneOff, Plus, Send, Sparkles, X } from "lucide-react";
+import {
+  Bot,
+  Inbox as InboxIcon,
+  Loader2,
+  MoreVertical,
+  PhoneOff,
+  Plus,
+  Send,
+  Sparkles,
+  X,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,7 +73,8 @@ export const Route = createFileRoute("/_authenticated/app/inbox")({
       { title: "Conversations — LeadTrace" },
       {
         name: "description",
-        content: "The AI sales command center: summaries, suggested replies, and full lead context on every SMS conversation.",
+        content:
+          "The AI sales command center: summaries, suggested replies, and full lead context on every SMS conversation.",
       },
     ],
   }),
@@ -105,9 +116,7 @@ const notesKey = (t: string) => `leadtrace:notes:${t}`;
 function ConversationsPage() {
   const { workspaceId } = useWorkspaceId();
   const search = Route.useSearch();
-  const [filter, setFilter] = useState<Filter>(
-    (search.filter as Filter | undefined) ?? "all",
-  );
+  const [filter, setFilter] = useState<Filter>((search.filter as Filter | undefined) ?? "all");
   const [selected, setSelected] = useState<string | null>(search.thread ?? null);
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [tagPickerOpen, setTagPickerOpen] = useState(false);
@@ -230,7 +239,8 @@ function ConversationsPage() {
   const saveNotes = useCallback(
     (v: string) => {
       setNotes(v);
-      if (selected && typeof window !== "undefined") window.localStorage.setItem(notesKey(selected), v);
+      if (selected && typeof window !== "undefined")
+        window.localStorage.setItem(notesKey(selected), v);
     },
     [selected],
   );
@@ -281,7 +291,9 @@ function ConversationsPage() {
   const saveSnippet = async () => {
     if (!workspaceId || !reply.trim()) return;
     try {
-      await addSnippet({ data: { workspaceId, title: reply.trim().slice(0, 40), body: reply.trim() } });
+      await addSnippet({
+        data: { workspaceId, title: reply.trim().slice(0, 40), body: reply.trim() },
+      });
       qc.invalidateQueries({ queryKey: ["quick-replies", workspaceId] });
       toast.success("Saved As Quick Reply");
     } catch (e) {
@@ -426,7 +438,7 @@ function ConversationsPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
                 {OVERFLOW_FILTERS.map((f) => {
-                  const count = counts ? counts[f.key] ?? 0 : 0;
+                  const count = counts ? (counts[f.key] ?? 0) : 0;
                   const active = filter === f.key;
                   return (
                     <DropdownMenuItem
@@ -462,7 +474,10 @@ function ConversationsPage() {
                         }}
                         className={cn("text-xs gap-2", tagFilter === t.id && "font-semibold")}
                       >
-                        <span className="h-2 w-2 rounded-full shrink-0" style={{ background: t.color }} />
+                        <span
+                          className="h-2 w-2 rounded-full shrink-0"
+                          style={{ background: t.color }}
+                        />
                         <span className="truncate">{t.name}</span>
                       </DropdownMenuItem>
                     ))}
@@ -475,6 +490,18 @@ function ConversationsPage() {
             {threadsQ.isLoading ? (
               <div className="p-6 text-center text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin inline-block mr-1" /> Loading…
+              </div>
+            ) : threadsQ.isError ? (
+              <div className="p-6 text-center text-sm text-muted-foreground space-y-2">
+                <p>Could Not Load Conversations.</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="rounded-full h-7 text-xs"
+                  onClick={() => void threadsQ.refetch()}
+                >
+                  Try Again
+                </Button>
               </div>
             ) : !threads.length ? (
               <div className="p-6 text-center text-sm text-muted-foreground">
@@ -501,7 +528,9 @@ function ConversationsPage() {
         {/* Conversation */}
         <Card className="flex flex-col h-full min-h-0">
           {!selected ? (
-            <div className="flex-1 grid place-items-center text-sm text-muted-foreground">Select A Conversation.</div>
+            <div className="flex-1 grid place-items-center text-sm text-muted-foreground">
+              Select A Conversation.
+            </div>
           ) : (
             <div className="flex flex-col flex-1 min-h-0">
               {/* Top: contact header, actions, AI summary — stays fixed */}
@@ -517,7 +546,9 @@ function ConversationsPage() {
                       </div>
                       <div className="text-xs text-muted-foreground flex items-center flex-wrap gap-x-2">
                         {threadQ.data?.campaign && <span>{threadQ.data.campaign.name}</span>}
-                        {threadQ.data?.campaign && <span>· Touch {threadQ.data.campaign.touch}</span>}
+                        {threadQ.data?.campaign && (
+                          <span>· Touch {threadQ.data.campaign.touch}</span>
+                        )}
                         {threadQ.data?.number && <span>· From {threadQ.data.number.phone}</span>}
                         {activeThread && <span>· {dayLabel(activeThread.last_at)}</span>}
                       </div>
@@ -529,31 +560,39 @@ function ConversationsPage() {
                       onOpenChange={setTagPickerOpen}
                     />
                     <div className="ml-auto flex items-center gap-2 flex-wrap justify-end">
-                    {aiHandling && <AiActivityPill label="AI Handling" />}
-                    {threadQ.data?.handoff && (
-                      <Badge variant="outline" className="bg-warn/10 text-warn border-warn/20 text-xs">
-                        Needs Human
-                      </Badge>
-                    )}
-                    {activeThread?.is_optout && (
-                      <Badge variant="outline" className="bg-danger/10 text-danger border-danger/20">
-                        Opted Out
-                      </Badge>
-                    )}
-                    <QuickActions
-                    phone={threadQ.data?.lead?.phone}
-                    email={threadQ.data?.lead?.email}
-                    onAppointment={() => {
-                      setReply("Great — I have a couple of times open. Does tomorrow morning or afternoon work better?");
-                      toast.success("Appointment Ask Drafted");
-                    }}
-                    onArchive={toggleArchive}
-                    onTag={() => setTagPickerOpen(true)}
-                    onBlacklist={doBlacklist}
-                    archived={!!selectedRow?.archived}
-                    blacklisting={false}
-                    readOnly={!team.canWrite}
-                    />
+                      {aiHandling && <AiActivityPill label="AI Handling" />}
+                      {threadQ.data?.handoff && (
+                        <Badge
+                          variant="outline"
+                          className="bg-warn/10 text-warn border-warn/20 text-xs"
+                        >
+                          Needs Human
+                        </Badge>
+                      )}
+                      {activeThread?.is_optout && (
+                        <Badge
+                          variant="outline"
+                          className="bg-danger/10 text-danger border-danger/20"
+                        >
+                          Opted Out
+                        </Badge>
+                      )}
+                      <QuickActions
+                        phone={threadQ.data?.lead?.phone}
+                        email={threadQ.data?.lead?.email}
+                        onAppointment={() => {
+                          setReply(
+                            "Great — I have a couple of times open. Does tomorrow morning or afternoon work better?",
+                          );
+                          toast.success("Appointment Ask Drafted");
+                        }}
+                        onArchive={toggleArchive}
+                        onTag={() => setTagPickerOpen(true)}
+                        onBlacklist={doBlacklist}
+                        archived={!!selectedRow?.archived}
+                        blacklisting={false}
+                        readOnly={!team.canWrite}
+                      />
                     </div>
                   </div>
                 </div>
@@ -592,7 +631,12 @@ function ConversationsPage() {
                   bullets={summaryQ.data?.summary?.bullets ?? []}
                   nextStep={summaryQ.data?.summary?.nextStep ?? null}
                   loading={summaryQ.isFetching}
-                  onUseNextStep={() => suggestM.mutate({ command: null, draft: summaryQ.data?.summary?.nextStep ?? null })}
+                  onUseNextStep={() =>
+                    suggestM.mutate({
+                      command: null,
+                      draft: summaryQ.data?.summary?.nextStep ?? null,
+                    })
+                  }
                 />
               </div>
 
@@ -613,37 +657,50 @@ function ConversationsPage() {
                       event={(m as { call_event?: string | null }).call_event ?? null}
                       createdAt={m.created_at}
                       recordingUrl={(m as { recording_url?: string | null }).recording_url ?? null}
-                      seconds={(m as { recording_seconds?: number | null }).recording_seconds ?? null}
+                      seconds={
+                        (m as { recording_seconds?: number | null }).recording_seconds ?? null
+                      }
                       transcript={(m as { transcript?: string | null }).transcript ?? null}
                     />
                   ) : (
-                  <div key={m.id} className={cn("flex", m.direction === "outbound" ? "justify-end" : "justify-start")}>
                     <div
+                      key={m.id}
                       className={cn(
-                        "max-w-[80%] rounded-2xl px-3 py-2 text-sm",
-                        m.direction === "outbound"
-                          ? "bg-primary text-primary-foreground rounded-br-sm"
-                          : "bg-muted text-foreground rounded-bl-sm",
+                        "flex",
+                        m.direction === "outbound" ? "justify-end" : "justify-start",
                       )}
                     >
-                      <div className="whitespace-pre-wrap">{m.body}</div>
                       <div
                         className={cn(
-                          "text-[10px] mt-1 opacity-70 flex items-center gap-1",
-                          m.direction === "outbound" ? "text-primary-foreground" : "text-muted-foreground",
+                          "max-w-[80%] rounded-2xl px-3 py-2 text-sm",
+                          m.direction === "outbound"
+                            ? "bg-primary text-primary-foreground rounded-br-sm"
+                            : "bg-muted text-foreground rounded-bl-sm",
                         )}
                       >
-                        {new Date(m.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} ·{" "}
-                        {dayLabel(m.created_at)} · {m.status}
-                        {m.is_bot && (
-                          <>
-                            {" · "}
-                            <Bot className="h-2.5 w-2.5" /> AI
-                          </>
-                        )}
+                        <div className="whitespace-pre-wrap">{m.body}</div>
+                        <div
+                          className={cn(
+                            "text-[10px] mt-1 opacity-70 flex items-center gap-1",
+                            m.direction === "outbound"
+                              ? "text-primary-foreground"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          {new Date(m.created_at).toLocaleTimeString([], {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}{" "}
+                          · {dayLabel(m.created_at)} · {m.status}
+                          {m.is_bot && (
+                            <>
+                              {" · "}
+                              <Bot className="h-2.5 w-2.5" /> AI
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
                   ),
                 )}
               </div>
@@ -669,9 +726,14 @@ function ConversationsPage() {
                   <div className="mx-3 mt-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 flex items-center gap-2">
                     <PhoneOff className="h-3.5 w-3.5 text-primary shrink-0" />
                     <p className="text-[11px] text-muted-foreground flex-1">
-                      No Active Sending Number — Replies Cannot Be Delivered Yet. Drafts Are Still Saved Here.
+                      No Active Sending Number — Replies Cannot Be Delivered Yet. Drafts Are Still
+                      Saved Here.
                     </p>
-                    <Button asChild size="sm" className="h-6 rounded-full text-[10px] px-2.5 shrink-0">
+                    <Button
+                      asChild
+                      size="sm"
+                      className="h-6 rounded-full text-[10px] px-2.5 shrink-0"
+                    >
                       <Link to="/app/numbers">Get A Number</Link>
                     </Button>
                   </div>
@@ -698,7 +760,9 @@ function ConversationsPage() {
                       <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b">
                         AI Commands
                       </div>
-                      {SLASH_COMMANDS.filter((c) => c.cmd.startsWith(reply.trim().split(" ")[0] || "/")).map((c) => (
+                      {SLASH_COMMANDS.filter((c) =>
+                        c.cmd.startsWith(reply.trim().split(" ")[0] || "/"),
+                      ).map((c) => (
                         <button
                           key={c.cmd}
                           onClick={() => applyCommand(c.cmd)}
@@ -790,11 +854,17 @@ function ConversationsPage() {
                           !canReply
                             ? "Your Role Is Read-Only — Replies Are Disabled"
                             : numbersKnown && !hasSendingNumber
-                            ? "Add An Active Sending Number To Send Replies"
-                            : undefined
+                              ? "Add An Active Sending Number To Send Replies"
+                              : undefined
                         }
                       >
-                        {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-3.5 w-3.5 mr-1" /> Send</>}
+                        {sending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <>
+                            <Send className="h-3.5 w-3.5 mr-1" /> Send
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -806,14 +876,20 @@ function ConversationsPage() {
 
         {/* Lead profile rail */}
         <div className="hidden xl:flex flex-col min-h-0">
-          <LeadProfilePanel
-            ctx={threadQ.data ? ({ ...threadQ.data } as never) : null}
-            thread={activeThread}
-            events={timeline}
-            notes={notes}
-            onNotes={saveNotes}
-            tags={activeThread?.badges ?? []}
-          />
+          {selected ? (
+            <LeadProfilePanel
+              ctx={threadQ.data ? ({ ...threadQ.data } as never) : null}
+              thread={activeThread}
+              events={timeline}
+              notes={notes}
+              onNotes={saveNotes}
+              tags={activeThread?.badges ?? []}
+            />
+          ) : (
+            <Card className="flex-1 grid place-items-center text-xs text-muted-foreground">
+              No Lead Selected.
+            </Card>
+          )}
         </div>
       </div>
     </div>
