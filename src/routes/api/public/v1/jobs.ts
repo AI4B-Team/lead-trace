@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   apiAdminClient,
   authenticateApiRequest,
+  hasScope,
   jsonResponse,
   resolveWorkspace,
 } from "@/lib/api-auth.server";
@@ -39,6 +40,9 @@ export const Route = createFileRoute("/api/public/v1/jobs")({
       POST: async ({ request }) => {
         const caller = await authenticateApiRequest(request);
         if (!caller) return jsonResponse({ error: "Unauthorized" }, 401);
+        if (!hasScope(caller, "write")) {
+          return jsonResponse({ error: "This key is read-only" }, 403);
+        }
 
         let body: z.infer<typeof createSchema>;
         try {
