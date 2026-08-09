@@ -74,11 +74,31 @@ export const previewBotReply = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(25);
     const { buildKnowledgeBrief } = await import("@/lib/bot-training.server");
+    // Sandbox preview resolves the same profile the live bot would use.
+    const { loadProfileCandidates } = await import("@/lib/bot-profiles.server");
+    const { resolveBotProfile } = await import("@/lib/bot-profiles.shared");
+    const { data: ws } = await context.supabase
+      .from("campaigns")
+      .select("workspace_id")
+      .eq("id", data.campaignId)
+      .maybeSingle();
+    let profile = null;
+    if (ws?.workspace_id) {
+      try {
+        profile = resolveBotProfile(await loadProfileCandidates(context.supabase as never, ws.workspace_id), {
+          templateId: null,
+          recordType: null,
+        }).profile;
+      } catch {
+        profile = null;
+      }
+    }
     const outcome = await generateBotReply({
       message: data.message,
       config: (campaign.bot_config ?? {}) as Record<string, never>,
       regulated: !!campaign.regulated_vertical,
       knowledge: buildKnowledgeBrief(knowledgeRows ?? []),
+      profile,
     });
     return outcome;
   });

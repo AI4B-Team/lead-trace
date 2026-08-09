@@ -10,9 +10,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Trash2, MessageSquare, Phone, Mail, MapPin, StickyNote } from "lucide-react";
+import { Loader2, Trash2, MessageSquare, Phone, Mail, MapPin, StickyNote, Bot } from "lucide-react";
 import { toast } from "sonner";
 import { getLeadDetail, addLeadNote, deleteLeadNote } from "@/lib/lead-detail.functions";
+import { resolvedProfileForLead } from "@/lib/bot-profiles.functions";
 import { LeadTagBar } from "@/components/app/lead-tag-picker";
 import { formatLocation } from "@/lib/location";
 
@@ -49,6 +50,37 @@ function Row({ icon, label, value }: { icon?: React.ReactNode; label: string; va
         {label}
       </span>
       <span className="min-w-0 text-right font-medium text-foreground">{value}</span>
+    </div>
+  );
+}
+
+/** Which conversation profile the AI agent uses for this lead. */
+function ResolvedProfileRow({ workspaceId, leadId }: { workspaceId: string; leadId: string }) {
+  const resolve = useServerFn(resolvedProfileForLead);
+  const { data } = useQuery({
+    queryKey: ["resolved-profile", workspaceId, leadId],
+    queryFn: () => resolve({ data: { workspaceId, leadId } }),
+  });
+  if (!data) return null;
+  return (
+    <div className="mb-3">
+      <Row
+        icon={<Bot className="h-3.5 w-3.5" />}
+        label="Agent Profile"
+        value={
+          data.error ? (
+            <span className="text-destructive">Unresolved — Add A Default Profile</span>
+          ) : (
+            <span>
+              {data.name}
+              <span className="ml-1 text-xs font-normal text-muted-foreground">
+                ({data.matched?.replace(/_/g, " ")}
+                {data.isPlatform ? ", platform" : ""})
+              </span>
+            </span>
+          )
+        }
+      />
     </div>
   );
 }
@@ -141,6 +173,9 @@ export function LeadDetailDrawer({
 
             <section>
               <h3 className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Tags</h3>
+              {data?.primaryLeadId && workspaceId ? (
+                <ResolvedProfileRow workspaceId={workspaceId} leadId={data.primaryLeadId} />
+              ) : null}
               {data?.primaryLeadId ? (
                 <LeadTagBar workspaceId={workspaceId} leadId={data.primaryLeadId} />
               ) : (

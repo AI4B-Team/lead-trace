@@ -41,20 +41,36 @@ const REGULATED_PATTERNS: Array<{ re: RegExp; reason: string }> = [
 
 const BANNED_OUTPUT = /\b(guarantee[d]?|you qualify|approved|no risk|risk[- ]free|best price|cheapest|lowest rate|100%)\b/i;
 
+import type { BotProfile } from "./bot-profiles.shared";
+import { buildProfileSection, profileEscalation } from "./bot-profiles.shared";
+
 /** Deterministic pre-checks. Returns a handoff reason, or null to continue. */
-export function preCheckHandoff(message: string, regulated: boolean): string | null {
+export function preCheckHandoff(message: string, regulated: boolean, profile?: BotProfile | null): string | null {
   for (const p of HANDOFF_PATTERNS) if (p.re.test(message)) return p.reason;
   if (regulated) {
     for (const p of REGULATED_PATTERNS) if (p.re.test(message)) return p.reason;
   }
+  // Profiles are ADDITIVE ONLY: they run after the platform patterns and can
+  // only make the bot more cautious, never less.
+  if (profile) {
+    const extra = profileEscalation(profile, message);
+    if (extra) return extra;
+  }
   return null;
 }
 
-function buildSystemPrompt(cfg: BotConfig, regulated: boolean, knowledge?: string) {
+export function buildSystemPrompt(
+  cfg: BotConfig,
+  regulated: boolean,
+  knowledge?: string,
+  profile?: BotProfile | null,
+  recordContext?: string | null,
+) {
   const faqs = (cfg.faqs ?? []).map((f) => `Q: ${f.q}\nA: ${f.a}`).join("\n");
   const approved = (cfg.approved_responses ?? []).map((a) => `- ${a}`).join("\n");
   const screening = (cfg.screening_questions ?? []).map((s) => `- ${s}`).join("\n");
   return [
+    // 1. Platform guardrails. Never overridable by a profile.
     "You are a friendly SMS warm-up assistant whose ONLY job is to qualify an interested lead and hand off to a human. You are NOT a closer.",
     `Industry / vertical: ${cfg.vertical || "general"}`,
     `What is offered: ${cfg.product || "not specified"}`,
@@ -72,6 +88,12 @@ function buildSystemPrompt(cfg: BotConfig, regulated: boolean, knowledge?: strin
       ? "- This is a REGULATED vertical. Never discuss price, coverage, plans, medical, legal, or financial specifics. Hand off instead."
       : "- If asked for specifics you do not have, hand off instead of guessing.",
     '- If you cannot answer safely from the approved material, reply with exactly: HANDOFF',
+    // 2. Profile persona.
+    profile ? `\n--- CONVERSATION PROFILE ---\n${buildProfileSection(profile)}` : "",
+    // 3. Record context. Case facts outrank profile copy on matters of fact.
+    recordContext
+      ? `\n--- RECORD CONTEXT (facts about this lead) ---\n${recordContext}\nThese facts outrank the profile copy above. Never state anything about this lead's situation that these facts do not support, even if the profile copy suggests it.`
+      : "",
   ].filter(Boolean).join("\n");
 }
 
@@ -81,9 +103,11 @@ export async function generateBotReply(opts: {
   config: BotConfig;
   regulated: boolean;
   knowledge?: string;
+  profile?: BotProfile | null;
+  recordContext?: string | null;
   history?: Array<{ role: "user" | "assistant"; content: string }>;
 }): Promise<BotOutcome> {
-  const pre = preCheckHandoff(opts.message, opts.regulated);
+  const pre = preCheckHandoff(opts.message, opts.regulated, opts.profile ?? null);
   if (pre) return { action: "handoff", reason: pre };
 
   const apiKey = process.env.LOVABLE_API_KEY;
@@ -96,7 +120,16 @@ export async function generateBotReply(opts: {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: buildSystemPrompt(opts.config, opts.regulated, opts.knowledge) },
+          {
+            role: "system",
+            content: buildSystemPrompt(
+              opts.config,
+              opts.regulated,
+              opts.knowledge,
+              opts.profile ?? null,
+              opts.recordContext ?? null,
+            ),
+          },
           ...(opts.history ?? []),
           { role: "user", content: opts.message },
         ],

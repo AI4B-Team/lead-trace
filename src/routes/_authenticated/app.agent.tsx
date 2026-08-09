@@ -14,6 +14,7 @@ import { KnowledgeSourceList } from "@/components/app/knowledge-cards";
 import { AgentComposer, RecentTraining } from "@/components/app/agent-training";
 import { agentReadiness, openKnowledgeSource } from "@/lib/agent-readiness";
 import { AgentQuestionTester } from "@/components/app/agent-questions";
+import { BotProfiles } from "@/components/app/bot-profiles";
 import { useWorkspaceId } from "@/hooks/use-workspace";
 import { useWorkspaceAgent } from "@/hooks/use-agent";
 import { createBrand } from "@/lib/brands.functions";
@@ -328,6 +329,11 @@ function AgentPage() {
               <AgentQuestionTester brandId={agent.id} sources={sources} />
             </CardContent>
           </Card>
+
+          {/* 3.5 — Conversation Profiles, scoped per lead source */}
+          <div className="mt-8">
+            <BotProfiles workspaceId={workspaceId} />
+          </div>
 
           {/* 4 — Improve Your Agent */}
           <div className="mt-8">

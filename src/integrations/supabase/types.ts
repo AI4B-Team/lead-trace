@@ -349,6 +349,84 @@ export type Database = {
           },
         ]
       }
+      bot_profiles: {
+        Row: {
+          banned_topics: string[]
+          context_framing: string | null
+          created_at: string
+          default_campaign_id: string | null
+          dispositions: string[]
+          escalation_triggers: string[]
+          faqs: Json
+          id: string
+          is_default: boolean
+          name: string
+          objections: Json
+          opener: string
+          record_type: string | null
+          screening_questions: Json
+          template_id: string | null
+          tone: string | null
+          updated_at: string
+          workspace_id: string | null
+        }
+        Insert: {
+          banned_topics?: string[]
+          context_framing?: string | null
+          created_at?: string
+          default_campaign_id?: string | null
+          dispositions?: string[]
+          escalation_triggers?: string[]
+          faqs?: Json
+          id?: string
+          is_default?: boolean
+          name: string
+          objections?: Json
+          opener: string
+          record_type?: string | null
+          screening_questions?: Json
+          template_id?: string | null
+          tone?: string | null
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Update: {
+          banned_topics?: string[]
+          context_framing?: string | null
+          created_at?: string
+          default_campaign_id?: string | null
+          dispositions?: string[]
+          escalation_triggers?: string[]
+          faqs?: Json
+          id?: string
+          is_default?: boolean
+          name?: string
+          objections?: Json
+          opener?: string
+          record_type?: string | null
+          screening_questions?: Json
+          template_id?: string | null
+          tone?: string | null
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_profiles_default_campaign_id_fkey"
+            columns: ["default_campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bot_profiles_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brands: {
         Row: {
           created_at: string
