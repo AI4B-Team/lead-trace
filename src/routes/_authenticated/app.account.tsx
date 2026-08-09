@@ -264,25 +264,7 @@ function AccountPage() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base font-display">
-                    <Smartphone className="h-4 w-4 text-muted-foreground" /> Two-Factor Authentication
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-center justify-between gap-4">
-                  <p className="text-sm text-muted-foreground">
-                    Require A One-Time Code From Your Phone On Every New Sign-In.
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="rounded-full"
-                    onClick={() => toast.info("Two-Factor Setup Is Coming Soon.")}
-                  >
-                    Enable
-                  </Button>
-                </CardContent>
-              </Card>
+              <TwoFactorCard />
 
               <Card>
                 <CardHeader>
