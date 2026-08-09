@@ -83,7 +83,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     cadence: "Every 45 Minutes",
     intervalMinutes: 45,
     proposalsOnly: true,
-    implemented: false,
+    implemented: true,
   },
 ];
 
