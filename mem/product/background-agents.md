@@ -13,3 +13,5 @@ Background agents (Conversation Labeler, Lead Scout, Hot-Lead Scorer, Booking Au
 - The Conversation Labeler is read-only and deterministic; a thread it can't categorise is recorded as `unclear` and flagged, never guessed.
 - "Distressed" is its own sentiment value, not a synonym for negative.
 - 3 consecutive failures disables an agent until an operator resets its mode.
+- The Lead Scout nominates only: every candidate lands in the proposal queue as a `lead_nomination` with a score and plain-language reasons. It never sends, never enrols a lead in a campaign and never changes lead state.
+- The Scout skips suppressed/opted-out phones, landlines, terminal dispositions and outcomes, leads already in an active sequence, live conversations (a reply with no recorded outcome belongs to a human), and anything touched in the last 4 days.
