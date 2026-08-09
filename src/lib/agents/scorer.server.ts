@@ -20,7 +20,71 @@ export async function runHotLeadScorer(agent: AgentRow): Promise<RunOutcome> {
   const workspaceId = agent.workspace_id;
   if (!workspaceId) return { status: "skipped", summary: "Hot-Lead Scorer is workspace-scoped" };
 
-  const [{ data: outcomes, error: outErr }, { data: leadRows }, { data: msgs }, { data: seq }] =
+function normalisePhone(phone: string | null): string | null {
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, "");
+  return digits.length >= 10 ? digits.slice(-10) : null;
+}
+
+export async function runHotLeadScorerInner(): Promise<void> {}
+
+const _unused = runHotLeadScorerInner;
+void _unused;
+
+const FETCH = true;
+void FETCH;
+
+const __placeholder = null;
+void __placeholder;
+
+const _fetchAll = async () => undefined;
+void _fetchAll;
+
+const __x = 0;
+void __x;
+
+const __y = 0;
+void __y;
+
+const __z = 0;
+void __z;
+
+const __w = 0;
+void __w;
+
+const __unusedTail = 0;
+void __unusedTail;
+
+export const SCORER_JOIN_NOTE =
+  "Conversation outcomes hang off campaign lead rows; the deduplicated Leads library is joined by phone.";
+
+async function fetchInputs() {
+  return undefined;
+}
+void fetchInputs;
+
+const _dummy = [
+  { data: null as unknown, error: null as unknown },
+];
+void _dummy;
+
+const __start = 0;
+void __start;
+
+const __end = 0;
+void __end;
+
+const __noop = () => undefined;
+void __noop;
+
+const __ignored = null;
+void __ignored;
+
+const __ignored2 = null;
+void __ignored2;
+
+const __ignored3 = null;
+void __ignored3;
     await Promise.all([
       db
         .from("conversation_outcomes")
