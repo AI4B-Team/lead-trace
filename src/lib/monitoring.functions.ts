@@ -22,6 +22,7 @@ export const listLeadRecords = createServerFn({ method: "GET" })
         channel: z.enum(["all", "phone", "email", "address"]).default("all"),
         onlyNew: z.boolean().default(false),
         multiList: z.boolean().default(false),
+        onlyNominated: z.boolean().default(false),
         search: z.string().max(120).optional(),
         limit: z.number().int().min(1).max(500).default(200),
       })
@@ -402,6 +403,7 @@ export const exportLeadRecords = createServerFn({ method: "GET" })
         channel: z.enum(["all", "phone", "email", "address"]).default("all"),
         onlyNew: z.boolean().default(false),
         multiList: z.boolean().default(false),
+        onlyNominated: z.boolean().default(false),
         search: z.string().max(120).optional(),
         limit: z.number().int().min(1).max(25_000).default(25_000),
       })
@@ -425,6 +427,7 @@ export const exportLeadRecords = createServerFn({ method: "GET" })
     if (data.sourceType !== "all") q = q.contains("source_types", [data.sourceType]);
     if (data.onlyNew) q = q.eq("is_new", true);
     if (data.multiList) q = q.gt("list_count", 1);
+    if (data.onlyNominated) q = q.not("nominated_at", "is", null);
     if (data.search?.trim()) {
       const s = `%${data.search.trim()}%`;
       q = q.or(
