@@ -6,10 +6,10 @@ import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { Button } from "@/components/ui/button";
 import { getFeedLanding } from "@/lib/distress-feed.functions";
 import {
-import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
   RECORD_TYPES, countyPath, statePath, formatDate, formatAmount, recordTypeLabel, FEED_PATH,
   type FeedPreviewRow, type FeedStateRow,
 } from "@/lib/distress-feed.shared";
+import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/distress-feed/")({
   loader: () => getFeedLanding(),

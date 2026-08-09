@@ -6,13 +6,13 @@ import { TemplateLogo } from "@/components/marketing/template-logo";
 import { PipelineFunnel } from "@/components/app/pipeline-funnel";
 import { Button } from "@/components/ui/button";
 import {
-import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
   CATEGORY_LABELS,
   getTemplate,
   primaryCategory,
   relatedTemplates,
   templateFields,
 } from "@/lib/templates";
+import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/templates/$templateId")({
   loader: ({ params }) => {
