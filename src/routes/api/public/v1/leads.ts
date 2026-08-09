@@ -5,6 +5,7 @@ import {
   jsonResponse,
   resolveWorkspace,
 } from "@/lib/api-auth.server";
+import { checkApiRate, tooManyRequests } from "@/lib/api-rate-limit.server";
 
 // GET /api/public/v1/leads?workspace_id=&disposition=clean&limit=200
 export const Route = createFileRoute("/api/public/v1/leads")({
@@ -13,6 +14,8 @@ export const Route = createFileRoute("/api/public/v1/leads")({
       GET: async ({ request }) => {
         const caller = await authenticateApiRequest(request);
         if (!caller) return jsonResponse({ error: "Unauthorized" }, 401);
+        const rate = await checkApiRate(caller);
+        if (!rate.allowed) return tooManyRequests(rate.retryAfter, "Rate limit exceeded");
 
         const url = new URL(request.url);
         const workspaceId = resolveWorkspace(caller, url.searchParams.get("workspace_id"));
