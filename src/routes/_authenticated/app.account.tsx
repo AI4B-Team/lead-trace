@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import {
   Camera,
   KeyRound,
-  Smartphone,
   MonitorSmartphone,
   History,
   Mail,
@@ -22,6 +21,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { SettingsShell } from "@/components/app/settings-shell";
+import { TwoFactorCard } from "@/components/app/two-factor-card";
 import {
   NotificationPrefs,
   normalizePrefs,
