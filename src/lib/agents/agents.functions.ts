@@ -196,26 +196,6 @@ export const reviewAgentProposal = createServerFn({ method: "POST" })
           .eq("workspace_id", data.workspaceId);
       }
 
-      // An approved Scout nomination is the one place a flag-only agent's
-      // output changes a row a person works from: the record joins the
-      // shortlist in the Leads library, stamped with the score, the reason,
-      // and the member who accepted it. Nothing is texted as a result.
-      if (row?.proposal_type === "lead_nomination" && row.target_table === "lead_records" && row.target_id) {
-        const value = (row.proposed_value ?? {}) as { score?: unknown; reasons?: unknown };
-        const reasons = Array.isArray(value.reasons) ? value.reasons.filter((r): r is string => typeof r === "string") : [];
-        const { error: nomErr } = await context.supabase
-          .from("lead_records")
-          .update({
-            nominated_at: new Date().toISOString(),
-            nominated_score: typeof value.score === "number" ? Math.round(value.score) : null,
-            nominated_reason: reasons.join("; ") || null,
-            nominated_by: context.userId,
-          } as never)
-          .eq("id", row.target_id)
-          .eq("workspace_id", data.workspaceId);
-        if (nomErr) throw new Error(nomErr.message);
-      }
-
       // A wording change to the bot's own instructions is the highest-risk
       // thing an agent can propose, so it may only ever land here — applied by
       // a named person, and snapshotted as a new profile version carrying the
