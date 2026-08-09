@@ -72,6 +72,7 @@ export const ACTIVITY_ICON: Record<string, string> = {
   cadence_set: "clock",
   adapter_requested: "sparkles",
   compliance_digest: "shield",
+  agent_decision: "bot",
   list_exported: "download",
   member_invited: "user-plus",
   member_removed: "user-minus",
