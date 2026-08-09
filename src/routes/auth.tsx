@@ -213,14 +213,22 @@ function AuthPage() {
           <div className="flex items-center justify-center px-6 py-16">
           <div className="w-full max-w-md">
           <h1 className="font-display text-4xl font-black text-foreground">
-            {mode === "signup" ? "Start Free." : "Welcome Back."}
+            {needsMfa ? "One More Step." : mode === "signup" ? "Start Free." : "Welcome Back."}
           </h1>
           <p className="text-muted-foreground mt-2">
-            {mode === "signup"
-              ? "Create Your LeadTrace Workspace In Seconds."
-              : "Sign In To Run Your Pipeline."}
+            {needsMfa
+              ? "Your Account Has Two-Factor Authentication Turned On."
+              : mode === "signup"
+                ? "Create Your LeadTrace Workspace In Seconds."
+                : "Sign In To Run Your Pipeline."}
           </p>
 
+          {needsMfa ? (
+            <div className="mt-8">
+              <MfaChallenge onVerified={goAfterAuth} />
+            </div>
+          ) : (
+          <>
           <Button
             type="button"
             variant="outline"
