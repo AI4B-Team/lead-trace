@@ -448,6 +448,7 @@ export function QuickActions({
   onBlacklist,
   archived,
   blacklisting,
+  readOnly = false,
 }: {
   phone?: string | null;
   email?: string | null;
@@ -457,6 +458,8 @@ export function QuickActions({
   onBlacklist: () => void;
   archived: boolean;
   blacklisting: boolean;
+  /** Viewer role: mutating items are disabled to match the server gate. */
+  readOnly?: boolean;
 }) {
   return (
     <div className="flex items-center gap-1 flex-wrap">
@@ -484,13 +487,13 @@ export function QuickActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">
-          <DropdownMenuItem onClick={onTag} className="cursor-pointer text-xs">
+          <DropdownMenuItem onClick={onTag} disabled={readOnly} className="cursor-pointer text-xs">
             <TagIcon className="h-3.5 w-3.5" /> Tag
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onArchive} className="cursor-pointer text-xs">
+          <DropdownMenuItem onClick={onArchive} disabled={readOnly} className="cursor-pointer text-xs">
             <Archive className="h-3.5 w-3.5" /> {archived ? "Unarchive" : "Archive"}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onBlacklist} disabled={blacklisting} className="cursor-pointer text-xs text-danger focus:text-danger">
+          <DropdownMenuItem onClick={onBlacklist} disabled={blacklisting || readOnly} className="cursor-pointer text-xs text-danger focus:text-danger">
             <Ban className="h-3.5 w-3.5" /> Blacklist
           </DropdownMenuItem>
         </DropdownMenuContent>
