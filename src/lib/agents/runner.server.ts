@@ -14,6 +14,10 @@ async function execute(agent: AgentRow): Promise<RunOutcome> {
       const { runConversationLabeler } = await import("./labeler.server");
       return runConversationLabeler(agent);
     }
+    case "lead_scout": {
+      const { runLeadScout } = await import("./scout.server");
+      return runLeadScout(agent);
+    }
     default:
       return { status: "skipped", summary: "not implemented yet" };
   }
