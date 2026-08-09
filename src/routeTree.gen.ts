@@ -100,6 +100,7 @@ import { Route as ApiPublicHooksTickRealeflowSourcingRouteImport } from './route
 import { Route as ApiPublicHooksTickPlanRenewalRouteImport } from './routes/api/public/hooks/tick-plan-renewal'
 import { Route as ApiPublicHooksTickJobsRouteImport } from './routes/api/public/hooks/tick-jobs'
 import { Route as ApiPublicHooksTickDistressFeedRouteImport } from './routes/api/public/hooks/tick-distress-feed'
+import { Route as ApiPublicHooksTickComplianceDigestRouteImport } from './routes/api/public/hooks/tick-compliance-digest'
 import { Route as ApiPublicHooksTickCampaignsRouteImport } from './routes/api/public/hooks/tick-campaigns'
 import { Route as ApiPublicHooksTickAgentsRouteImport } from './routes/api/public/hooks/tick-agents'
 import { Route as ApiPublicHooksTelnyxInboundRouteImport } from './routes/api/public/hooks/telnyx-inbound'
@@ -602,6 +603,12 @@ const ApiPublicHooksTickDistressFeedRoute =
     path: '/api/public/hooks/tick-distress-feed',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksTickComplianceDigestRoute =
+  ApiPublicHooksTickComplianceDigestRouteImport.update({
+    id: '/api/public/hooks/tick-compliance-digest',
+    path: '/api/public/hooks/tick-compliance-digest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksTickCampaignsRoute =
   ApiPublicHooksTickCampaignsRouteImport.update({
     id: '/api/public/hooks/tick-campaigns',
@@ -767,6 +774,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/telnyx-inbound': typeof ApiPublicHooksTelnyxInboundRoute
   '/api/public/hooks/tick-agents': typeof ApiPublicHooksTickAgentsRoute
   '/api/public/hooks/tick-campaigns': typeof ApiPublicHooksTickCampaignsRoute
+  '/api/public/hooks/tick-compliance-digest': typeof ApiPublicHooksTickComplianceDigestRoute
   '/api/public/hooks/tick-distress-feed': typeof ApiPublicHooksTickDistressFeedRoute
   '/api/public/hooks/tick-jobs': typeof ApiPublicHooksTickJobsRoute
   '/api/public/hooks/tick-plan-renewal': typeof ApiPublicHooksTickPlanRenewalRoute
@@ -871,6 +879,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/telnyx-inbound': typeof ApiPublicHooksTelnyxInboundRoute
   '/api/public/hooks/tick-agents': typeof ApiPublicHooksTickAgentsRoute
   '/api/public/hooks/tick-campaigns': typeof ApiPublicHooksTickCampaignsRoute
+  '/api/public/hooks/tick-compliance-digest': typeof ApiPublicHooksTickComplianceDigestRoute
   '/api/public/hooks/tick-distress-feed': typeof ApiPublicHooksTickDistressFeedRoute
   '/api/public/hooks/tick-jobs': typeof ApiPublicHooksTickJobsRoute
   '/api/public/hooks/tick-plan-renewal': typeof ApiPublicHooksTickPlanRenewalRoute
@@ -979,6 +988,7 @@ export interface FileRoutesById {
   '/api/public/hooks/telnyx-inbound': typeof ApiPublicHooksTelnyxInboundRoute
   '/api/public/hooks/tick-agents': typeof ApiPublicHooksTickAgentsRoute
   '/api/public/hooks/tick-campaigns': typeof ApiPublicHooksTickCampaignsRoute
+  '/api/public/hooks/tick-compliance-digest': typeof ApiPublicHooksTickComplianceDigestRoute
   '/api/public/hooks/tick-distress-feed': typeof ApiPublicHooksTickDistressFeedRoute
   '/api/public/hooks/tick-jobs': typeof ApiPublicHooksTickJobsRoute
   '/api/public/hooks/tick-plan-renewal': typeof ApiPublicHooksTickPlanRenewalRoute
@@ -1087,6 +1097,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/telnyx-inbound'
     | '/api/public/hooks/tick-agents'
     | '/api/public/hooks/tick-campaigns'
+    | '/api/public/hooks/tick-compliance-digest'
     | '/api/public/hooks/tick-distress-feed'
     | '/api/public/hooks/tick-jobs'
     | '/api/public/hooks/tick-plan-renewal'
@@ -1191,6 +1202,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/telnyx-inbound'
     | '/api/public/hooks/tick-agents'
     | '/api/public/hooks/tick-campaigns'
+    | '/api/public/hooks/tick-compliance-digest'
     | '/api/public/hooks/tick-distress-feed'
     | '/api/public/hooks/tick-jobs'
     | '/api/public/hooks/tick-plan-renewal'
@@ -1298,6 +1310,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/telnyx-inbound'
     | '/api/public/hooks/tick-agents'
     | '/api/public/hooks/tick-campaigns'
+    | '/api/public/hooks/tick-compliance-digest'
     | '/api/public/hooks/tick-distress-feed'
     | '/api/public/hooks/tick-jobs'
     | '/api/public/hooks/tick-plan-renewal'
@@ -1370,6 +1383,7 @@ export interface RootRouteChildren {
   ApiPublicHooksTelnyxInboundRoute: typeof ApiPublicHooksTelnyxInboundRoute
   ApiPublicHooksTickAgentsRoute: typeof ApiPublicHooksTickAgentsRoute
   ApiPublicHooksTickCampaignsRoute: typeof ApiPublicHooksTickCampaignsRoute
+  ApiPublicHooksTickComplianceDigestRoute: typeof ApiPublicHooksTickComplianceDigestRoute
   ApiPublicHooksTickDistressFeedRoute: typeof ApiPublicHooksTickDistressFeedRoute
   ApiPublicHooksTickJobsRoute: typeof ApiPublicHooksTickJobsRoute
   ApiPublicHooksTickPlanRenewalRoute: typeof ApiPublicHooksTickPlanRenewalRoute
@@ -2028,6 +2042,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTickDistressFeedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/tick-compliance-digest': {
+      id: '/api/public/hooks/tick-compliance-digest'
+      path: '/api/public/hooks/tick-compliance-digest'
+      fullPath: '/api/public/hooks/tick-compliance-digest'
+      preLoaderRoute: typeof ApiPublicHooksTickComplianceDigestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/tick-campaigns': {
       id: '/api/public/hooks/tick-campaigns'
       path: '/api/public/hooks/tick-campaigns'
@@ -2308,6 +2329,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksTelnyxInboundRoute: ApiPublicHooksTelnyxInboundRoute,
   ApiPublicHooksTickAgentsRoute: ApiPublicHooksTickAgentsRoute,
   ApiPublicHooksTickCampaignsRoute: ApiPublicHooksTickCampaignsRoute,
+  ApiPublicHooksTickComplianceDigestRoute:
+    ApiPublicHooksTickComplianceDigestRoute,
   ApiPublicHooksTickDistressFeedRoute: ApiPublicHooksTickDistressFeedRoute,
   ApiPublicHooksTickJobsRoute: ApiPublicHooksTickJobsRoute,
   ApiPublicHooksTickPlanRenewalRoute: ApiPublicHooksTickPlanRenewalRoute,
@@ -2332,3 +2355,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
