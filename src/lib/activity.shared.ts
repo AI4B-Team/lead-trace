@@ -32,6 +32,8 @@ export const ACTIVITY_TYPES = [
   // Programmatic access grants (who issued or revoked an API key).
   "api_key_created",
   "api_key_revoked",
+  // Outbound webhook gave up or was paused after repeated failures.
+  "webhook_failed",
 ] as const;
 
 
@@ -62,6 +64,7 @@ export const ACTIVITY_GROUPS: Array<{ key: string; label: string; types: Activit
     types: [
       "list_exported", "member_invited", "member_removed", "member_role_changed", "member_limits_set",
       "api_key_created", "api_key_revoked",
+      "webhook_failed",
     ],
   },
 ];
@@ -86,6 +89,9 @@ export const ACTIVITY_ICON: Record<string, string> = {
   member_removed: "user-minus",
   member_role_changed: "shield-check",
   member_limits_set: "gauge",
+  api_key_created: "key",
+  api_key_revoked: "key-round",
+  webhook_failed: "webhook",
 };
 
 /** Where a row navigates when clicked. Returns null when there's no detail view. */
