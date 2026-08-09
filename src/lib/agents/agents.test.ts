@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { classifyThread } from "./labeler.shared";
 import { AgentGuardrailError, assertAgentMayWrite, assertModeAllowed, assertProposalAllowed } from "./guardrails";
+import { ineligibleReason, nominateLeads, scoreLead, type ScoutLead } from "./scout.shared";
 
 const msg = (direction: string, body: string, extra: Record<string, unknown> = {}) => ({
   direction,
@@ -94,5 +95,75 @@ describe("agent guardrails", () => {
   it("never lets the Coach go active", () => {
     expect(() => assertModeAllowed("coach", "active")).toThrow();
     expect(() => assertModeAllowed("lead_scout", "active")).not.toThrow();
+  });
+});
+
+const NOW = new Date("2026-02-01T12:00:00Z").getTime();
+const day = (n: number) => new Date(NOW - n * 86_400_000).toISOString();
+
+const lead = (over: Partial<ScoutLead> = {}): ScoutLead => ({
+  id: "l1",
+  fullName: "Jane Doe",
+  address: "1 Main St",
+  city: "Tampa",
+  state: "FL",
+  phone: "8135550100",
+  phoneType: "mobile",
+  disposition: "new",
+  recordTypes: ["pre_foreclosure"],
+  sourceTypes: ["county"],
+  listCount: 1,
+  firstSeenAt: day(60),
+  lastSeenAt: day(2),
+  lastTouchedAt: null,
+  touches: 0,
+  hasReplied: false,
+  lastOutcome: null,
+  sequenceStatus: null,
+  anchorDaysRemaining: null,
+  ...over,
+});
+
+describe("lead scout", () => {
+  it("keeps live conversations out of the Scout's hands", () => {
+    expect(ineligibleReason(lead({ hasReplied: true, touches: 1, lastTouchedAt: day(20) }), NOW)).toMatch(
+      /human/,
+    );
+  });
+
+  it("never nominates a lead in an active sequence or a terminal outcome", () => {
+    expect(ineligibleReason(lead({ sequenceStatus: "active" }), NOW)).toMatch(/active sequence/);
+    expect(ineligibleReason(lead({ lastOutcome: "wrong_number" }), NOW)).toMatch(/wrong_number/);
+    expect(ineligibleReason(lead({ phone: null }), NOW)).toMatch(/no phone/);
+  });
+
+  it("does not re-nominate a lead touched a couple of days ago", () => {
+    expect(ineligibleReason(lead({ touches: 1, lastTouchedAt: day(1) }), NOW)).toMatch(/last few days/);
+    expect(ineligibleReason(lead({ touches: 1, lastTouchedAt: day(40) }), NOW)).toBeNull();
+  });
+
+  it("ranks an imminent key date above a plain untouched lead", () => {
+    const urgent = scoreLead(lead({ id: "a", anchorDaysRemaining: 9 }), NOW);
+    const plain = scoreLead(lead({ id: "b" }), NOW);
+    expect(urgent.score).toBeGreaterThan(plain.score);
+    expect(urgent.reasons.join(" ")).toMatch(/9 days away/);
+  });
+
+  it("prefers an old cold lead over a heavily worked one", () => {
+    const cold = scoreLead(lead({ id: "a", touches: 1, lastTouchedAt: day(90) }), NOW);
+    const worked = scoreLead(lead({ id: "b", touches: 8, lastTouchedAt: day(90) }), NOW);
+    expect(cold.score).toBeGreaterThan(worked.score);
+  });
+
+  it("always states a reason and honours the nomination limit", () => {
+    const { nominations, skipped } = nominateLeads(
+      [lead({ id: "a" }), lead({ id: "b", anchorDaysRemaining: 3 }), lead({ id: "c", phone: null })],
+      1,
+      NOW,
+    );
+    expect(nominations).toHaveLength(1);
+    expect(nominations[0]!.leadId).toBe("b");
+    expect(nominations[0]!.reasons.length).toBeGreaterThan(0);
+    expect(skipped["no phone on file"]).toBe(1);
   });
 });

@@ -45,7 +45,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
       "Reads your whole book of leads, not just the recent end of it, and nominates the ones genuinely worth a touch today.",
     cadence: "Every 3 Hours",
     intervalMinutes: 180,
-    implemented: false,
+    implemented: true,
   },
   {
     key: "hot_lead_scorer",
