@@ -1096,6 +1096,7 @@ export type Database = {
           lead_id: string | null
           objection_category: string | null
           outcome: string
+          record_type: string | null
           sentiment: string | null
           superseded_at: string | null
           thread_id: string | null
@@ -1118,6 +1119,7 @@ export type Database = {
           lead_id?: string | null
           objection_category?: string | null
           outcome: string
+          record_type?: string | null
           sentiment?: string | null
           superseded_at?: string | null
           thread_id?: string | null
@@ -1140,6 +1142,7 @@ export type Database = {
           lead_id?: string | null
           objection_category?: string | null
           outcome?: string
+          record_type?: string | null
           sentiment?: string | null
           superseded_at?: string | null
           thread_id?: string | null
@@ -2236,6 +2239,7 @@ export type Database = {
           business_name: string | null
           city: string | null
           created_at: string
+          data_provenance: string
           dedupe_key: string
           disposition: string
           email: string | null
@@ -2271,6 +2275,7 @@ export type Database = {
           business_name?: string | null
           city?: string | null
           created_at?: string
+          data_provenance?: string
           dedupe_key: string
           disposition?: string
           email?: string | null
@@ -2306,6 +2311,7 @@ export type Database = {
           business_name?: string | null
           city?: string | null
           created_at?: string
+          data_provenance?: string
           dedupe_key?: string
           disposition?: string
           email?: string | null
@@ -4088,6 +4094,82 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "webhook_endpoints_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      worklist_nominations: {
+        Row: {
+          agent_id: string | null
+          cold_start: boolean
+          dismissed_at: string | null
+          dismissed_by: string | null
+          id: string
+          lead_id: string
+          nominated_at: string
+          reasons: string[]
+          record_types: string[]
+          score: number
+          scout_version: string | null
+          signals: string[]
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          cold_start?: boolean
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          id?: string
+          lead_id: string
+          nominated_at?: string
+          reasons?: string[]
+          record_types?: string[]
+          score?: number
+          scout_version?: string | null
+          signals?: string[]
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          cold_start?: boolean
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          id?: string
+          lead_id?: string
+          nominated_at?: string
+          reasons?: string[]
+          record_types?: string[]
+          score?: number
+          scout_version?: string | null
+          signals?: string[]
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worklist_nominations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "background_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worklist_nominations_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "lead_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worklist_nominations_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
