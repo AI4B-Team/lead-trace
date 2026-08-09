@@ -33,6 +33,9 @@ export const buyNumbers = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    // Buying DIDs is a spend — admins/owners only.
+    const { assertAction } = await import("./accountability.server");
+    await assertAction(context.supabase, data.workspaceId, context.userId, "purchase_credits");
     const codes = data.areaCodes?.length ? data.areaCodes : REGION_AREA_CODES[data.region];
     const { isProviderConfigured, getProvider } = await import("@/lib/sms");
     const useReal = isProviderConfigured();
@@ -115,6 +118,8 @@ export const buySpecificNumber = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertAction } = await import("./accountability.server");
+    await assertAction(context.supabase, data.workspaceId, context.userId, "purchase_credits");
     const { isProviderConfigured, getProvider } = await import("@/lib/sms");
     if (!isProviderConfigured()) throw new Error("Telnyx not configured");
     const provider = getProvider();

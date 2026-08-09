@@ -75,6 +75,8 @@ export const setLeadOutcome = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertWriter } = await import("./accountability.server");
+    await assertWriter(context.supabase, data.workspaceId, context.userId, "Set Lead Outcomes");
     const { error } = await context.supabase.from("lead_outcomes").insert({
       workspace_id: data.workspaceId,
       result_id: data.resultId,
