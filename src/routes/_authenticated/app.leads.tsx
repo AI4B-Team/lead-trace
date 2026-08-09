@@ -94,6 +94,9 @@ function LeadsPage() {
 // flowing automatically once Realeflow exposes their skip-trace contact data.
 function EnrichButton({ leadId, hasAddress }: { leadId: string; hasAddress: boolean }) {
   const { workspaceId } = useWorkspaceId();
+  // Skip trace spends credits, so it's gated by the same build_list permission
+  // the server enforces.
+  const canEnrich = useTeamContext().can("build_list");
   const queryClient = useQueryClient();
   const enrich = useServerFn(enrichLeadRecord);
   const mutation = useMutation({
@@ -115,7 +118,7 @@ function EnrichButton({ leadId, hasAddress }: { leadId: string; hasAddress: bool
     },
   });
 
-  if (!hasAddress) return null;
+  if (!hasAddress || !canEnrich) return null;
   return (
     <Tooltip>
       <TooltipTrigger asChild>
