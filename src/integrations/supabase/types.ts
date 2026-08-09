@@ -3704,6 +3704,8 @@ export type Database = {
           name: string
           negative_keywords: string[]
           plan: string
+          plan_grant_amount: number
+          plan_period_start: string
           real_elite_linked_at: string | null
           real_elite_org_id: string | null
           refund_email_threshold: number
@@ -3721,6 +3723,8 @@ export type Database = {
           name: string
           negative_keywords?: string[]
           plan?: string
+          plan_grant_amount?: number
+          plan_period_start?: string
           real_elite_linked_at?: string | null
           real_elite_org_id?: string | null
           refund_email_threshold?: number
@@ -3738,6 +3742,8 @@ export type Database = {
           name?: string
           negative_keywords?: string[]
           plan?: string
+          plan_grant_amount?: number
+          plan_period_start?: string
           real_elite_linked_at?: string | null
           real_elite_org_id?: string | null
           refund_email_threshold?: number
