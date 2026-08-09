@@ -473,7 +473,9 @@ export const listWebhookDeliveries = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
       .from("webhook_deliveries")
-      .select("id, event_type, url, status_code, ok, duration_ms, error, created_at")
+      .select(
+        "id, event_type, url, status_code, ok, duration_ms, error, created_at, attempt, next_retry_at, gave_up",
+      )
       .eq("workspace_id", data.workspaceId)
       .order("created_at", { ascending: false })
       .limit(25);
