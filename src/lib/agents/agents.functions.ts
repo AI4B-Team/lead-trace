@@ -108,5 +108,45 @@ export const reviewAgentProposal = createServerFn({ method: "POST" })
       .eq("workspace_id", data.workspaceId)
       .eq("status", "pending");
     if (error) throw new Error(error.message);
+
+    // A weight refit is the one proposal type that has an effect on approval:
+    // it writes the learned weighting onto the Scorer's own row. Everything
+    // else is a record of the decision only.
+    if (data.decision === "approved") {
+      const { data: proposal } = await context.supabase
+        .from("agent_proposals")
+        .select("proposal_type, target_id, proposed_value")
+        .eq("id", data.proposalId)
+        .eq("workspace_id", data.workspaceId)
+        .maybeSingle();
+      const row = proposal as
+        | { proposal_type: string; target_id: string | null; proposed_value: { weights?: unknown } | null }
+        | null;
+      if (row?.proposal_type === "scorer_weights" && row.target_id) {
+        const { normaliseWeights } = await import("./scout.shared");
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { data: agentRow } = await supabaseAdmin
+          .from("background_agents")
+          .select("config")
+          .eq("id", row.target_id)
+          .eq("workspace_id", data.workspaceId)
+          .maybeSingle();
+        const config = ((agentRow as { config?: Record<string, unknown> } | null)?.config ?? {}) as Record<
+          string,
+          unknown
+        >;
+        await supabaseAdmin
+          .from("background_agents")
+          .update({
+            config: {
+              ...config,
+              weights: normaliseWeights(row.proposed_value?.weights),
+              last_fit_at: new Date().toISOString(),
+            },
+          } as never)
+          .eq("id", row.target_id)
+          .eq("workspace_id", data.workspaceId);
+      }
+    }
     return { ok: true };
   });
