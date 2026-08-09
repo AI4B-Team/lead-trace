@@ -2,14 +2,29 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { Activity, ArrowRight, Building2, MessageSquare, TrendingUp, Users } from "lucide-react";
+import {
+  Activity,
+  ArrowRight,
+  Building2,
+  CheckCircle2,
+  Clock,
+  MessageSquare,
+  TrendingUp,
+  Users,
+  XCircle,
+} from "lucide-react";
 import { PageHeader } from "@/components/app/page-header";
 import { StatTile } from "@/components/app/stat-tile";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HealthRow, planTone, type WsRow } from "@/components/app/admin-shared";
-import { countLegacyLeads, listAllWorkspaces, purgeLegacyLeads } from "@/lib/admin.functions";
+import {
+  countLegacyLeads,
+  listAllWorkspaces,
+  listCronHealth,
+  purgeLegacyLeads,
+} from "@/lib/admin.functions";
 import { toast } from "sonner";
 import { AlertTriangle } from "lucide-react";
 
@@ -30,7 +45,13 @@ function PlatformDashboard() {
   const fetchAll = useServerFn(listAllWorkspaces);
   const fetchLegacy = useServerFn(countLegacyLeads);
   const runPurge = useServerFn(purgeLegacyLeads);
+  const fetchCron = useServerFn(listCronHealth);
   const legacyQ = useQuery({ queryKey: ["admin-legacy-leads"], queryFn: () => fetchLegacy() });
+  const cronQ = useQuery({
+    queryKey: ["admin-cron-health"],
+    queryFn: () => fetchCron(),
+    refetchInterval: 60_000,
+  });
   const wsQ = useQuery({
     queryKey: ["admin-workspaces"],
     queryFn: () => fetchAll(),
@@ -148,6 +169,61 @@ function PlatformDashboard() {
       )}
 
       <div className="grid gap-6 xl:grid-cols-2">
+        <Card className="xl:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-base font-display">Scheduled Tasks</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {(cronQ.data?.tasks ?? []).length === 0 && (
+              <div className="py-4 text-sm text-muted-foreground">Loading Task Health…</div>
+            )}
+            {(cronQ.data?.tasks ?? []).map((task) => (
+              <div
+                key={task.key}
+                className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-2 last:border-0 last:pb-0"
+              >
+                <div className="flex min-w-0 items-center gap-2">
+                  {task.consecutiveFailures > 0 ? (
+                    <XCircle className="h-4 w-4 shrink-0 text-destructive" />
+                  ) : task.stale ? (
+                    <Clock className="h-4 w-4 shrink-0 text-warn" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium">{task.label}</div>
+                    <div className="truncate text-[11px] text-muted-foreground">
+                      {task.lastDetail ?? "No Run Recorded Yet"}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <Badge
+                    variant="outline"
+                    className={
+                      task.consecutiveFailures > 0
+                        ? "border-destructive/40 text-destructive"
+                        : task.stale
+                          ? "border-warn/40 text-warn"
+                          : "border-border text-muted-foreground"
+                    }
+                  >
+                    {task.consecutiveFailures > 0
+                      ? `${task.consecutiveFailures} Failed In A Row`
+                      : task.stale
+                        ? "No Recent Run"
+                        : "Healthy"}
+                  </Badge>
+                  <span className="w-40 text-right text-[11px] text-muted-foreground">
+                    {formatEvery(task.everyMinutes)} ·{" "}
+                    {task.lastTickAt ? new Date(task.lastTickAt).toLocaleString() : "Never"}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-display">Platform Health</CardTitle>
