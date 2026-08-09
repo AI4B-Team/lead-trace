@@ -58,6 +58,7 @@ import { Route as AuthenticatedPlatformWorkspacesRouteImport } from './routes/_a
 import { Route as AuthenticatedPlatformSourcesRouteImport } from './routes/_authenticated/platform.sources'
 import { Route as AuthenticatedPlatformSequencesRouteImport } from './routes/_authenticated/platform.sequences'
 import { Route as AuthenticatedPlatformRecordsRouteImport } from './routes/_authenticated/platform.records'
+import { Route as AuthenticatedPlatformAgentsRouteImport } from './routes/_authenticated/platform.agents'
 import { Route as AuthenticatedPlatformAccessRouteImport } from './routes/_authenticated/platform.access'
 import { Route as AuthenticatedAppWorkspaceRouteImport } from './routes/_authenticated/app.workspace'
 import { Route as AuthenticatedAppTemplatesRouteImport } from './routes/_authenticated/app.templates'
@@ -364,6 +365,12 @@ const AuthenticatedPlatformRecordsRoute =
   AuthenticatedPlatformRecordsRouteImport.update({
     id: '/records',
     path: '/records',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
+const AuthenticatedPlatformAgentsRoute =
+  AuthenticatedPlatformAgentsRouteImport.update({
+    id: '/agents',
+    path: '/agents',
     getParentRoute: () => AuthenticatedPlatformRoute,
   } as any)
 const AuthenticatedPlatformAccessRoute =
@@ -754,6 +761,7 @@ export interface FileRoutesByFullPath {
   '/app/templates': typeof AuthenticatedAppTemplatesRoute
   '/app/workspace': typeof AuthenticatedAppWorkspaceRoute
   '/platform/access': typeof AuthenticatedPlatformAccessRoute
+  '/platform/agents': typeof AuthenticatedPlatformAgentsRoute
   '/platform/records': typeof AuthenticatedPlatformRecordsRoute
   '/platform/sequences': typeof AuthenticatedPlatformSequencesRoute
   '/platform/sources': typeof AuthenticatedPlatformSourcesRoute
@@ -859,6 +867,7 @@ export interface FileRoutesByTo {
   '/app/templates': typeof AuthenticatedAppTemplatesRoute
   '/app/workspace': typeof AuthenticatedAppWorkspaceRoute
   '/platform/access': typeof AuthenticatedPlatformAccessRoute
+  '/platform/agents': typeof AuthenticatedPlatformAgentsRoute
   '/platform/records': typeof AuthenticatedPlatformRecordsRoute
   '/platform/sequences': typeof AuthenticatedPlatformSequencesRoute
   '/platform/sources': typeof AuthenticatedPlatformSourcesRoute
@@ -968,6 +977,7 @@ export interface FileRoutesById {
   '/_authenticated/app/templates': typeof AuthenticatedAppTemplatesRoute
   '/_authenticated/app/workspace': typeof AuthenticatedAppWorkspaceRoute
   '/_authenticated/platform/access': typeof AuthenticatedPlatformAccessRoute
+  '/_authenticated/platform/agents': typeof AuthenticatedPlatformAgentsRoute
   '/_authenticated/platform/records': typeof AuthenticatedPlatformRecordsRoute
   '/_authenticated/platform/sequences': typeof AuthenticatedPlatformSequencesRoute
   '/_authenticated/platform/sources': typeof AuthenticatedPlatformSourcesRoute
@@ -1077,6 +1087,7 @@ export interface FileRouteTypes {
     | '/app/templates'
     | '/app/workspace'
     | '/platform/access'
+    | '/platform/agents'
     | '/platform/records'
     | '/platform/sequences'
     | '/platform/sources'
@@ -1182,6 +1193,7 @@ export interface FileRouteTypes {
     | '/app/templates'
     | '/app/workspace'
     | '/platform/access'
+    | '/platform/agents'
     | '/platform/records'
     | '/platform/sequences'
     | '/platform/sources'
@@ -1290,6 +1302,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/templates'
     | '/_authenticated/app/workspace'
     | '/_authenticated/platform/access'
+    | '/_authenticated/platform/agents'
     | '/_authenticated/platform/records'
     | '/_authenticated/platform/sequences'
     | '/_authenticated/platform/sources'
@@ -1746,6 +1759,13 @@ declare module '@tanstack/react-router' {
       path: '/records'
       fullPath: '/platform/records'
       preLoaderRoute: typeof AuthenticatedPlatformRecordsRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
+    '/_authenticated/platform/agents': {
+      id: '/_authenticated/platform/agents'
+      path: '/agents'
+      fullPath: '/platform/agents'
+      preLoaderRoute: typeof AuthenticatedPlatformAgentsRouteImport
       parentRoute: typeof AuthenticatedPlatformRoute
     }
     '/_authenticated/platform/access': {
@@ -2226,6 +2246,7 @@ const AuthenticatedAppRouteWithChildren =
 
 interface AuthenticatedPlatformRouteChildren {
   AuthenticatedPlatformAccessRoute: typeof AuthenticatedPlatformAccessRoute
+  AuthenticatedPlatformAgentsRoute: typeof AuthenticatedPlatformAgentsRoute
   AuthenticatedPlatformRecordsRoute: typeof AuthenticatedPlatformRecordsRoute
   AuthenticatedPlatformSequencesRoute: typeof AuthenticatedPlatformSequencesRoute
   AuthenticatedPlatformSourcesRoute: typeof AuthenticatedPlatformSourcesRoute
@@ -2235,6 +2256,7 @@ interface AuthenticatedPlatformRouteChildren {
 
 const AuthenticatedPlatformRouteChildren: AuthenticatedPlatformRouteChildren = {
   AuthenticatedPlatformAccessRoute: AuthenticatedPlatformAccessRoute,
+  AuthenticatedPlatformAgentsRoute: AuthenticatedPlatformAgentsRoute,
   AuthenticatedPlatformRecordsRoute: AuthenticatedPlatformRecordsRoute,
   AuthenticatedPlatformSequencesRoute: AuthenticatedPlatformSequencesRoute,
   AuthenticatedPlatformSourcesRoute: AuthenticatedPlatformSourcesRoute,
