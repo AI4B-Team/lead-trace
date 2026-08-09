@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useWorkspaceId } from "@/hooks/use-workspace";
+import { useSuperAdminGate } from "@/components/app/admin-shared";
 import { getBilling, topUpCredits, setRefundEmailThreshold } from "@/lib/billing.functions";
 import {
   annualMonthly,
@@ -50,6 +51,10 @@ function Billing() {
   const [topUpKind, setTopUpKind] = useState<CreditKind | null>(null);
   const saveThreshold = useServerFn(setRefundEmailThreshold);
   const [threshold, setThreshold] = useState<string>("");
+  // Credits can only be granted by platform staff until checkout is live, so
+  // customers see a support note instead of a button that would 403.
+  const adminGate = useSuperAdminGate();
+  const canGrantCredits = !!adminGate.data?.isSuperAdmin;
 
   const { data } = useQuery({
     queryKey: ["billing", workspaceId],
@@ -199,7 +204,7 @@ function Billing() {
             label={CREDIT_PACKS[k].label}
             balance={data?.balances[k] ?? 0}
             rate={`${formatUsd(CREDIT_PACKS[k].pricePerThousand)} / 1,000 ${CREDIT_PACKS[k].unit}`}
-            onTopUp={() => setTopUpKind(k)}
+            onTopUp={canGrantCredits ? () => setTopUpKind(k) : null}
           />
         ))}
       </div>
