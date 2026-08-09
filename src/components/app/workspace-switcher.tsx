@@ -91,10 +91,12 @@ export function WorkspaceSwitcher() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-full justify-center gap-1.5 border border-primary px-2 text-sm font-medium text-foreground hover:bg-primary/10 hover:text-primary"
+            className="h-8 w-full justify-center gap-1.5 border border-primary px-2 text-sm font-medium text-sidebar-foreground hover:bg-primary/10 hover:text-primary"
           >
-            <span className="max-w-[180px] truncate">{workspaceName ?? "Workspace"}</span>
-            <ChevronsUpDown className="h-3.5 w-3.5 opacity-80" />
+            <span className="max-w-[180px] truncate">
+              {workspaceName?.trim() || "Select Workspace"}
+            </span>
+            <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 opacity-80" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-60">
