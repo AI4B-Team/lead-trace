@@ -476,6 +476,13 @@ function ConversationsPage() {
               <div className="p-6 text-center text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin inline-block mr-1" /> Loading…
               </div>
+            ) : threadsQ.isError ? (
+              <div className="p-6 text-center text-sm text-muted-foreground space-y-2">
+                <p>Could Not Load Conversations.</p>
+                <Button size="sm" variant="outline" className="rounded-full h-7 text-xs" onClick={() => void threadsQ.refetch()}>
+                  Try Again
+                </Button>
+              </div>
             ) : !threads.length ? (
               <div className="p-6 text-center text-sm text-muted-foreground">
                 <InboxIcon className="h-6 w-6 mx-auto mb-2 opacity-40" />
