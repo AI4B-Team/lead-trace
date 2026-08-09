@@ -103,6 +103,27 @@ export const getLeadDetail = createServerFn({ method: "GET" })
     };
   });
 
+// A shortlisted record can be taken off the shortlist by any member who can
+// work leads. Clearing it is a plain removal — the original agent proposal and
+// the approval that put it there stay on the record in the activity feed.
+export const clearLeadShortlist = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => idInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("lead_records")
+      .update({
+        nominated_at: null,
+        nominated_score: null,
+        nominated_reason: null,
+        nominated_by: null,
+      } as never)
+      .eq("workspace_id", data.workspaceId)
+      .eq("id", data.leadRecordId);
+    if (error) throw error;
+    return { ok: true as const };
+  });
+
 export const addLeadNote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>

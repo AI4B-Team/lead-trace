@@ -413,7 +413,7 @@ export const exportLeadRecords = createServerFn({ method: "GET" })
     let q = context.supabase
       .from("lead_records")
       .select(
-        "full_name, business_name, phone, phone_type, email, address, city, state, zip, website, handle, platform, followers, engagement, disposition, source_types, record_types, list_count, first_seen_at, last_seen_at",
+        "full_name, business_name, phone, phone_type, email, address, city, state, zip, website, handle, platform, followers, engagement, disposition, source_types, record_types, list_count, first_seen_at, last_seen_at, nominated_at, nominated_score, nominated_reason",
       )
       .eq("workspace_id", data.workspaceId)
       .order("last_seen_at", { ascending: false })
@@ -456,6 +456,9 @@ export const exportLeadRecords = createServerFn({ method: "GET" })
       disposition: r.disposition ?? "",
       sources: (r.source_types ?? []).join(" | "),
       record_types: (r.record_types ?? []).join(" | "),
+      shortlisted: r.nominated_at ? "yes" : "",
+      shortlist_score: r.nominated_score ?? "",
+      shortlist_reason: r.nominated_reason ?? "",
       lists: r.list_count ?? 1,
       first_seen: r.first_seen_at ?? "",
       last_seen: r.last_seen_at ?? "",
