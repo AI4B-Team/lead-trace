@@ -9,6 +9,7 @@ import { User, Settings, LogOut, Users, CreditCard, KeyRound, Sun, Shield, Chevr
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/app/theme-toggle";
 import { meIsSuperAdmin } from "@/lib/admin.functions";
+import { useAvatarUrl } from "@/hooks/use-avatar-url";
 
 // Deterministic accent so each operator gets a recognizable avatar color
 // without storing anything extra on the profile.
@@ -32,6 +33,7 @@ export function ProfileDropdown({ className }: { className?: string }) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const { theme, toggle } = useTheme();
+  const avatarUrl = useAvatarUrl();
   const fetchIsAdmin = useServerFn(meIsSuperAdmin);
   const { data: admin } = useQuery({
     queryKey: ["me-is-super-admin"],
@@ -78,14 +80,22 @@ export function ProfileDropdown({ className }: { className?: string }) {
             className,
           )}
         >
-          <div
-            className={cn(
-              "h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold text-white",
-              tone,
-            )}
-          >
-            {initials || <User className="h-4 w-4" />}
-          </div>
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={`${userName} profile photo`}
+              className="h-8 w-8 rounded-full object-cover"
+            />
+          ) : (
+            <div
+              className={cn(
+                "h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold text-white",
+                tone,
+              )}
+            >
+              {initials || <User className="h-4 w-4" />}
+            </div>
+          )}
         </button>
       </PopoverTrigger>
       <PopoverContent
@@ -96,14 +106,22 @@ export function ProfileDropdown({ className }: { className?: string }) {
       >
         <div className="px-4 py-4 flex items-center gap-3.5">
           <div className="relative">
-            <div
-              className={cn(
-                "h-12 w-12 rounded-full flex items-center justify-center text-sm font-semibold text-white",
-                tone,
-              )}
-            >
-              {initials || <User className="h-5 w-5" />}
-            </div>
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={`${userName} profile photo`}
+                className="h-12 w-12 rounded-full object-cover"
+              />
+            ) : (
+              <div
+                className={cn(
+                  "h-12 w-12 rounded-full flex items-center justify-center text-sm font-semibold text-white",
+                  tone,
+                )}
+              >
+                {initials || <User className="h-5 w-5" />}
+              </div>
+            )}
             <div className="absolute -right-0.5 -bottom-0.5 h-5 w-5 rounded-full bg-highlight border border-background flex items-center justify-center">
               <User className="h-3 w-3 text-foreground" />
             </div>
