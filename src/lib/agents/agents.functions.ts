@@ -115,12 +115,18 @@ export const reviewAgentProposal = createServerFn({ method: "POST" })
     if (data.decision === "approved") {
       const { data: proposal } = await context.supabase
         .from("agent_proposals")
-        .select("proposal_type, target_id, proposed_value")
+        .select("proposal_type, target_table, target_field, target_id, proposed_value")
         .eq("id", data.proposalId)
         .eq("workspace_id", data.workspaceId)
         .maybeSingle();
       const row = proposal as
-        | { proposal_type: string; target_id: string | null; proposed_value: { weights?: unknown } | null }
+        | {
+            proposal_type: string;
+            target_table: string | null;
+            target_field: string | null;
+            target_id: string | null;
+            proposed_value: { weights?: unknown; value?: unknown } | null;
+          }
         | null;
       if (row?.proposal_type === "scorer_weights" && row.target_id) {
         const { normaliseWeights } = await import("./scout.shared");
@@ -146,6 +152,39 @@ export const reviewAgentProposal = createServerFn({ method: "POST" })
           } as never)
           .eq("id", row.target_id)
           .eq("workspace_id", data.workspaceId);
+      }
+
+      // A wording change to the bot's own instructions is the highest-risk
+      // thing an agent can propose, so it may only ever land here — applied by
+      // a named person, and snapshotted as a new profile version carrying the
+      // proposal id and the approver. That pair is what makes "what was the bot
+      // told to say on this date, and who signed it off?" answerable later.
+      if (row?.target_table === "bot_profiles" && row.target_id && row.target_field) {
+        const { assertAgentMayWrite } = await import("./guardrails");
+        assertAgentMayWrite("bot_profiles", row.target_field);
+        const { error: applyErr } = await context.supabase
+          .from("bot_profiles")
+          .update({ [row.target_field]: row.proposed_value?.value ?? null } as never)
+          .eq("id", row.target_id)
+          .eq("workspace_id", data.workspaceId);
+        if (applyErr) throw new Error(applyErr.message);
+        const { data: updated } = await context.supabase
+          .from("bot_profiles")
+          .select("*")
+          .eq("id", row.target_id)
+          .eq("workspace_id", data.workspaceId)
+          .maybeSingle();
+        const { recordProfileVersion } = await import("@/lib/bot-profile-versions.server");
+        await recordProfileVersion(context.supabase as never, {
+          workspaceId: data.workspaceId,
+          profileId: row.target_id,
+          snapshot: (updated ?? {}) as Record<string, unknown>,
+          changeKind: "edit",
+          changeSource: "agent_proposal",
+          proposalId: data.proposalId,
+          changedBy: context.userId,
+          changeNote: data.note ?? `Approved ${row.proposal_type} on ${row.target_field}`,
+        });
       }
     }
     return { ok: true };
