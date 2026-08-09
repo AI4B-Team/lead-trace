@@ -150,6 +150,40 @@ export async function runConversationLabeler(agent: AgentRow): Promise<RunOutcom
       .update({ superseded_at: new Date().toISOString() } as never)
       .in("id", supersede);
   }
+  // Record type is the dimension every downstream report needs: a foreclosure
+  // objection and a roofer objection have nothing to do with each other, and
+  // averaging them produces a number that describes neither.
+  if (inserts.length > 0) {
+    const leadIds = Array.from(
+      new Set(inserts.map((i) => i["lead_id"]).filter((v): v is string => typeof v === "string")),
+    );
+    if (leadIds.length > 0) {
+      const { data: leadRows } = await db
+        .from("leads")
+        .select("id, job_id")
+        .eq("workspace_id", workspaceId)
+        .in("id", leadIds);
+      const jobIds = Array.from(
+        new Set(((leadRows ?? []) as Array<{ job_id: string | null }>).map((l) => l.job_id).filter(Boolean)),
+      ) as string[];
+      const { data: jobRows } = jobIds.length
+        ? await db.from("jobs").select("id, record_type").in("id", jobIds)
+        : { data: [] };
+      const recordTypeByJob = new Map(
+        ((jobRows ?? []) as Array<{ id: string; record_type: string | null }>).map((j) => [j.id, j.record_type]),
+      );
+      const recordTypeByLead = new Map(
+        ((leadRows ?? []) as Array<{ id: string; job_id: string | null }>).map((l) => [
+          l.id,
+          l.job_id ? recordTypeByJob.get(l.job_id) ?? null : null,
+        ]),
+      );
+      for (const row of inserts) {
+        const leadId = row["lead_id"];
+        row["record_type"] = typeof leadId === "string" ? recordTypeByLead.get(leadId) ?? null : null;
+      }
+    }
+  }
   if (inserts.length > 0) {
     const { error } = await db.from("conversation_outcomes").insert(inserts as never);
     if (error) return { status: "failed", examined, error: error.message };
