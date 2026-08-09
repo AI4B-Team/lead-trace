@@ -2185,6 +2185,10 @@ export type Database = {
           last_seen_at: string
           last_seen_job_id: string | null
           list_count: number
+          nominated_at: string | null
+          nominated_by: string | null
+          nominated_reason: string | null
+          nominated_score: number | null
           phone: string | null
           phone_type: string | null
           platform: string | null
@@ -2216,6 +2220,10 @@ export type Database = {
           last_seen_at?: string
           last_seen_job_id?: string | null
           list_count?: number
+          nominated_at?: string | null
+          nominated_by?: string | null
+          nominated_reason?: string | null
+          nominated_score?: number | null
           phone?: string | null
           phone_type?: string | null
           platform?: string | null
@@ -2247,6 +2255,10 @@ export type Database = {
           last_seen_at?: string
           last_seen_job_id?: string | null
           list_count?: number
+          nominated_at?: string | null
+          nominated_by?: string | null
+          nominated_reason?: string | null
+          nominated_score?: number | null
           phone?: string | null
           phone_type?: string | null
           platform?: string | null

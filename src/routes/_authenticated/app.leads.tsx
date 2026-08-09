@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Link } from "@tanstack/react-router";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search, Users, ShieldCheck, ShieldAlert, Ban, Sparkles, Layers, HelpCircle, Wand2, Loader2, Download } from "lucide-react";
+import { Search, Users, ShieldCheck, ShieldAlert, Ban, Sparkles, Layers, HelpCircle, Wand2, Loader2, Download, Star } from "lucide-react";
 import { useWorkspaceId } from "@/hooks/use-workspace";
 import { formatLocation } from "@/lib/location";
 import { listLeadRecords, getLeadListMemberships, exportLeadRecords } from "@/lib/monitoring.functions";
@@ -209,11 +209,12 @@ function LeadsPageInner() {
   const [lineType, setLineType] = useState<"all" | "mobile" | "landline" | "voip" | "unknown">("all");
   const [onlyNew, setOnlyNew] = useState<boolean>(onlyNewParam === true);
   const [multiList, setMultiList] = useState(false);
+  const [onlyNominated, setOnlyNominated] = useState(false);
   const [openLeadId, setOpenLeadId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["lead-records", workspaceId, q, disposition, sourceType, channel, lineType, onlyNew, multiList],
+    queryKey: ["lead-records", workspaceId, q, disposition, sourceType, channel, lineType, onlyNew, multiList, onlyNominated],
     queryFn: () =>
       fetchRecords({
         data: {
@@ -224,6 +225,7 @@ function LeadsPageInner() {
           lineType: channel === "phone" ? lineType : "all",
           onlyNew,
           multiList,
+          onlyNominated,
           ...(q.trim() ? { search: q.trim() } : {}),
         },
       }),
@@ -233,7 +235,7 @@ function LeadsPageInner() {
   // The download always mirrors the filters on screen, so what the operator
   // sees is exactly what lands in the file. Routed through guardedExport so
   // every row leaving the workspace is attributed, capped and watermarked.
-  const filters = { disposition, sourceType, channel, lineType: channel === "phone" ? lineType : "all" as const, onlyNew, multiList };
+  const filters = { disposition, sourceType, channel, lineType: channel === "phone" ? lineType : "all" as const, onlyNew, multiList, onlyNominated };
   const onExport = async (format: ExportFormat) => {
     if (!workspaceId) return;
     if (!team.can("export_list")) {
@@ -397,6 +399,14 @@ function LeadsPageInner() {
             >
               <Layers className="mr-1 h-4 w-4" /> Multi-List
             </Button>
+            <Button
+              type="button"
+              variant={onlyNominated ? "default" : "outline"}
+              className="rounded-full"
+              onClick={() => setOnlyNominated((v) => !v)}
+            >
+              <Star className="mr-1 h-4 w-4" /> Shortlisted
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -464,6 +474,15 @@ function LeadsPageInner() {
                           {location || "Location Unknown"}
                           {sources ? <span className="text-muted-foreground/70"> · {sources}</span> : null}
                         </div>
+                        {r.nominated_at && (
+                          <div className="mt-0.5 flex items-start gap-1 text-xs text-primary">
+                            <Star className="mt-[0.15rem] h-3 w-3 shrink-0" />
+                            <span>
+                              Shortlisted{typeof r.nominated_score === "number" ? ` · Score ${r.nominated_score}` : ""}
+                              {r.nominated_reason ? <span className="text-muted-foreground"> — {r.nominated_reason}</span> : null}
+                            </span>
+                          </div>
+                        )}
                         {!!r.tags?.length && (
                           <div className="mt-1">
                             <LeadTagChips tags={r.tags} max={4} />

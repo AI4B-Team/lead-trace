@@ -22,6 +22,7 @@ export const listLeadRecords = createServerFn({ method: "GET" })
         channel: z.enum(["all", "phone", "email", "address"]).default("all"),
         onlyNew: z.boolean().default(false),
         multiList: z.boolean().default(false),
+        onlyNominated: z.boolean().default(false),
         search: z.string().max(120).optional(),
         limit: z.number().int().min(1).max(500).default(200),
       })
@@ -33,7 +34,7 @@ export const listLeadRecords = createServerFn({ method: "GET" })
     let q = supabase
       .from("lead_records")
       .select(
-        "id, full_name, business_name, phone, phone_type, email, address, website, socials, handle, platform, followers, engagement, city, state, zip, disposition, source_types, record_types, list_count, first_seen_at, last_seen_at, is_new",
+        "id, full_name, business_name, phone, phone_type, email, address, website, socials, handle, platform, followers, engagement, city, state, zip, disposition, source_types, record_types, list_count, first_seen_at, last_seen_at, is_new, nominated_at, nominated_score, nominated_reason",
       )
       .eq("workspace_id", data.workspaceId)
       .order("last_seen_at", { ascending: false })
@@ -47,6 +48,8 @@ export const listLeadRecords = createServerFn({ method: "GET" })
     if (data.sourceType !== "all") q = q.contains("source_types", [data.sourceType]);
     if (data.onlyNew) q = q.eq("is_new", true);
     if (data.multiList) q = q.gt("list_count", 1);
+    // "Shortlist" = records a person accepted from a Lead Scout nomination.
+    if (data.onlyNominated) q = q.not("nominated_at", "is", null);
     if (data.search?.trim()) {
       const s = `%${data.search.trim()}%`;
       q = q.or(
@@ -400,6 +403,7 @@ export const exportLeadRecords = createServerFn({ method: "GET" })
         channel: z.enum(["all", "phone", "email", "address"]).default("all"),
         onlyNew: z.boolean().default(false),
         multiList: z.boolean().default(false),
+        onlyNominated: z.boolean().default(false),
         search: z.string().max(120).optional(),
         limit: z.number().int().min(1).max(25_000).default(25_000),
       })
@@ -423,6 +427,7 @@ export const exportLeadRecords = createServerFn({ method: "GET" })
     if (data.sourceType !== "all") q = q.contains("source_types", [data.sourceType]);
     if (data.onlyNew) q = q.eq("is_new", true);
     if (data.multiList) q = q.gt("list_count", 1);
+    if (data.onlyNominated) q = q.not("nominated_at", "is", null);
     if (data.search?.trim()) {
       const s = `%${data.search.trim()}%`;
       q = q.or(
