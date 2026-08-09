@@ -29,6 +29,8 @@ import { enrichmentProfile, isDataSource, isNonUsRun } from "@/lib/pipeline-opti
 import { exportShapeFor, shapeExportRows, cleanFileType } from "@/lib/export-columns";
 import { populatedFields, resultFieldsForTemplate, type CustomFieldSchema, type LeadField } from "@/lib/lead-fields";
 import { launchEstimate, formatUsd } from "@/lib/launch-estimate";
+import { usePlanContext } from "@/hooks/use-plan-context";
+import { planFor } from "@/lib/plans.shared";
 import { LOCAL_TZ } from "@/lib/local-tz";
 import { PhoneLink } from "@/components/app/phone-link";
 import { setOnboardingPref } from "@/lib/onboarding.functions";
@@ -79,6 +81,9 @@ function JobDetail() {
   const [legacyDismissed, setLegacyDismissed] = useState(false);
   // Nobody rereads the log once the run lands — collapse it on completion.
   const [collapsedOnce, setCollapsedOnce] = useState(false);
+  // SMS is quoted at the workspace's own plan rate, not the entry-level price.
+  const { plan: planContext } = usePlanContext();
+  const smsRate = planFor(planContext.plan).smsPerSegment;
 
   const { data, isLoading } = useQuery({
     queryKey: ["job-review", jobId],
@@ -182,7 +187,12 @@ function JobDetail() {
         : "Business Directories";
   const messageTemplates = (data as { messageTemplates?: string[] }).messageTemplates ?? [];
   // A dataset isn't contactable and SMS is US-only, so neither quotes a launch.
-  const estimate = campaignable ? launchEstimate(counts.clean, { templates: messageTemplates }) : null;
+  const estimate = campaignable
+    ? launchEstimate(counts.clean, {
+        templates: messageTemplates,
+        ratePerSegment: smsRate,
+      })
+    : null;
   const grade = qualityGrade(quality);
   // Never ship a funnel whose arithmetic disagrees with the Ready To Send card.
   // This runs in production too: on mismatch we surface a reconciling badge
@@ -587,8 +597,8 @@ function JobDetail() {
               label="Estimated Cost"
               note={
                 estimate.assumed
-                  ? "Assumes 1 Segment Per Message"
-                  : "Flat Rate Per Segment · Measured From Your Templates"
+                  ? `Assumes 1 Segment Per Message · $${estimate.ratePerSegment.toFixed(3)} Per Segment`
+                  : `$${estimate.ratePerSegment.toFixed(3)} Per Segment · Measured From Your Templates`
               }
             />
           </CardContent>
