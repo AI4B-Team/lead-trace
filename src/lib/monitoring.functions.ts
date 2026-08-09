@@ -386,6 +386,32 @@ export const deleteWebhook = createServerFn({ method: "POST" })
   });
 
 /**
+ * Turn an endpoint back on after the retry sweeper paused it (or pause it by
+ * hand). Re-enabling also clears the "gave up" flag on the last day of failures
+ * so a fresh streak is needed before we pause it again.
+ */
+export const setWebhookActive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ id: z.string().uuid(), active: z.boolean() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("webhook_endpoints")
+      .update({ active: data.active })
+      .eq("id", data.id);
+    if (error) throw error;
+    if (data.active) {
+      await context.supabase
+        .from("webhook_deliveries")
+        .update({ gave_up: false, next_retry_at: null })
+        .eq("endpoint_id", data.id)
+        .eq("gave_up", true);
+    }
+    return { ok: true };
+  });
+
+/**
  * Export the Leads library exactly as it is filtered on screen. Rows come back
  * flat and already labelled, so the download matches the table the operator is
  * looking at. RLS scopes it to the workspace; the caller still routes the file
