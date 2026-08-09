@@ -5,6 +5,7 @@
  *
  * Pure module: no IO, so every rule is directly testable.
  */
+import { AGENT_DEFINITIONS } from "./registry.shared";
 
 /** Tables no agent may ever write to, in any mode. */
 export const AGENT_FORBIDDEN_TABLES = [
