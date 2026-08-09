@@ -169,20 +169,51 @@ function AccountPage() {
                 <CardHeader><CardTitle className="text-base font-display">Profile</CardTitle></CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex items-center gap-4">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-lg font-display font-bold text-primary-foreground">
-                      {initials || "LT"}
-                    </div>
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={`${displayName} profile photo`}
+                        className="h-16 w-16 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-lg font-display font-bold text-primary-foreground">
+                        {initials || "LT"}
+                      </div>
+                    )}
                     <div>
                       <div className="font-display font-bold text-foreground">{displayName}</div>
                       <div className="text-xs text-muted-foreground">Owner</div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-2 rounded-full"
-                        onClick={() => toast.info("Photo Upload Is Coming Soon.")}
-                      >
-                        <Camera className="mr-1.5 h-3.5 w-3.5" /> Change Photo
-                      </Button>
+                      <input
+                        ref={photoInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        className="hidden"
+                        onChange={(e) => void handlePhotoPick(e.target.files?.[0])}
+                      />
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full"
+                          disabled={uploadingPhoto}
+                          onClick={() => photoInputRef.current?.click()}
+                        >
+                          <Camera className="mr-1.5 h-3.5 w-3.5" />
+                          {uploadingPhoto ? "Uploading…" : avatarUrl ? "Change Photo" : "Upload Photo"}
+                        </Button>
+                        {avatarUrl && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-full text-muted-foreground"
+                            disabled={uploadingPhoto}
+                            onClick={() => void handlePhotoRemove()}
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                      <p className="mt-1 text-[11px] text-muted-foreground">PNG, JPG, Or WebP. Up To 2 MB.</p>
                     </div>
                   </div>
 
