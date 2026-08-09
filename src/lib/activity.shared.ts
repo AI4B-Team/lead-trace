@@ -34,6 +34,9 @@ export const ACTIVITY_TYPES = [
   "api_key_revoked",
   // Outbound webhook gave up or was paused after repeated failures.
   "webhook_failed",
+  // Spend/export approvals: who asked, who decided.
+  "approval_requested",
+  "approval_decided",
 ] as const;
 
 
@@ -65,6 +68,7 @@ export const ACTIVITY_GROUPS: Array<{ key: string; label: string; types: Activit
       "list_exported", "member_invited", "member_removed", "member_role_changed", "member_limits_set",
       "api_key_created", "api_key_revoked",
       "webhook_failed",
+      "approval_requested", "approval_decided",
     ],
   },
 ];
@@ -92,6 +96,8 @@ export const ACTIVITY_ICON: Record<string, string> = {
   api_key_created: "key",
   api_key_revoked: "key-round",
   webhook_failed: "webhook",
+  approval_requested: "gauge",
+  approval_decided: "shield-check",
 };
 
 /** Where a row navigates when clicked. Returns null when there's no detail view. */
@@ -118,6 +124,8 @@ export function activityLink(
     case "webhook":
       return "/app/api";
     case "export":
+      return "/app/team";
+    case "approval":
       return "/app/team";
     default:
       return null;
