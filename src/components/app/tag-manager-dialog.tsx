@@ -67,6 +67,7 @@ function TagRow({
         ref={nameRef}
         defaultValue={tag.name}
         className="h-8 flex-1"
+        disabled={busy}
         onBlur={(e) => {
           const v = e.target.value.trim();
           if (v && v !== tag.name) onRename(v);
