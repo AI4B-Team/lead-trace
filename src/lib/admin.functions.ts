@@ -1,11 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { isSuperAdmin } from "./access-checks";
 
 async function assertSuperAdmin(supabase: any, userId: string) {
-  const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "super_admin" });
-  if (error) throw error;
-  if (!data) throw new Error("Forbidden");
+  if (!(await isSuperAdmin(supabase, userId))) throw new Error("Forbidden");
 }
 
 function startOfMonthIso() {
@@ -17,11 +16,7 @@ function startOfMonthIso() {
 export const meIsSuperAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "super_admin",
-    });
-    return { isSuperAdmin: !!data };
+    return { isSuperAdmin: await isSuperAdmin(context.supabase, context.userId) };
   });
 
 // List every workspace with stats + billing plan. super_admin only.
