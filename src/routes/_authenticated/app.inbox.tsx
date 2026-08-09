@@ -545,7 +545,7 @@ function ConversationsPage() {
                     onTag={() => setTagPickerOpen(true)}
                     onBlacklist={doBlacklist}
                     archived={!!selectedRow?.archived}
-                    blacklisting={false}
+                    blacklisting={!canReply}
                   />
                   <LeadTagBar
                     workspaceId={workspaceId}
