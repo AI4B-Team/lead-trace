@@ -506,9 +506,9 @@ function ConversationsPage() {
             <div className="flex flex-col flex-1 min-h-0">
               {/* Top: contact header, actions, AI summary — stays fixed */}
               <div className="shrink-0">
-                <div className="p-3 border-b space-y-2">
-                  <div className="flex items-start gap-2">
-                    <div className="flex-1 min-w-0">
+                <div className="p-3 border-b">
+                  <div className="flex items-start gap-2 flex-wrap">
+                    <div className="min-w-0">
                       <div className="font-display font-bold truncate">
                         {threadQ.data?.lead?.full_name ||
                           threadQ.data?.lead?.business_name ||
@@ -522,6 +522,13 @@ function ConversationsPage() {
                         {activeThread && <span>· {dayLabel(activeThread.last_at)}</span>}
                       </div>
                     </div>
+                    <LeadTagBar
+                      workspaceId={workspaceId}
+                      leadId={threadQ.data?.lead?.id ?? null}
+                      open={tagPickerOpen}
+                      onOpenChange={setTagPickerOpen}
+                    />
+                    <div className="ml-auto flex items-center gap-2 flex-wrap justify-end">
                     {aiHandling && <AiActivityPill label="AI Handling" />}
                     {threadQ.data?.handoff && (
                       <Badge variant="outline" className="bg-warn/10 text-warn border-warn/20 text-xs">
@@ -533,8 +540,7 @@ function ConversationsPage() {
                         Opted Out
                       </Badge>
                     )}
-                  </div>
-                  <QuickActions
+                    <QuickActions
                     phone={threadQ.data?.lead?.phone}
                     email={threadQ.data?.lead?.email}
                     onAppointment={() => {
@@ -547,13 +553,9 @@ function ConversationsPage() {
                     archived={!!selectedRow?.archived}
                     blacklisting={false}
                     readOnly={!team.canWrite}
-                  />
-                  <LeadTagBar
-                    workspaceId={workspaceId}
-                    leadId={threadQ.data?.lead?.id ?? null}
-                    open={tagPickerOpen}
-                    onOpenChange={setTagPickerOpen}
-                  />
+                    />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Where this contact stands. Set here, mirrored onto the lead
