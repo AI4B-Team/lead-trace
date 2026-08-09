@@ -29,6 +29,8 @@ import { enrichmentProfile, isDataSource, isNonUsRun } from "@/lib/pipeline-opti
 import { exportShapeFor, shapeExportRows, cleanFileType } from "@/lib/export-columns";
 import { populatedFields, resultFieldsForTemplate, type CustomFieldSchema, type LeadField } from "@/lib/lead-fields";
 import { launchEstimate, formatUsd } from "@/lib/launch-estimate";
+import { usePlanContext } from "@/hooks/use-plan-context";
+import { planFor } from "@/lib/plans.shared";
 import { LOCAL_TZ } from "@/lib/local-tz";
 import { PhoneLink } from "@/components/app/phone-link";
 import { setOnboardingPref } from "@/lib/onboarding.functions";
