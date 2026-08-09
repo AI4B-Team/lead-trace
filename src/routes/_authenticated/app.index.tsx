@@ -7,6 +7,12 @@ import { useWorkspaceId } from "@/hooks/use-workspace";
 import { getLandingTarget } from "@/lib/onboarding.functions";
 
 export const Route = createFileRoute("/_authenticated/app/")({
+  head: () => ({
+    meta: [
+      { title: "Opening Your Workspace — LeadTrace" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: Landing,
 });
 
