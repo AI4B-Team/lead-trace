@@ -12,6 +12,12 @@
 import process from "node:process";
 import { rfAutocomplete, rfDetails } from "@/lib/realeflow/client.server";
 
+function str(v: unknown): string | null {
+  if (v == null) return null;
+  const s = typeof v === "string" ? v : String(v);
+  return s.trim() || null;
+}
+
 export interface SkipTraceInput {
   ownerName: string | null;
   /** Property street address, e.g. "6211 S MARTINDALE AVE" */
