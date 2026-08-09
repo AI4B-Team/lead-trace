@@ -1,0 +1,2 @@
+ALTER TABLE public.agent_proposals DROP CONSTRAINT agent_proposals_proposal_type_check;
+ALTER TABLE public.agent_proposals ADD CONSTRAINT agent_proposals_proposal_type_check CHECK (proposal_type = ANY (ARRAY['bot_profile_copy','cadence_timing','scorer_weights','booking_correction','objection_response','lead_nomination','copy_edit','guardrail']));
