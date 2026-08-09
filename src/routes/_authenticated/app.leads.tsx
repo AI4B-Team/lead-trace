@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
@@ -204,6 +204,11 @@ function LeadsPageInner() {
   const fetchExport = useServerFn(exportLeadRecords);
 
   const [q, setQ] = useState(qParam ?? "");
+  // A fresh query from the sidebar search lands as a new ?q= while this page
+  // is already mounted, so mirror the param into the local filter.
+  useEffect(() => {
+    if (typeof qParam === "string") setQ(qParam);
+  }, [qParam]);
   const [disposition, setDisposition] = useState<"all" | "clean" | "dnc" | "litigator">("all");
   const [sourceType, setSourceType] = useState("all");
   const [channel, setChannel] = useState<"all" | "phone" | "email" | "address">("all");
