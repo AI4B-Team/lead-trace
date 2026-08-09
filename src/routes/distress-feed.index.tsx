@@ -18,10 +18,10 @@ export const Route = createFileRoute("/distress-feed/")({
     const volume = totals?.total_records ? `${totals.total_records.toLocaleString()} filings` : "County filings";
     return {
       meta: [
-        { title: "Distress Feed — Probate, Foreclosure & Tax Deed Leads, Pulled Nightly" },
+        { title: "Distress Feed — Probate & Foreclosure Leads" },
         {
           name: "description",
-          content: `${volume} across ${totals?.counties ?? 0} counties. Probate, pre-foreclosure, tax deed, liens, code violations and evictions — enriched, DNC scrubbed, skip traced and ready to text.`,
+          content: `${volume} across ${totals?.counties ?? 0} counties. Probate, pre-foreclosure, tax deed, liens and evictions — scrubbed, skip traced, ready to text.`,
         },
         { property: "og:title", content: "Distress Feed — Motivated Seller Records, Pulled Nightly" },
         {
