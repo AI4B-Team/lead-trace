@@ -54,6 +54,37 @@ function Row({ icon, label, value }: { icon?: React.ReactNode; label: string; va
   );
 }
 
+/** Which conversation profile the AI agent uses for this lead. */
+function ResolvedProfileRow({ workspaceId, leadId }: { workspaceId: string; leadId: string }) {
+  const resolve = useServerFn(resolvedProfileForLead);
+  const { data } = useQuery({
+    queryKey: ["resolved-profile", workspaceId, leadId],
+    queryFn: () => resolve({ data: { workspaceId, leadId } }),
+  });
+  if (!data) return null;
+  return (
+    <div className="mb-3">
+      <Row
+        icon={<Bot className="h-3.5 w-3.5" />}
+        label="Agent Profile"
+        value={
+          data.error ? (
+            <span className="text-destructive">Unresolved — Add A Default Profile</span>
+          ) : (
+            <span>
+              {data.name}
+              <span className="ml-1 text-xs font-normal text-muted-foreground">
+                ({data.matched?.replace(/_/g, " ")}
+                {data.isPlatform ? ", platform" : ""})
+              </span>
+            </span>
+          )
+        }
+      />
+    </div>
+  );
+}
+
 export function LeadDetailDrawer({
   workspaceId,
   leadRecordId,
