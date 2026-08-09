@@ -23,12 +23,17 @@ export const saveBotProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
     z
-      .object({ workspaceId: z.string().uuid(), profile: botProfileSchema })
+      .object({
+        workspaceId: z.string().uuid(),
+        profile: botProfileSchema,
+        changeNote: z.string().max(500).nullable().default(null),
+      })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { id, ...fields } = data.profile;
     const row = { ...fields, workspace_id: data.workspaceId };
+    const { recordProfileVersion } = await import("@/lib/bot-profile-versions.server");
     if (id) {
       const { error } = await context.supabase
         .from("bot_profiles")
@@ -36,6 +41,15 @@ export const saveBotProfile = createServerFn({ method: "POST" })
         .eq("id", id)
         .eq("workspace_id", data.workspaceId);
       if (error) throw error;
+      await recordProfileVersion(context.supabase as never, {
+        workspaceId: data.workspaceId,
+        profileId: id,
+        snapshot: row as Record<string, unknown>,
+        changeKind: "edit",
+        changeSource: "manual",
+        changedBy: context.userId,
+        changeNote: data.changeNote,
+      });
       return { ok: true, id };
     }
     const { data: inserted, error } = await context.supabase
@@ -44,7 +58,39 @@ export const saveBotProfile = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw error;
-    return { ok: true, id: (inserted as { id: string }).id };
+    const newId = (inserted as { id: string }).id;
+    await recordProfileVersion(context.supabase as never, {
+      workspaceId: data.workspaceId,
+      profileId: newId,
+      snapshot: row as Record<string, unknown>,
+      changeKind: "create",
+      changeSource: "manual",
+      changedBy: context.userId,
+      changeNote: data.changeNote,
+    });
+    return { ok: true, id: newId };
+  });
+
+/**
+ * The instruction history for one profile — what it said, when, and who changed
+ * it. Append-only by design; this is the answer to "what was the bot told to
+ * say on the day this person complained?".
+ */
+export const listBotProfileVersions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ workspaceId: z.string().uuid(), profileId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("bot_profile_versions")
+      .select("id, version, snapshot, change_kind, change_source, proposal_id, changed_by, change_note, created_at")
+      .eq("workspace_id", data.workspaceId)
+      .eq("profile_id", data.profileId)
+      .order("version", { ascending: false })
+      .limit(100);
+    if (error) throw error;
+    return rows ?? [];
   });
 
 export const deleteBotProfile = createServerFn({ method: "POST" })
@@ -55,10 +101,32 @@ export const deleteBotProfile = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("bot_profiles")
+      .select("id, name, opener, context_framing, objections, screening_questions, faqs, tone, escalation_triggers, banned_topics, dispositions, template_id, record_type")
+      .eq("id", data.id)
+      .eq("workspace_id", data.workspaceId)
+      .maybeSingle()
+      .then(async ({ data: existing }: { data: unknown }) => {
+        if (existing) {
+          const { recordProfileVersion } = await import("@/lib/bot-profile-versions.server");
+          await recordProfileVersion(context.supabase as never, {
+            workspaceId: data.workspaceId,
+            profileId: data.id,
+            snapshot: existing as Record<string, unknown>,
+            changeKind: "delete",
+            changeSource: "manual",
+            changedBy: context.userId,
+            changeNote: "Profile deleted — last known wording preserved here.",
+          });
+        }
+        return { error: null };
+      });
+    if (error) throw error;
+    const { error: delErr } = await context.supabase
+      .from("bot_profiles")
       .delete()
       .eq("id", data.id)
       .eq("workspace_id", data.workspaceId);
-    if (error) throw error;
+    if (delErr) throw delErr;
     return { ok: true };
   });
 
@@ -106,7 +174,18 @@ export const duplicateBotProfile = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw error;
-    return { ok: true, id: (inserted as { id: string }).id };
+    const newId = (inserted as { id: string }).id;
+    const { recordProfileVersion } = await import("@/lib/bot-profile-versions.server");
+    await recordProfileVersion(context.supabase as never, {
+      workspaceId: data.workspaceId,
+      profileId: newId,
+      snapshot: { ...s, name: data.name, template_id: data.templateId, record_type: data.recordType },
+      changeKind: "duplicate",
+      changeSource: "manual",
+      changedBy: context.userId,
+      changeNote: `Copied from ${data.sourceId}`,
+    });
+    return { ok: true, id: newId };
   });
 
 /** Render the exact system prompt this profile produces, guardrails included. */
