@@ -60,10 +60,6 @@ describe("conversation labeler", () => {
   });
 });
 
-describe("agent guardrails", () => {
-  it("stub", () => expect(true).toBe(true));
-});
-
 describe("hot-lead scorer", () => {
   const sample = (signals: SignalKey[], converted: boolean) => ({ signals, converted });
 
