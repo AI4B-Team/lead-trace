@@ -122,6 +122,7 @@ export async function retryPendingWebhooks(limit = 50) {
   let retried = 0;
   let recovered = 0;
   let exhausted = 0;
+  let paused = 0;
 
   for (const d of due ?? []) {
     // Claim it first so a concurrent tick can't double-send.
@@ -159,8 +160,68 @@ export async function retryPendingWebhooks(limit = 50) {
         .eq("id", d.event_id);
     } else if (outcome.row.gave_up) {
       exhausted += 1;
+      if (await handleExhausted(supabase, d.workspace_id, endpoint.id, endpoint.url, d.event_type)) {
+        paused += 1;
+      }
     }
   }
 
-  return { due: due?.length ?? 0, retried, recovered, exhausted };
+  return { due: due?.length ?? 0, retried, recovered, exhausted, paused };
+}
+
+/** How many exhausted deliveries in 24h before an endpoint is paused. */
+const PAUSE_AFTER_EXHAUSTED = 5;
+
+/**
+ * Tell the workspace an event was dropped, and pause an endpoint that keeps
+ * failing so we stop hammering a dead URL. Returns true when it paused.
+ */
+async function handleExhausted(
+  supabase: AnyClient,
+  workspaceId: string,
+  endpointId: string,
+  url: string,
+  eventType: string,
+): Promise<boolean> {
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { count } = await supabase
+    .from("webhook_deliveries")
+    .select("id", { count: "exact", head: true })
+    .eq("endpoint_id", endpointId)
+    .eq("gave_up", true)
+    .gte("created_at", since);
+  const failures = count ?? 1;
+  const shouldPause = failures >= PAUSE_AFTER_EXHAUSTED;
+
+  if (shouldPause) {
+    await supabase.from("webhook_endpoints").update({ active: false }).eq("id", endpointId);
+  }
+
+  // One notification per endpoint per day, upgraded when we pause it.
+  const kind = shouldPause ? "webhook_endpoint_paused" : "webhook_delivery_failed";
+  const { count: notified } = await supabase
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("workspace_id", workspaceId)
+    .eq("kind", kind)
+    .gte("created_at", since);
+  if ((notified ?? 0) > 0) return shouldPause;
+
+  const title = shouldPause
+    ? "Webhook Endpoint Paused After Repeated Failures"
+    : "Webhook Delivery Gave Up After 5 Attempts";
+  const body = shouldPause
+    ? `${url} failed ${failures} events in the last 24 hours, so we turned it off. Fix the endpoint and switch it back on in Settings → API.`
+    : `We tried ${MAX_ATTEMPTS} times to deliver "${eventType}" to ${url} and stopped. See the delivery history in Settings → API.`;
+
+  await supabase.from("notifications").insert({ workspace_id: workspaceId, kind, title, body } as never);
+  await supabase.from("activity_events").insert({
+    workspace_id: workspaceId,
+    type: "webhook_failed",
+    summary: title,
+    detail: body,
+    ref_type: "webhook",
+    ref_id: endpointId,
+  } as never);
+  return shouldPause;
 }
