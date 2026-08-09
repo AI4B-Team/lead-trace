@@ -326,6 +326,8 @@ export const pauseJob = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ jobId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
+    const { assertJobAction } = await import("./accountability.server");
+    await assertJobAction(context.supabase, data.jobId, context.userId, "build_list");
     const { error } = await context.supabase
       .from("jobs")
       .update({ status: "paused" })
@@ -344,6 +346,8 @@ export const resumeJob = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ jobId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
+    const { assertJobAction } = await import("./accountability.server");
+    await assertJobAction(context.supabase, data.jobId, context.userId, "build_list");
     const { error } = await context.supabase
       .from("jobs")
       .update({ status: "queued", error: null, failed_stage: null, failed_at: null })
@@ -367,6 +371,8 @@ export const getLeadsByBucket = createServerFn({ method: "GET" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertJobAction } = await import("./accountability.server");
+    await assertJobAction(context.supabase, data.jobId, context.userId, "export_list");
     const { data: rows, error } = await context.supabase
       .from("leads")
       .select("full_name, business_name, phone, phone_type, email, address, city, state, zip, scrub_status")
