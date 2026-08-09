@@ -72,19 +72,25 @@ function Billing() {
   const balances = data?.balances;
   const totalCredits =
     (balances?.scrape ?? 0) + (balances?.skip_trace ?? 0) + (balances?.sms ?? 0);
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  monthStart.setHours(0, 0, 0, 0);
+  // Usage is measured against the workspace's real billing period, which is
+  // what the renewal job resets — not the calendar month.
+  const periodStart = data?.workspace?.plan_period_start
+    ? new Date(data.workspace.plan_period_start)
+    : (() => {
+        const d = new Date();
+        d.setDate(1);
+        d.setHours(0, 0, 0, 0);
+        return d;
+      })();
   const monthLedger = (data?.ledger ?? []).filter(
-    (r) => new Date(r.created_at) >= monthStart && r.delta < 0,
+    (r) => new Date(r.created_at) >= periodStart && r.delta < 0,
   );
   const usedThisMonth = monthLedger.reduce((sum, r) => sum + Math.abs(r.delta), 0);
   const usageByKind = monthLedger.reduce<Record<string, number>>((acc, r) => {
     acc[r.kind] = (acc[r.kind] ?? 0) + Math.abs(r.delta);
     return acc;
   }, {});
-  const renewDate = new Date(monthStart);
-  renewDate.setMonth(renewDate.getMonth() + 1);
+  const renewDate = new Date(periodStart.getTime() + 30 * 24 * 60 * 60 * 1000);
   const renewLabel = renewDate.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
   const plan = planFor(data?.workspace?.billing_plan);
