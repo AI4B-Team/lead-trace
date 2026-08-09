@@ -16,6 +16,7 @@ import { getLeadDetail, addLeadNote, deleteLeadNote, clearLeadShortlist } from "
 import { resolvedProfileForLead } from "@/lib/bot-profiles.functions";
 import { LeadTagBar } from "@/components/app/lead-tag-picker";
 import { formatLocation } from "@/lib/location";
+import { useTeamContext } from "@/hooks/use-team-context";
 
 const INTEL_LABEL: Record<string, string> = {
   owner_name: "Owner",
@@ -96,6 +97,7 @@ export function LeadDetailDrawer({
 }) {
   const qc = useQueryClient();
   const fetchDetail = useServerFn(getLeadDetail);
+  const { canWrite } = useTeamContext();
   const runAddNote = useServerFn(addLeadNote);
   const runDeleteNote = useServerFn(deleteLeadNote);
   const [note, setNote] = useState("");
@@ -203,7 +205,7 @@ export function LeadDetailDrawer({
                         variant="outline"
                         size="sm"
                         className="mt-2"
-                        disabled={clearShortlist.isPending}
+                        disabled={clearShortlist.isPending || !canWrite}
                         onClick={() => clearShortlist.mutate()}
                       >
                         {clearShortlist.isPending ? (
@@ -291,7 +293,12 @@ export function LeadDetailDrawer({
               <h3 className="mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
                 <StickyNote className="h-3.5 w-3.5" /> Notes
               </h3>
-              <div className="flex flex-col gap-2">
+              {!canWrite && (
+                <p className="mb-2 text-xs text-muted-foreground">
+                  Read-Only Access — Ask An Admin For Member Access To Add Notes.
+                </p>
+              )}
+              <div className={canWrite ? "flex flex-col gap-2" : "hidden"}>
                 <Textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
@@ -319,6 +326,7 @@ export function LeadDetailDrawer({
                       <p className="whitespace-pre-wrap text-sm text-foreground">{n.body}</p>
                       <button
                         type="button"
+                        hidden={!canWrite}
                         onClick={() => removeNote.mutate(n.id)}
                         className="text-muted-foreground/60 transition-colors hover:text-danger"
                         aria-label="Delete Note"
