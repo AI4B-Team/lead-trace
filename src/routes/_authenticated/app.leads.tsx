@@ -306,6 +306,11 @@ function LeadsPageInner() {
         }
       />
 
+      {/* The worklist: who the Scout says to work today, dismissed inline. */}
+      <div className="mb-4">
+        <WorklistNominations workspaceId={workspaceId ?? null} onOpenLead={setOpenLeadId} />
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Stat icon={<Users className="h-4 w-4" />} label="Total Leads" value={(stats?.total ?? 0).toLocaleString()} help="The total number of unique lead records across every list in this workspace, after de-duplication." />
           <Stat
