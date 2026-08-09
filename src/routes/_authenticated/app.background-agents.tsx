@@ -308,7 +308,15 @@ function BackgroundAgentsPage() {
                     <Badge variant="outline">
                       {agentDefinition(p.agent_key ?? "")?.name ?? p.agent_key}
                     </Badge>
-                    <span className="font-semibold">{p.proposal_type}</span>
+                    <span className="font-semibold">
+                      {p.proposal_type === "lead_nomination" ? "Worth A Touch Today" : p.proposal_type}
+                    </span>
+                    {p.proposal_type === "lead_nomination" &&
+                      typeof (p.proposed_value as { score?: number } | null)?.score === "number" && (
+                        <Badge variant="secondary">
+                          Score {(p.proposed_value as { score: number }).score}
+                        </Badge>
+                      )}
                     {p.target_field && (
                       <span className="text-muted-foreground">on {p.target_field}</span>
                     )}
