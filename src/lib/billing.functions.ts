@@ -18,7 +18,9 @@ export const getBilling = createServerFn({ method: "GET" })
       supabase.from("credit_ledger").select("*").eq("workspace_id", data.workspaceId).order("created_at", { ascending: false }).limit(50),
       supabase
         .from("workspaces")
-        .select("id, name, industry, created_at, refund_email_threshold, billing_plan")
+        .select(
+          "id, name, industry, created_at, refund_email_threshold, billing_plan, plan_period_start, plan_grant_amount",
+        )
         .eq("id", data.workspaceId)
         .maybeSingle(),
       supabase
