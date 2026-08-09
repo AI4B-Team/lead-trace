@@ -69,6 +69,12 @@ export type CronHealthRow = {
   consecutiveFailures: number;
   /** true when the task has not run within 3x its expected interval. */
   stale: boolean;
+  /**
+   * true when the task has no heartbeat at all. Usually means the hook is not
+   * reachable on the domain the schedule points at (e.g. not published yet),
+   * which is a different problem from a task that ran and then went stale.
+   */
+  neverRan: boolean;
 };
 
 export async function readCronHealth(): Promise<CronHealthRow[]> {
@@ -97,6 +103,7 @@ export async function readCronHealth(): Promise<CronHealthRow[]> {
       lastDurationMs: (r?.last_duration_ms as number | null) ?? null,
       consecutiveFailures: (r?.consecutive_failures as number | null) ?? 0,
       stale,
+      neverRan: !lastTickAt && !r?.last_finished_at,
     };
   });
 }
