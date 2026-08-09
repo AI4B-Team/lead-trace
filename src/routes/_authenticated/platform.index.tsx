@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/platform/")({
+
   head: () => ({
     meta: [
       { title: "Platform Dashboard — LeadTrace" },
