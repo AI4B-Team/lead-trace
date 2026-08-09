@@ -68,12 +68,15 @@ type Progress = (message: string, count?: number) => Promise<void> | void;
  * actor's current build number once and reuse that exact number for the process
  * lifetime, logging it so an operator can freeze the value that was verified.
  */
-let resolvedBuild: { actor: string; build: string } | null = null;
+const resolvedBuilds = new Map<string, string>();
 
 async function pinnedBuild(token: string, actor: string): Promise<string | null> {
   const override = process.env.APIFY_GMAPS_ACTOR_BUILD;
-  if (override) return override;
-  if (resolvedBuild?.actor === actor) return resolvedBuild.build;
+  if (override && actor === (process.env.APIFY_GMAPS_ACTOR ?? "compass~crawler-google-places")) {
+    return override;
+  }
+  const cached = resolvedBuilds.get(actor);
+  if (cached) return cached;
   try {
     const res = await apifyFetch(`${APIFY_BASE}/acts/${encodeURIComponent(actor)}`, {
       headers: authHeaders(token),
@@ -83,7 +86,7 @@ async function pinnedBuild(token: string, actor: string): Promise<string | null>
     };
     const build = body.data?.taggedBuilds?.latest?.buildNumber ?? null;
     if (!build) return null;
-    resolvedBuild = { actor, build };
+    resolvedBuilds.set(actor, build);
     console.info(
       `[apify] pinned ${actor} to build ${build}. Set APIFY_GMAPS_ACTOR_BUILD=${build} to freeze it.`,
     );

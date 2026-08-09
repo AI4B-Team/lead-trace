@@ -64,5 +64,5 @@ export interface DncScrubber {
   scrub(phones: string[]): Promise<ScrubResult>;
 }
 
-export { getBusinessScraper } from "./apify";
+export { getBusinessScraper, apifySourceForTemplate, type ApifySourceId } from "./apify";
 export { getDncScrubber } from "./dnc";
