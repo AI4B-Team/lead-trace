@@ -79,6 +79,9 @@ export function AppSidebar() {
     : 0;
 
   const collapsed = !isMobile && state === "collapsed";
+  useEffect(() => {
+    if (collapsed) setFocusSearch(false);
+  }, [collapsed]);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
