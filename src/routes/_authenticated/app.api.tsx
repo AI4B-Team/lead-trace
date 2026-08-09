@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { WebhookEndpoints } from "@/components/app/webhook-endpoints";
+import { ApiKeysCard } from "@/components/app/api-keys-card";
 
 export const Route = createFileRoute("/_authenticated/app/api")({
   head: () => ({
@@ -41,28 +42,7 @@ function DeveloperPage() {
         />
 
         <div className="max-w-4xl space-y-6">
-          <Card>
-            <CardHeader className="flex-row items-center justify-between gap-3 space-y-0">
-              <CardTitle className="flex items-center gap-2 text-base font-display">
-                <KeyRound className="h-4 w-4 text-primary" /> API Keys
-              </CardTitle>
-              <Badge variant="outline" className="text-muted-foreground">Coming Soon</Badge>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="max-w-xl text-sm text-muted-foreground">
-                Scoped, revocable keys for reading leads and triggering runs. Keys are shown once at
-                creation, can be rotated without downtime, and revoked instantly.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" className="pointer-events-none rounded-full opacity-40" disabled aria-disabled>Create Key</Button>
-                <Button size="sm" variant="outline" className="pointer-events-none rounded-full opacity-40" disabled aria-disabled>Rotate</Button>
-                <Button size="sm" variant="outline" className="pointer-events-none rounded-full opacity-40" disabled aria-disabled>Revoke</Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Until keys ship, the event webhooks below cover most custom handoffs.
-              </p>
-            </CardContent>
-          </Card>
+          <ApiKeysCard />
 
           <section id="webhooks" className="scroll-mt-24">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -136,7 +116,7 @@ function DeveloperPage() {
                 <CardTitle className="flex items-center gap-2 text-sm font-display">
                   <Gauge className="h-4 w-4 text-muted-foreground" /> Rate Limits
                 </CardTitle>
-                <span className="text-[10px] text-muted-foreground">Available when API keys ship</span>
+                <span className="text-[10px] text-muted-foreground">Per key, per workspace</span>
               </CardHeader>
               <CardContent className="space-y-1 text-xs text-muted-foreground">
                 <div>120 requests per minute per key.</div>
@@ -180,12 +160,12 @@ function DeveloperPage() {
                 <CardTitle className="flex items-center gap-2 text-sm font-display">
                   <Terminal className="h-4 w-4 text-muted-foreground" /> Quickstart
                 </CardTitle>
-                <span className="text-[10px] text-muted-foreground">Available when API keys ship</span>
+                <span className="text-[10px] text-muted-foreground">Use your key from Settings</span>
               </CardHeader>
               <CardContent>
                 <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-[11px] leading-relaxed text-foreground">
 {`curl -H "Authorization: Bearer $LEADTRACE_KEY" \\
-  https://app.leadtrace.io/api/public/v1/leads`}
+  https://leadtrace.com/api/public/v1/leads`}
                 </pre>
               </CardContent>
             </Card>
@@ -196,8 +176,8 @@ function DeveloperPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-xs text-muted-foreground">
-                TypeScript and Python SDKs land with public keys. Full reference docs will ship
-                alongside them.
+                TypeScript and Python SDKs are on the roadmap. Until then the endpoints below are
+                plain REST with bearer-token auth.
               </CardContent>
             </Card>
           </div>

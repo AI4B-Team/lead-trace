@@ -29,7 +29,11 @@ export const ACTIVITY_TYPES = [
   "member_removed",
   "member_role_changed",
   "member_limits_set",
+  // Programmatic access grants (who issued or revoked an API key).
+  "api_key_created",
+  "api_key_revoked",
 ] as const;
+
 
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];
 
@@ -55,7 +59,10 @@ export const ACTIVITY_GROUPS: Array<{ key: string; label: string; types: Activit
   {
     key: "team",
     label: "Team",
-    types: ["list_exported", "member_invited", "member_removed", "member_role_changed", "member_limits_set"],
+    types: [
+      "list_exported", "member_invited", "member_removed", "member_role_changed", "member_limits_set",
+      "api_key_created", "api_key_revoked",
+    ],
   },
 ];
 
