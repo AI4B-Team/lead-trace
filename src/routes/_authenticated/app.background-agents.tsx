@@ -34,7 +34,18 @@ import {
   type Outcome,
   type Sentiment,
 } from "@/lib/agents/labeler.shared";
-import { AlertTriangle, Bot, CheckCircle2, Clock, ShieldCheck, XCircle } from "lucide-react";
+import { useState } from "react";
+import {
+  AlertTriangle,
+  Bot,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Eye,
+  ShieldCheck,
+  XCircle,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/background-agents")({
   head: () => ({
@@ -180,6 +191,7 @@ function ConversationsReport({ outcomes }: { outcomes: Outcomes }) {
 }
 
 function BackgroundAgentsPage() {
+  const [openLog, setOpenLog] = useState<string | null>(null);
   const { workspaceId } = useWorkspaceId();
   const fetchAll = useServerFn(getBackgroundAgents);
   const qc = useQueryClient();
@@ -209,6 +221,27 @@ function BackgroundAgentsPage() {
   const modeOf = (key: string): AgentMode =>
     (data?.agents.find((a) => a.agentKey === key)?.mode as AgentMode) ?? "flag_only";
   const runsFor = (key: string) => (data?.runs ?? []).filter((r) => r.agent_key === key);
+  const runStamp = (iso?: string | null) =>
+    iso
+      ? new Date(iso).toLocaleString(undefined, {
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        })
+      : "—";
+
+  // "The first week of any agent should be a human reading its output."
+  const watchList = AGENT_DEFINITIONS.filter((def) => {
+    if (!def.implemented) return false;
+    const row = data?.agents.find((a) => a.agentKey === def.key);
+    if (!row || row.mode === "off") return false;
+    const runs = runsFor(def.key).filter((r) => r.status === "ok");
+    const first = runs[runs.length - 1];
+    if (!first) return false;
+    const days = (Date.now() - new Date(first.started_at).getTime()) / 86_400_000;
+    return days < 7;
+  });
 
   return (
     <div className="space-y-4">
@@ -224,6 +257,17 @@ function BackgroundAgentsPage() {
           {AGENT_GOVERNANCE_NOTE}
         </p>
       </div>
+
+      {watchList.length > 0 && (
+        <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/40 px-4 py-3">
+          <Eye className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            <span className="font-display font-bold text-foreground">In Its First Week.</span>{" "}
+            {watchList.map((d) => d.name).join(", ")} — read each run below before you trust the
+            pattern. A new agent earns its keep by being checked, not by being left alone.
+          </p>
+        </div>
+      )}
 
       <ConversationsReport outcomes={(data?.outcomes ?? []) as Outcomes} />
 
@@ -288,6 +332,50 @@ function BackgroundAgentsPage() {
                     </span>
                   )}
                 </div>
+                {last?.summary && (
+                  <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                    {last.summary}
+                  </p>
+                )}
+                {runs.length > 0 && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setOpenLog(openLog === def.key ? null : def.key)}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                      aria-expanded={openLog === def.key}
+                    >
+                      {openLog === def.key ? (
+                        <ChevronDown className="h-3 w-3" />
+                      ) : (
+                        <ChevronRight className="h-3 w-3" />
+                      )}
+                      Run History ({runs.length})
+                    </button>
+                    {openLog === def.key && (
+                      <ul className="mt-2 space-y-1.5 border-t border-border pt-2">
+                        {runs.map((r) => (
+                          <li key={r.id} className="text-xs">
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                              <span className="tabular-nums text-muted-foreground">
+                                {runStamp(r.started_at)}
+                              </span>
+                              {r.status === "ok" ? (
+                                <span className="text-success">
+                                  Examined {r.items_examined} · Recorded {r.items_actioned} · Flagged{" "}
+                                  {r.items_flagged}
+                                </span>
+                              ) : (
+                                <span className="text-destructive">{r.error ?? r.status}</span>
+                              )}
+                            </div>
+                            {r.summary && <p className="text-muted-foreground">{r.summary}</p>}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           );
