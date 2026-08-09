@@ -17,6 +17,17 @@ import { TranslationProvider } from "@/components/translation-provider";
 import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
+  // A 404 otherwise keeps the root's marketing title, which reads as a working
+  // page in tabs, history and share previews.
+  useEffect(() => {
+    document.title = "Page Not Found — LeadTrace";
+    const tag = document.createElement("meta");
+    tag.name = "robots";
+    tag.content = "noindex, nofollow";
+    document.head.appendChild(tag);
+    return () => tag.remove();
+  }, []);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
