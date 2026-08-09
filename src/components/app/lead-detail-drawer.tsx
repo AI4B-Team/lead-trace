@@ -10,9 +10,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Trash2, MessageSquare, Phone, Mail, MapPin, StickyNote, Bot } from "lucide-react";
+import { Loader2, Trash2, MessageSquare, Phone, Mail, MapPin, StickyNote, Bot, Star } from "lucide-react";
 import { toast } from "sonner";
-import { getLeadDetail, addLeadNote, deleteLeadNote } from "@/lib/lead-detail.functions";
+import { getLeadDetail, addLeadNote, deleteLeadNote, clearLeadShortlist } from "@/lib/lead-detail.functions";
 import { resolvedProfileForLead } from "@/lib/bot-profiles.functions";
 import { LeadTagBar } from "@/components/app/lead-tag-picker";
 import { formatLocation } from "@/lib/location";
@@ -120,6 +120,17 @@ export function LeadDetailDrawer({
     onError: (e) => toast.error("Could Not Save Note", { description: (e as Error).message }),
   });
 
+  const clearShortlistFn = useServerFn(clearLeadShortlist);
+  const clearShortlist = useMutation({
+    mutationFn: () => clearShortlistFn({ data: { workspaceId: workspaceId!, leadRecordId: leadRecordId! } }),
+    onSuccess: () => {
+      toast.success("Removed From Shortlist");
+      void invalidate();
+      void qc.invalidateQueries({ queryKey: ["lead-records"] });
+    },
+    onError: (e) => toast.error("Could Not Update", { description: e instanceof Error ? e.message : "Try Again." }),
+  });
+
   const removeNote = useMutation({
     mutationFn: (noteId: string) => runDeleteNote({ data: { workspaceId: workspaceId!, noteId } }),
     onSuccess: () => void invalidate(),
@@ -168,6 +179,43 @@ export function LeadDetailDrawer({
                 />
               )}
             </section>
+
+            {r.nominated_at && (
+              <>
+                <Separator />
+                <section>
+                  <h3 className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Shortlist</h3>
+                  <div className="flex items-start gap-2 rounded-md border border-border bg-surface-muted p-3">
+                    <Star className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1 text-sm">
+                      <div className="font-medium text-foreground">
+                        Shortlisted {new Date(r.nominated_at).toLocaleDateString()}
+                        {typeof r.nominated_score === "number" ? ` · Score ${r.nominated_score}` : ""}
+                      </div>
+                      {r.nominated_reason && (
+                        <p className="mt-0.5 text-xs text-muted-foreground">{r.nominated_reason}</p>
+                      )}
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Lead Scout Nominated This Record And A Person Approved It. Nothing Was Sent.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        disabled={clearShortlist.isPending}
+                        onClick={() => clearShortlist.mutate()}
+                      >
+                        {clearShortlist.isPending ? (
+                          <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                        ) : null}
+                        Remove From Shortlist
+                      </Button>
+                    </div>
+                  </div>
+                </section>
+              </>
+            )}
 
             <Separator />
 
