@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { SettingsShell } from "@/components/app/settings-shell";
 import { TwoFactorCard } from "@/components/app/two-factor-card";
+import { ApiKeysCard } from "@/components/app/api-keys-card";
 import { removeAvatar, uploadAvatar } from "@/lib/avatar";
 import { useAvatarUrl } from "@/hooks/use-avatar-url";
 import {
@@ -31,7 +32,7 @@ import {
   type NotifyPrefs,
 } from "@/components/app/notification-prefs";
 
-const searchSchema = z.object({ tab: z.enum(["profile", "security", "notifications"]).optional() });
+const searchSchema = z.object({ tab: z.enum(["profile", "security", "notifications", "api"]).optional() });
 
 export const Route = createFileRoute("/_authenticated/app/account")({
   head: () => ({ meta: [{ title: "Settings — LeadTrace" }] }),
@@ -159,7 +160,7 @@ function AccountPage() {
       <Tabs
         value={tab ?? "profile"}
         onValueChange={(v) =>
-          navigate({ search: { tab: v as "profile" | "security" | "notifications" }, replace: true })
+          navigate({ search: { tab: v as "profile" | "security" | "notifications" | "api" }, replace: true })
         }
       >
         <TabsContent value="profile" className="mt-0">
@@ -402,6 +403,23 @@ function AccountPage() {
                 verified={!!user?.email_confirmed_at}
               />
             </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="api" className="mt-0">
+          <div className="max-w-4xl space-y-6">
+            <ApiKeysCard />
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-display">Webhooks & Reference</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+                <span>Event webhooks, rate limits, and endpoint reference.</span>
+                <Button variant="outline" size="sm" className="rounded-full" asChild>
+                  <Link to="/app/api">Open API Reference</Link>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
       </Tabs>

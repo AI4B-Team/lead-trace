@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import {
   User,
   Lock,
+  KeyRound,
   Bell,
   CreditCard,
   Users,
@@ -22,6 +23,7 @@ export type AccountTabKey =
   | "security"
   | "notifications"
   | "billing"
+  | "api"
   | "workspace"
   | "team"
   | "numbers"
@@ -46,7 +48,7 @@ type NavDef = {
     | "/app/integrations"
     | "/app/api"
     | "/app/workspace";
-  search?: { tab: "profile" | "security" | "notifications" };
+  search?: { tab: "profile" | "security" | "notifications" | "api" };
 };
 
 const GROUPS: { label: string; items: NavDef[] }[] = [
@@ -56,7 +58,8 @@ const GROUPS: { label: string; items: NavDef[] }[] = [
       { key: "profile", label: "Profile", icon: User, to: "/app/account", search: { tab: "profile" } },
       { key: "security", label: "Security", icon: Lock, to: "/app/account", search: { tab: "security" } },
       { key: "notifications", label: "Notifications", icon: Bell, to: "/app/account", search: { tab: "notifications" } },
-      { key: "billing", label: "Billing", icon: CreditCard, to: "/app/billing" },
+      { key: "billing", label: "Subscription", icon: CreditCard, to: "/app/billing" },
+      { key: "api", label: "API Keys", icon: KeyRound, to: "/app/account", search: { tab: "api" } },
     ],
   },
   {
