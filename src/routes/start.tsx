@@ -9,6 +9,16 @@ export const Route = createFileRoute("/start")({
     template: z.string().optional(),
     upload: z.boolean().optional(),
   }),
+  head: () => ({
+    meta: [
+      { title: "Starting Your List | LeadTrace" },
+      {
+        name: "description",
+        content: "Setting up your LeadTrace workspace and taking you to the list builder.",
+      },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: StartRedirect,
 });
 
