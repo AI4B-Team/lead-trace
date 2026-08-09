@@ -1,9 +1,10 @@
 import type { BusinessScraper, BusinessScrapeParams, RawLead } from "./index";
 
-// Apify Google Maps scraper adapter. Reads APIFY_TOKEN (and optional
-// APIFY_GMAPS_ACTOR override) at call time from process.env — never at module
-// scope. Real failures propagate to the pipeline's failure path. There is no
-// mock path: an unconfigured or failing scraper surfaces as an error.
+// Apify business-source adapters: Google Maps, Yelp, and LinkedIn companies.
+// Reads APIFY_TOKEN (and optional per-source actor overrides) at call time from
+// process.env — never at module scope. Real failures propagate to the
+// pipeline's failure path. There is no mock path: an unconfigured or failing
+// scraper surfaces as an error.
 
 const APIFY_BASE = "https://api.apify.com/v2";
 const POLL_TIMEOUT_MS = 20 * 60 * 1000;
@@ -67,12 +68,15 @@ type Progress = (message: string, count?: number) => Promise<void> | void;
  * actor's current build number once and reuse that exact number for the process
  * lifetime, logging it so an operator can freeze the value that was verified.
  */
-let resolvedBuild: { actor: string; build: string } | null = null;
+const resolvedBuilds = new Map<string, string>();
 
 async function pinnedBuild(token: string, actor: string): Promise<string | null> {
   const override = process.env.APIFY_GMAPS_ACTOR_BUILD;
-  if (override) return override;
-  if (resolvedBuild?.actor === actor) return resolvedBuild.build;
+  if (override && actor === (process.env.APIFY_GMAPS_ACTOR ?? "compass~crawler-google-places")) {
+    return override;
+  }
+  const cached = resolvedBuilds.get(actor);
+  if (cached) return cached;
   try {
     const res = await apifyFetch(`${APIFY_BASE}/acts/${encodeURIComponent(actor)}`, {
       headers: authHeaders(token),
@@ -82,7 +86,7 @@ async function pinnedBuild(token: string, actor: string): Promise<string | null>
     };
     const build = body.data?.taggedBuilds?.latest?.buildNumber ?? null;
     if (!build) return null;
-    resolvedBuild = { actor, build };
+    resolvedBuilds.set(actor, build);
     console.info(
       `[apify] pinned ${actor} to build ${build}. Set APIFY_GMAPS_ACTOR_BUILD=${build} to freeze it.`,
     );
@@ -92,35 +96,214 @@ async function pinnedBuild(token: string, actor: string): Promise<string | null>
   }
 }
 
-async function apifyScrape(
+// ── Source registry ────────────────────────────────────────────────────────
+// Each business source is one Apify actor plus the two functions that make it
+// interchangeable: how a run's input is built, and how a dataset item maps onto
+// our RawLead shape. Adding a source is a new entry here — nothing else changes.
+
+export type ApifySourceId = "gmaps" | "yelp" | "linkedin";
+
+type PlannedRun = { label: string; input: Record<string, unknown> };
+
+type SourceConfig = {
+  id: ApifySourceId;
+  actorEnv: string;
+  defaultActor: string;
+  /** One entry per Apify run. Most sources fan searches out across runs. */
+  plan(params: BusinessScrapeParams, cap: number): PlannedRun[];
+  map(item: Record<string, unknown>, params: BusinessScrapeParams, actor: string): RawLead;
+};
+
+const str = (v: unknown): string | null => {
+  const s = typeof v === "string" ? v.trim() : typeof v === "number" ? String(v) : "";
+  return s ? s : null;
+};
+
+const searchAreas = (params: BusinessScrapeParams): string[] => {
+  const counties = params.counties.filter(Boolean);
+  return counties.length ? counties.map((c) => `${c} ${params.state}`.trim()) : [params.state];
+};
+
+const searchNiches = (params: BusinessScrapeParams): string[] =>
+  params.niches.filter(Boolean).length ? params.niches.filter(Boolean) : ["local business"];
+
+const SOURCES: Record<ApifySourceId, SourceConfig> = {
+  // ── Google Maps ────────────────────────────────────────────────────────
+  gmaps: {
+    id: "gmaps",
+    actorEnv: "APIFY_GMAPS_ACTOR",
+    defaultActor: "compass~crawler-google-places",
+    plan(params, cap) {
+      const searchStrings: string[] = [];
+      for (const niche of searchNiches(params)) {
+        for (const area of searchAreas(params)) searchStrings.push(`${niche} in ${area}`.trim());
+      }
+      // This actor takes the whole fan-out in one run.
+      return [
+        {
+          label: `${searchStrings.length} Google Maps searches`,
+          input: {
+            searchStringsArray: searchStrings,
+            maxCrawledPlacesPerSearch: cap,
+            language: "en",
+            exportPlaceUrls: false,
+          },
+        },
+      ];
+    },
+    map(it, params, actor) {
+      return {
+        business_name: str(it.title) ?? str(it.name),
+        phone: str(it.phone) ?? str(it.phoneUnformatted),
+        email: null,
+        address: str(it.address),
+        city: str(it.city),
+        state: str(it.state) ?? params.state,
+        zip: str(it.postalCode),
+        source_meta: {
+          provider: "apify",
+          source: "google_maps",
+          actor,
+          website: str(it.website),
+          category: str(it.categoryName),
+          rating: it.totalScore ?? null,
+          reviews: it.reviewsCount ?? null,
+        },
+      } satisfies RawLead;
+    },
+  },
+
+  // ── Yelp ───────────────────────────────────────────────────────────────
+  yelp: {
+    id: "yelp",
+    actorEnv: "APIFY_YELP_ACTOR",
+    defaultActor: "api-ninja~yelp-ultimate-scraper",
+    plan(params, cap) {
+      const runs: PlannedRun[] = [];
+      for (const niche of searchNiches(params)) {
+        for (const area of searchAreas(params)) {
+          runs.push({
+            label: `Yelp — ${niche} in ${area}`,
+            input: {
+              query: niche,
+              location: area,
+              // The actor refuses anything under 40 results per search.
+              numberOfResults: Math.max(40, cap),
+              details: "advanced",
+              includeAds: false,
+            },
+          });
+        }
+      }
+      return runs;
+    },
+    map(it, params, actor) {
+      const cats = Array.isArray(it.categories) ? (it.categories as Array<Record<string, unknown>>) : [];
+      return {
+        business_name: str(it.name),
+        phone: str(it.dialable_phone) ?? str(it.localized_phone) ?? str(it.phone),
+        email: null,
+        address: str(it.address1),
+        city: str(it.city),
+        state: str(it.state) ?? params.state,
+        zip: str(it.zip),
+        source_meta: {
+          provider: "apify",
+          source: "yelp",
+          actor,
+          website: str(it.display_url),
+          category: cats.length ? str(cats[0]?.name) : null,
+          rating: it.avg_rating ?? null,
+          reviews: it.review_count ?? null,
+          yelp_url: str(it.share_url),
+          yelp_id: str(it.id),
+          is_chain: it.is_chain_business ?? null,
+        },
+      } satisfies RawLead;
+    },
+  },
+
+  // ── LinkedIn companies ─────────────────────────────────────────────────
+  // The actor's structured location filter expects LinkedIn geo IDs, so we fold
+  // the area into the free-text query instead — that's what actually matches.
+  linkedin: {
+    id: "linkedin",
+    actorEnv: "APIFY_LINKEDIN_ACTOR",
+    defaultActor: "harvestapi~linkedin-company-search",
+    plan(params, cap) {
+      const runs: PlannedRun[] = [];
+      for (const niche of searchNiches(params)) {
+        for (const area of searchAreas(params)) {
+          runs.push({
+            label: `LinkedIn — ${niche} in ${area}`,
+            input: {
+              searchQuery: `${niche} ${area}`.trim(),
+              maxItems: cap,
+              scraperMode: "full",
+            },
+          });
+        }
+      }
+      return runs;
+    },
+    map(it, params, actor) {
+      const locs = Array.isArray(it.locations) ? (it.locations as Array<Record<string, unknown>>) : [];
+      const hq = locs.find((l) => l.headquarter === true) ?? locs[0] ?? {};
+      return {
+        business_name: str(it.name),
+        // LinkedIn never exposes a dialable number; skip trace fills this in.
+        phone: null,
+        email: null,
+        address: str(hq.line1),
+        city: str(hq.city),
+        state: str(hq.geographicArea) ?? params.state,
+        zip: str(hq.postalCode),
+        source_meta: {
+          provider: "apify",
+          source: "linkedin",
+          actor,
+          platform: "linkedin",
+          handle: str(it.universalName),
+          website: str(it.website),
+          linkedin_url: str(it.linkedinUrl),
+          followers: it.followerCount ?? null,
+          employee_count: it.employeeCount ?? null,
+          company_type: str(it.companyType),
+          tagline: str(it.tagline),
+          founded_year: (it.foundedOn as Record<string, unknown> | undefined)?.year ?? null,
+        },
+      } satisfies RawLead;
+    },
+  },
+};
+
+/** Template ids in the catalog map onto the source that actually serves them. */
+export function apifySourceForTemplate(templateId?: string | null): ApifySourceId {
+  const id = (templateId ?? "").toLowerCase();
+  if (id === "yelp") return "yelp";
+  if (id === "linkedin") return "linkedin";
+  return "gmaps";
+}
+
+// ── Run driver ─────────────────────────────────────────────────────────────
+
+/** Start one actor run, poll it to completion, and page its whole dataset. */
+async function runActor(
   token: string,
   actor: string,
-  params: BusinessScrapeParams & { max_results?: number | null },
+  input: Record<string, unknown>,
+  label: string,
   onProgress?: Progress,
-): Promise<RawLead[]> {
-  const searchStrings: string[] = [];
-  const niches = params.niches.length ? params.niches : ["local business"];
-  const counties = params.counties.length ? params.counties : [""];
-  for (const niche of niches) {
-    for (const county of counties) {
-      searchStrings.push(`${niche} in ${county} ${params.state}`.trim());
-    }
-  }
-  const maxPerSearch = params.max_results && params.max_results > 0 ? params.max_results : 500;
-
-  // a) START -----------------------------------------------------------------
+  alreadyCollected = 0,
+): Promise<Array<Record<string, unknown>>> {
+  // a) START ---------------------------------------------------------------
   const build = await pinnedBuild(token, actor);
   const startRes = await apifyFetch(
     `${APIFY_BASE}/acts/${encodeURIComponent(actor)}/runs${build ? `?build=${encodeURIComponent(build)}` : ""}`,
     {
       method: "POST",
       headers: authHeaders(token, true),
-      body: JSON.stringify({
-        searchStringsArray: searchStrings,
-        maxCrawledPlacesPerSearch: maxPerSearch,
-        language: "en",
-        exportPlaceUrls: false,
-      }),
+      body: JSON.stringify(input),
     },
   );
   const start = (await startRes.json()) as { data?: { id?: string; defaultDatasetId?: string } };
@@ -128,7 +311,7 @@ async function apifyScrape(
   const datasetId = start.data?.defaultDatasetId;
   if (!runId || !datasetId) throw new Error("Apify did not return a run id.");
 
-  // b) POLL ------------------------------------------------------------------
+  // b) POLL ----------------------------------------------------------------
   const startedAt = Date.now();
   let interval = 2000;
   for (;;) {
@@ -142,10 +325,9 @@ async function apifyScrape(
     await sleep(interval);
     interval = Math.min(Math.round(interval * 1.5), 15000);
 
-    const statusRes = await apifyFetch(
-      `${APIFY_BASE}/actor-runs/${runId}`,
-      { headers: authHeaders(token) },
-    );
+    const statusRes = await apifyFetch(`${APIFY_BASE}/actor-runs/${runId}`, {
+      headers: authHeaders(token),
+    });
     const run = (await statusRes.json()) as {
       data?: { status?: string; statusMessage?: string; stats?: { itemCount?: number } };
     };
@@ -153,17 +335,20 @@ async function apifyScrape(
     const itemCount = run.data?.stats?.itemCount;
     if (status === "SUCCEEDED") break;
     if (status === "FAILED" || status === "ABORTED" || status === "TIMED-OUT") {
-      throw new Error(`Apify run ${status.toLowerCase()}: ${run.data?.statusMessage ?? "no detail"}`);
+      throw new Error(
+        `Apify run ${status.toLowerCase()} (${label}): ${run.data?.statusMessage ?? "no detail"}`,
+      );
     }
+    const total = alreadyCollected + (itemCount ?? 0);
     await onProgress?.(
       typeof itemCount === "number"
-        ? `Scraping in progress — ${itemCount.toLocaleString()} records so far.`
-        : "Scraping in progress…",
-      itemCount,
+        ? `${label} — ${total.toLocaleString()} records so far.`
+        : `${label} — in progress…`,
+      total,
     );
   }
 
-  // c) FETCH (paged) ---------------------------------------------------------
+  // c) FETCH (paged) -------------------------------------------------------
   const limit = 1000;
   const items: Array<Record<string, unknown>> = [];
   for (let offset = 0; ; offset += limit) {
@@ -175,39 +360,35 @@ async function apifyScrape(
     items.push(...page);
     if (page.length < limit) break;
   }
-
-  return items.map((it) => {
-    const title = (it.title as string | undefined) ?? (it.name as string | undefined) ?? null;
-    const phone = (it.phone as string | undefined) ?? (it.phoneUnformatted as string | undefined) ?? null;
-    const website = (it.website as string | undefined) ?? null;
-    const address = (it.address as string | undefined) ?? null;
-    const city = (it.city as string | undefined) ?? null;
-    const state = (it.state as string | undefined) ?? params.state;
-    const zip = (it.postalCode as string | undefined) ?? null;
-    const categoryName = (it.categoryName as string | undefined) ?? null;
-    return {
-      business_name: title,
-      phone,
-      email: null,
-      address,
-      city,
-      state,
-      zip,
-      source_meta: {
-        provider: "apify",
-        actor,
-        website,
-        category: categoryName,
-        rating: it.totalScore ?? null,
-        reviews: it.reviewsCount ?? null,
-      },
-    } satisfies RawLead;
-  });
+  return items;
 }
 
-export function getBusinessScraper(): BusinessScraper {
+async function apifyScrape(
+  token: string,
+  source: SourceConfig,
+  actor: string,
+  params: BusinessScrapeParams,
+  onProgress?: Progress,
+): Promise<RawLead[]> {
+  const cap = params.max_results && params.max_results > 0 ? params.max_results : 500;
+  const runs = source.plan(params, cap);
+  const leads: RawLead[] = [];
+  for (const run of runs) {
+    const items = await runActor(token, actor, run.input, run.label, onProgress, leads.length);
+    for (const it of items) leads.push(source.map(it, params, actor));
+    await onProgress?.(`${run.label} — ${leads.length.toLocaleString()} records collected.`, leads.length);
+  }
+  return leads;
+}
+
+/**
+ * `sourceId` picks which business source runs. Callers that don't care (health
+ * canaries, legacy call sites) get Google Maps, the original behaviour.
+ */
+export function getBusinessScraper(sourceId: ApifySourceId = "gmaps"): BusinessScraper {
+  const source = SOURCES[sourceId] ?? SOURCES.gmaps;
   return {
-    key: "apify.gmaps",
+    key: `apify.${source.id}`,
     isConfigured() {
       return Boolean(process.env.APIFY_TOKEN);
     },
@@ -216,9 +397,9 @@ export function getBusinessScraper(): BusinessScraper {
       if (!token) {
         throw new Error("Apify is not connected. Add credentials in Settings → Integrations.");
       }
-      const actor = process.env.APIFY_GMAPS_ACTOR ?? "compass~crawler-google-places";
+      const actor = process.env[source.actorEnv] ?? source.defaultActor;
       // No mock fallback: real failures must surface, never fabricate leads.
-      return apifyScrape(token, actor, params, params.onProgress);
+      return apifyScrape(token, source, actor, params, params.onProgress);
     },
   };
 }

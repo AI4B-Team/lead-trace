@@ -57,8 +57,12 @@ const businessAdapter: SourceAdapter = {
   key: "business.apify",
   coverage: "live",
   async run(params, onProgress) {
-    const { getBusinessScraper } = await import("./data-providers");
-    const scraper = getBusinessScraper();
+    const { getBusinessScraper, apifySourceForTemplate } = await import("./data-providers");
+    // Yelp and LinkedIn templates run their own Apify actors; everything else
+    // falls through to Google Maps.
+    const scraper = getBusinessScraper(
+      apifySourceForTemplate(params.templateId as string | undefined),
+    );
     // A parameter file fans the same search out across every uploaded value.
     const targets = (params.scrape_targets as string[] | undefined) ?? [];
     const kind = params.scrape_target_kind as string | undefined;
