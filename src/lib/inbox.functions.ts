@@ -111,7 +111,7 @@ export const listThreads = createServerFn({ method: "GET" })
 
     const { classifyIntent, detectBadges, leadScore, sentimentOf } = await import("@/lib/conversation-intel");
 
-    let threads = Array.from(byThread.values());
+    const threads = Array.from(byThread.values());
 
     // Enrich with lead, campaign and derived intelligence.
     const leadIds = threads.map((t) => t.lead_id).filter((v): v is string => !!v);

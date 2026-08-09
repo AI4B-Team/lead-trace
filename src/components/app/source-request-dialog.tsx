@@ -68,7 +68,6 @@ export function SourceRequestDialog({
     setDone(null);
     setBlocked(null);
     setBusy(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, presetLabel, presetGeo, presetUrl]);
 
   const payload = useMemo(
