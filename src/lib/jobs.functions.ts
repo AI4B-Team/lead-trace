@@ -667,6 +667,8 @@ export const setListFirstTouch = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertJobAction } = await import("./accountability.server");
+    await assertJobAction(context.supabase, data.jobId, context.userId, "build_list");
     const { data: job, error: readError } = await context.supabase
       .from("jobs")
       .select("params")
