@@ -3845,16 +3845,6 @@ export type Database = {
           total_records: number
         }[]
       }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      is_workspace_admin: { Args: { _workspace_id: string }; Returns: boolean }
-      is_workspace_member: { Args: { _workspace_id: string }; Returns: boolean }
-      is_workspace_owner: { Args: { _workspace_id: string }; Returns: boolean }
       record_dlr_outcome: {
         Args: {
           _carrier: string
@@ -3864,7 +3854,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      workspace_role: { Args: { _workspace_id: string }; Returns: string }
     }
     Enums: {
       app_role: "super_admin" | "owner" | "admin" | "member"
