@@ -4,6 +4,7 @@ import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { getFeedCounties } from "@/lib/distress-feed.functions";
 import { countySlug, formatDate, type FeedCountyRow } from "@/lib/distress-feed.shared";
 import { US_STATES } from "@/lib/us-geo";
+import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/distress-feed/counties/$state/")({
   loader: async ({ params }) => {
@@ -46,6 +47,7 @@ export const Route = createFileRoute("/distress-feed/counties/$state/")({
     };
   },
   component: StateCounties,
+  errorComponent: RouteErrorState,
   notFoundComponent: StateMissing,
 });
 

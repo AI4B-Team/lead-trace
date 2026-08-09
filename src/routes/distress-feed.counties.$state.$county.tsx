@@ -9,6 +9,7 @@ import {
   type FeedPreviewRow, type FeedCountyRow, type FeedGuideRow,
 } from "@/lib/distress-feed.shared";
 import { US_STATES } from "@/lib/us-geo";
+import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/distress-feed/counties/$state/$county")({
   loader: async ({ params }) => {
@@ -68,6 +69,7 @@ export const Route = createFileRoute("/distress-feed/counties/$state/$county")({
     };
   },
   component: CountyPage,
+  errorComponent: RouteErrorState,
   notFoundComponent: CountyMissing,
 });
 

@@ -12,6 +12,7 @@ import {
   relatedTemplates,
   templateFields,
 } from "@/lib/templates";
+import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/templates/$templateId")({
   loader: ({ params }) => {
@@ -38,6 +39,7 @@ export const Route = createFileRoute("/templates/$templateId")({
   },
   notFoundComponent: TemplateNotFound,
   component: TemplateDetailPage,
+  errorComponent: RouteErrorState,
 });
 
 const STEPS = [

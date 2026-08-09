@@ -9,6 +9,7 @@ import {
   RECORD_TYPES, countyPath, statePath, formatDate, formatAmount, recordTypeLabel, FEED_PATH,
   type FeedPreviewRow, type FeedStateRow,
 } from "@/lib/distress-feed.shared";
+import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/distress-feed/")({
   loader: () => getFeedLanding(),
@@ -34,6 +35,8 @@ export const Route = createFileRoute("/distress-feed/")({
     };
   },
   component: DistressFeedLanding,
+  errorComponent: RouteErrorState,
+  notFoundComponent: () => <RouteNotFoundState />,
 });
 
 const STEPS = [

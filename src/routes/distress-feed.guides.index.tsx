@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { getGuideIndex } from "@/lib/distress-feed.functions";
 import { countySlug, recordTypeById, recordTypeLabel, type FeedGuideRow } from "@/lib/distress-feed.shared";
+import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/distress-feed/guides/")({
   loader: () => getGuideIndex({ data: {} }),
@@ -21,6 +22,8 @@ export const Route = createFileRoute("/distress-feed/guides/")({
     links: [{ rel: "canonical", href: "/distress-feed/guides" }],
   }),
   component: GuidesIndex,
+  errorComponent: RouteErrorState,
+  notFoundComponent: () => <RouteNotFoundState />,
 });
 
 function GuidesIndex() {

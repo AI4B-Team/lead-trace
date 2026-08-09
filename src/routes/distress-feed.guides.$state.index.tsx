@@ -3,6 +3,7 @@ import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { getGuideIndex } from "@/lib/distress-feed.functions";
 import { countySlug, recordTypeById, recordTypeLabel, type FeedGuideRow } from "@/lib/distress-feed.shared";
 import { US_STATES } from "@/lib/us-geo";
+import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/distress-feed/guides/$state/")({
   loader: async ({ params }) => {
@@ -30,6 +31,7 @@ export const Route = createFileRoute("/distress-feed/guides/$state/")({
     };
   },
   component: StateGuides,
+  errorComponent: RouteErrorState,
   notFoundComponent: () => (
     <MarketingLayout>
       <div className="mx-auto max-w-3xl px-6 py-20 text-center">

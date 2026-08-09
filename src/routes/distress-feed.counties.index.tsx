@@ -5,6 +5,7 @@ import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { Input } from "@/components/ui/input";
 import { getFeedStates } from "@/lib/distress-feed.functions";
 import { formatDate, type FeedStateRow } from "@/lib/distress-feed.shared";
+import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/distress-feed/counties/")({
   loader: () => getFeedStates(),
@@ -24,6 +25,8 @@ export const Route = createFileRoute("/distress-feed/counties/")({
     links: [{ rel: "canonical", href: "/distress-feed/counties" }],
   }),
   component: CountiesIndex,
+  errorComponent: RouteErrorState,
+  notFoundComponent: () => <RouteNotFoundState />,
 });
 
 function CountiesIndex() {
