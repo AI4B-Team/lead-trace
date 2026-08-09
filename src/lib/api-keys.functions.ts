@@ -30,7 +30,7 @@ export const createApiKey = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { assertAction } = await import("./accountability.server");
-    await assertAction(context.supabase, data.workspaceId, context.userId, "manage_team");
+    await assertAction(context.supabase, data.workspaceId, context.userId, "manage_members");
     const { mintApiKey } = await import("./api-keys.server");
     const { secret, prefix, hash } = await mintApiKey();
     const { data: row, error } = await context.supabase
@@ -69,7 +69,7 @@ export const revokeApiKey = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!existing) throw new Error("Key Not Found");
     const { assertAction } = await import("./accountability.server");
-    await assertAction(context.supabase, existing.workspace_id, context.userId, "manage_team");
+    await assertAction(context.supabase, existing.workspace_id, context.userId, "manage_members");
     const { error } = await context.supabase
       .from("api_keys")
       .update({ revoked_at: new Date().toISOString() })
@@ -100,7 +100,7 @@ export const rotateApiKey = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!existing) throw new Error("Key Not Found");
     const { assertAction } = await import("./accountability.server");
-    await assertAction(context.supabase, existing.workspace_id, context.userId, "manage_team");
+    await assertAction(context.supabase, existing.workspace_id, context.userId, "manage_members");
     const { mintApiKey } = await import("./api-keys.server");
     const { secret, prefix, hash } = await mintApiKey();
 
