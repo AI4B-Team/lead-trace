@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useWorkspaceId } from "@/hooks/use-workspace";
+import { useTeamContext } from "@/hooks/use-team-context";
 import {
   listThreads,
   getThread,
@@ -116,6 +117,10 @@ function ConversationsPage() {
   const [slashOpen, setSlashOpen] = useState(false);
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const team = useTeamContext();
+  // Mirrors the server's launch_campaign gate on replies/blacklist so a viewer
+  // sees a disabled composer instead of a rejected send.
+  const canReply = team.can("launch_campaign");
 
   const fetchThreads = useServerFn(listThreads);
   const fetchThread = useServerFn(getThread);
@@ -541,6 +546,7 @@ function ConversationsPage() {
                     onBlacklist={doBlacklist}
                     archived={!!selectedRow?.archived}
                     blacklisting={false}
+                    readOnly={!team.canWrite}
                   />
                   <LeadTagBar
                     workspaceId={workspaceId}
@@ -714,9 +720,12 @@ function ConversationsPage() {
                       placeholder={
                         activeThread?.is_optout
                           ? "Contact has opted out — replies disabled."
-                          : "Type a reply… / for AI commands"
+                          : canReply
+                            ? "Type a reply… / for AI commands"
+                            : "Read-Only Access — Ask An Admin To Send Replies."
                       }
                       disabled={activeThread?.is_optout || sending}
+                      readOnly={!canReply}
                       onKeyDown={(e) => {
                         if (e.key === "Escape") setSlashOpen(false);
                         if (e.key === "Escape" && !slashOpen) setReply("");
@@ -738,7 +747,7 @@ function ConversationsPage() {
                         className="h-7 rounded-full text-xs cursor-pointer"
                         title="Save As Quick Reply"
                         onClick={saveSnippet}
-                        disabled={!reply.trim()}
+                        disabled={!reply.trim() || !canReply}
                       >
                         <Plus className="h-3.5 w-3.5 mr-1" /> Save
                       </Button>
@@ -748,7 +757,7 @@ function ConversationsPage() {
                         className="h-7 rounded-full text-xs cursor-pointer"
                         title="Ask AI For A Reply"
                         onClick={() => suggestM.mutate({ draft: reply.trim() || null })}
-                        disabled={suggestM.isPending}
+                        disabled={suggestM.isPending || !canReply}
                       >
                         <Sparkles className="h-3.5 w-3.5 mr-1 text-primary" /> AI
                       </Button>
@@ -770,12 +779,15 @@ function ConversationsPage() {
                           activeThread?.is_optout ||
                           sending ||
                           !reply.trim() ||
+                          !canReply ||
                           (numbersKnown && !hasSendingNumber)
                         }
                         size="sm"
                         className="ml-auto h-8 rounded-full px-4 cursor-pointer"
                         title={
-                          numbersKnown && !hasSendingNumber
+                          !canReply
+                            ? "Your Role Is Read-Only — Replies Are Disabled"
+                            : numbersKnown && !hasSendingNumber
                             ? "Add An Active Sending Number To Send Replies"
                             : undefined
                         }

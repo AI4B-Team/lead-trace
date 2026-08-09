@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTeamContext } from "@/hooks/use-team-context";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,6 +67,7 @@ function TagRow({
         ref={nameRef}
         defaultValue={tag.name}
         className="h-8 flex-1"
+        disabled={busy}
         onBlur={(e) => {
           const v = e.target.value.trim();
           if (v && v !== tag.name) onRename(v);
@@ -97,6 +99,7 @@ function TagRow({
 /** Workspace tag library — rename, recolor, delete, or add tags. */
 export function TagManagerDialog({ workspaceId }: { workspaceId: string }) {
   const qc = useQueryClient();
+  const { canWrite } = useTeamContext();
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState<string | null>(null);
@@ -164,7 +167,7 @@ export function TagManagerDialog({ workspaceId }: { workspaceId: string }) {
             <TagRow
               key={t.id}
               tag={t}
-              busy={busy}
+              busy={busy || !canWrite}
               onColor={(color) => run(() => edit({ data: { id: t.id, color } }), "Color Updated")}
               onRename={(name) => run(() => edit({ data: { id: t.id, name } }), "Tag Renamed")}
               onDelete={() => run(() => remove({ data: { id: t.id } }), "Tag Deleted")}
@@ -178,6 +181,11 @@ export function TagManagerDialog({ workspaceId }: { workspaceId: string }) {
         </div>
 
         <div className="border-t border-border pt-4 space-y-4">
+          {!canWrite && (
+            <p className="text-xs text-muted-foreground">
+              Your Role Is Read-Only — Tags Can Be Viewed But Not Changed.
+            </p>
+          )}
           <div className="space-y-1.5">
             <label htmlFor="tag-name" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Tag Name
@@ -237,7 +245,7 @@ export function TagManagerDialog({ workspaceId }: { workspaceId: string }) {
             </Button>
             <Button
               className="rounded-full"
-              disabled={busy}
+              disabled={busy || !canWrite}
               onClick={() => {
                 if (!newName.trim()) return toast.error("Name Your Tag");
                 const name = [emoji, newName.trim()].filter(Boolean).join(" ");
