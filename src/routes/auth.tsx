@@ -10,6 +10,8 @@ import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 import { Radar, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { safeRedirect } from "@/lib/prompt-handoff";
+import { mfaStepUpRequired } from "@/lib/mfa";
+import { MfaChallenge } from "@/components/auth/mfa-challenge";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: z.object({
@@ -51,6 +53,7 @@ function AuthPage() {
   const [magicBusy, setMagicBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
   const [resetBusy, setResetBusy] = useState(false);
+  const [needsMfa, setNeedsMfa] = useState(false);
 
   useEffect(() => {
     const hubError = new URLSearchParams(window.location.search).get("hub_error");
@@ -60,9 +63,17 @@ function AuthPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
+        // A verified authenticator means the session isn't trusted until the
+        // code is entered, so stay here and challenge instead of forwarding.
+        void mfaStepUpRequired().then((required) => {
+          if (required) {
+            setNeedsMfa(true);
+            return;
+          }
         const target = safeRedirect(search.redirect);
         if (target) window.location.href = target;
         else navigate({ to: "/app/dashboard" });
+        });
       }
     });
   }, [navigate, search.redirect]);
@@ -70,6 +81,11 @@ function AuthPage() {
   // Onboarding forwards the destination on, so new signups also land on it.
   const target = safeRedirect(search.redirect);
   const onboardingUrl = `/onboarding${target ? `?redirect=${encodeURIComponent(target)}` : ""}`;
+
+  const goAfterAuth = () => {
+    if (target) window.location.href = target;
+    else navigate({ to: "/onboarding" });
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,8 +103,11 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         try { localStorage.setItem("leadtrace_returning", "1"); } catch { /* ignore */ }
-        if (target) window.location.href = target;
-        else navigate({ to: "/onboarding" });
+        if (await mfaStepUpRequired()) {
+          setNeedsMfa(true);
+          return;
+        }
+        goAfterAuth();
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something Went Wrong");
