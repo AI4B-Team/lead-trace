@@ -96,7 +96,9 @@ export const getVendorStatus = createServerFn({ method: "GET" })
         label:
           scrubber.key === "dnc.rpv"
             ? "DNC & Litigator Scrub — RealPhoneValidation"
-            : "DNC & Litigator Scrub",
+            : scrubber.key === "dnc.blacklistalliance"
+              ? "DNC & Litigator Scrub — Blacklist Alliance"
+              : "DNC & Litigator Scrub",
         configured: scrubConfigured,
         detail: scrubConfigured
           ? "Connected. Federal DNC, state DNC, DMA, and litigator lists are checked before any send."
