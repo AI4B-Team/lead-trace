@@ -813,14 +813,20 @@ function ConversationsPage() {
 
         {/* Lead profile rail */}
         <div className="hidden xl:flex flex-col min-h-0">
-          <LeadProfilePanel
-            ctx={threadQ.data ? ({ ...threadQ.data } as never) : null}
-            thread={activeThread}
-            events={timeline}
-            notes={notes}
-            onNotes={saveNotes}
-            tags={activeThread?.badges ?? []}
-          />
+          {selected ? (
+            <LeadProfilePanel
+              ctx={threadQ.data ? ({ ...threadQ.data } as never) : null}
+              thread={activeThread}
+              events={timeline}
+              notes={notes}
+              onNotes={saveNotes}
+              tags={activeThread?.badges ?? []}
+            />
+          ) : (
+            <Card className="flex-1 grid place-items-center text-xs text-muted-foreground">
+              No Lead Selected.
+            </Card>
+          )}
         </div>
       </div>
     </div>
