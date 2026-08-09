@@ -174,6 +174,10 @@ function Jobs() {
 
   const { q: qParam } = Route.useSearch();
   const [q, setQ] = useState(qParam ?? "");
+  // Keep the table filter in step with sidebar searches that re-navigate here.
+  useEffect(() => {
+    if (typeof qParam === "string") setQ(qParam);
+  }, [qParam]);
   const [source, setSource] = useState<string>("all");
   const [status, setStatus] = useState<string>("all");
   const [range, setRange] = useState<string>("all");
