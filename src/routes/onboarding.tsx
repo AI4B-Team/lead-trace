@@ -25,6 +25,7 @@ export const Route = createFileRoute("/onboarding")({
   head: () => ({
     meta: [
       { title: "Set Up Your Workspace — LeadTrace" },
+      { name: "robots", content: "noindex, nofollow" },
       { name: "description", content: "Name your workspace and pick your industry to unlock preset templates and starter credits." },
       { property: "og:title", content: "Set Up Your LeadTrace Workspace" },
       { property: "og:description", content: "Pick your industry to get preset templates and starter credits." },
