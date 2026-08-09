@@ -12,7 +12,7 @@ export const Route = createFileRoute("/how-it-works")({
       {
         name: "description",
         content:
-          "See what happens after you click Build My List: five verification steps that turn 1,240 raw records into 554 clean, mobile-verified, DNC-scrubbed contacts in about 90 seconds.",
+          "Five verification steps turn 1,240 raw records into 554 mobile-verified, DNC-scrubbed contacts in about 90 seconds.",
       },
       { property: "og:title", content: "From Raw Data To Ready Leads — LeadTrace" },
       {
