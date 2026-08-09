@@ -71,14 +71,32 @@ function AccountPage() {
     toast.success("Profile Saved");
   };
 
-  const legacySaveProfile = async () => {
-    setSavingProfile(true);
-    const { error } = await supabase.auth.updateUser({
-      data: { full_name: fullName, phone },
-    });
-    setSavingProfile(false);
-    if (error) return toast.error(error.message);
-    toast.success("Profile Saved");
+  const handlePhotoPick = async (file: File | undefined) => {
+    if (!file) return;
+    setUploadingPhoto(true);
+    try {
+      await uploadAvatar(file);
+      await queryClient.invalidateQueries({ queryKey: ["avatar-url"] });
+      toast.success("Profile Photo Updated");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload Failed");
+    } finally {
+      setUploadingPhoto(false);
+      if (photoInputRef.current) photoInputRef.current.value = "";
+    }
+  };
+
+  const handlePhotoRemove = async () => {
+    setUploadingPhoto(true);
+    try {
+      await removeAvatar();
+      await queryClient.invalidateQueries({ queryKey: ["avatar-url"] });
+      toast.success("Profile Photo Removed");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could Not Remove Photo");
+    } finally {
+      setUploadingPhoto(false);
+    }
   };
 
   const savePrefs = async () => {
