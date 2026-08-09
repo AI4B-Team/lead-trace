@@ -20,6 +20,8 @@ export const ACTIVITY_TYPES = [
   "cadence_set",
   "adapter_requested",
   "compliance_digest",
+  // A person's decision on something a background agent proposed.
+  "agent_decision",
   // Internal accountability (who spent, who exported, who changed access).
   // Distinct from the compliance record, which stays a single-purpose legal log.
   "list_exported",
