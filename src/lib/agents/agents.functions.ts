@@ -140,6 +140,13 @@ export const reviewAgentProposal = createServerFn({ method: "POST" })
       .eq("status", "pending");
     if (error) throw new Error(error.message);
 
+    const { data: reviewed } = await context.supabase
+      .from("agent_proposals")
+      .select("agent_key, proposal_type, target_field, rationale")
+      .eq("id", data.proposalId)
+      .eq("workspace_id", data.workspaceId)
+      .maybeSingle();
+
     // A weight refit is the one proposal type that has an effect on approval:
     // it writes the learned weighting onto the Scorer's own row. Everything
     // else is a record of the decision only.
