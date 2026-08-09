@@ -529,6 +529,44 @@ function BackgroundAgentsPage() {
 
       <Card>
         <CardContent className="p-4">
+          <h3 className="font-display font-bold">Decisions On Record</h3>
+          {(data?.decisions ?? []).length === 0 ? (
+            <p className="mt-2 text-sm text-muted-foreground">
+              No Proposal Has Been Decided Yet.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2 text-sm">
+              {(data?.decisions ?? []).map((d) => (
+                <li
+                  key={d.id}
+                  className="flex flex-wrap items-center gap-2 border-t border-border pt-2 first:border-0 first:pt-0"
+                >
+                  <Badge variant={d.status === "approved" ? "default" : "outline"}>
+                    {d.status === "approved" ? "Approved" : "Rejected"}
+                  </Badge>
+                  <span className="font-medium">
+                    {agentDefinition(d.agent_key ?? "")?.name ?? d.agent_key}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {d.proposal_type}
+                    {d.target_field ? ` on ${d.target_field}` : ""}
+                  </span>
+                  <span className="text-muted-foreground">
+                    by {(data?.reviewers ?? {})[d.reviewed_by ?? ""] ?? "Unknown"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{when(d.reviewed_at)}</span>
+                  {d.review_note && (
+                    <span className="w-full text-xs text-muted-foreground">{d.review_note}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-4">
           <h3 className="font-display font-bold">Recent Runs</h3>
           {(data?.runs ?? []).length === 0 ? (
             <p className="mt-2 text-sm text-muted-foreground">No Runs Recorded Yet.</p>
