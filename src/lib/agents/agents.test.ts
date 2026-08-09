@@ -3,6 +3,7 @@ import { classifyThread } from "./labeler.shared";
 import { fitSignalWeights, MIN_SAMPLES } from "./scorer.shared";
 import { DEFAULT_SIGNAL_WEIGHTS, type SignalKey } from "./scout.shared";
 import { AgentGuardrailError, assertAgentMayWrite, assertModeAllowed, assertProposalAllowed } from "./guardrails";
+import { auditBooking, rankFindings } from "./booking.shared";
 import { draftWisdom } from "./wisdom.shared";
 import { extractTakeovers } from "./wisdom.server";
 import { ineligibleReason, nominateLeads, scoreLead, type ScoutLead } from "./scout.shared";
@@ -361,5 +362,103 @@ describe("wisdom miner (P5.8.6)", () => {
     expect(moments[0]!.threadKey).toBe("a");
     expect(moments[0]!.question).toBe("how did you get my info?");
     expect(moments[0]!.gapHours).toBeCloseTo(0.25, 2);
+  });
+});
+
+describe("booking auditor (P5.8.4)", () => {
+  const t = (
+    direction: string,
+    body: string,
+    is_bot: boolean,
+    created_at: string,
+  ) => ({ direction, body, is_bot, created_at });
+
+  it("passes a clean booking the lead actually confirmed", () => {
+    const finding = auditBooking({
+      threadKey: "ok",
+      leadId: "l1",
+      markedAt: "2026-01-01T12:00:00Z",
+      messages: [
+        t("outbound", "Could I come by Thursday at 2pm?", true, "2026-01-01T10:00:00Z"),
+        t("inbound", "Thursday at 2pm works for me", false, "2026-01-01T11:00:00Z"),
+      ],
+    }, Date.parse("2026-01-01T13:00:00Z"));
+    expect(finding).toBeNull();
+  });
+
+  it("flags a booking where the lead never replied", () => {
+    const finding = auditBooking({
+      threadKey: "silent",
+      leadId: null,
+      markedAt: "2026-01-01T12:00:00Z",
+      messages: [t("outbound", "See you Thursday at 2pm.", true, "2026-01-01T10:00:00Z")],
+    }, Date.parse("2026-01-01T13:00:00Z"));
+    expect(finding?.issues).toContain("no_lead_confirmation");
+    expect(finding?.issues).toContain("no_time_agreed");
+  });
+
+  it("flags mismatched times between the lead and the bot", () => {
+    const finding = auditBooking({
+      threadKey: "drift",
+      leadId: "l2",
+      markedAt: "2026-01-01T12:00:00Z",
+      messages: [
+        t("inbound", "friday at 4pm works for me", false, "2026-01-01T10:00:00Z"),
+        t("outbound", "Great, confirmed for friday at 2pm.", true, "2026-01-01T10:05:00Z"),
+      ],
+    }, Date.parse("2026-01-01T13:00:00Z"));
+    expect(finding?.issues).toContain("time_mismatch");
+    expect(finding?.leadTime).toBe("friday 4:00pm");
+    expect(finding?.botTime).toBe("friday 2:00pm");
+  });
+
+  it("flags a lead who backed out after the booking was recorded", () => {
+    const finding = auditBooking({
+      threadKey: "cancel",
+      leadId: "l3",
+      markedAt: "2026-01-01T12:00:00Z",
+      messages: [
+        t("outbound", "Thursday at 2pm?", true, "2026-01-01T10:00:00Z"),
+        t("inbound", "thursday at 2pm works for me", false, "2026-01-01T10:30:00Z"),
+        t("inbound", "actually I can't make it, something came up", false, "2026-01-02T09:00:00Z"),
+      ],
+    }, Date.parse("2026-01-02T10:00:00Z"));
+    expect(finding?.issues).toContain("cancelled_after_booking");
+  });
+
+  it("does not treat the lead's question as an agreement", () => {
+    const finding = auditBooking({
+      threadKey: "asked",
+      leadId: "l4",
+      markedAt: "2026-01-01T12:00:00Z",
+      messages: [
+        t("outbound", "Can I come by thursday at 2pm?", true, "2026-01-01T10:00:00Z"),
+        t("inbound", "could you do thursday at 5pm instead?", false, "2026-01-01T10:10:00Z"),
+      ],
+    }, Date.parse("2026-01-01T13:00:00Z"));
+    expect(finding?.issues).toContain("bot_assumed_yes");
+  });
+
+  it("ranks the worst problem first", () => {
+    const stale = auditBooking({
+      threadKey: "stale",
+      leadId: null,
+      markedAt: "2026-01-01T00:00:00Z",
+      messages: [
+        t("outbound", "Thursday at 2pm.", true, "2026-01-01T00:00:00Z"),
+        t("inbound", "who is this", false, "2026-01-01T01:00:00Z"),
+      ],
+    }, Date.parse("2026-01-05T00:00:00Z"))!;
+    const cancelled = auditBooking({
+      threadKey: "cancel",
+      leadId: null,
+      markedAt: "2026-01-01T00:00:00Z",
+      messages: [
+        t("outbound", "Thursday at 2pm?", true, "2026-01-01T00:00:00Z"),
+        t("inbound", "thursday at 2pm works for me", false, "2026-01-01T01:00:00Z"),
+        t("inbound", "need to reschedule", false, "2026-01-01T02:00:00Z"),
+      ],
+    }, Date.parse("2026-01-01T03:00:00Z"))!;
+    expect(rankFindings([stale, cancelled])[0]!.threadKey).toBe("cancel");
   });
 });
