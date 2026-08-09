@@ -14,6 +14,7 @@ import {
   Plug,
   Code2,
   LayoutDashboard,
+  Bot,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,7 @@ export type AccountTabKey =
   | "registration"
   | "integrations"
   | "developer"
+  | "agents"
   | "compliance"
   | "workspace-admin";
 
@@ -47,6 +49,7 @@ type NavDef = {
     | "/app/numbers"
     | "/app/integrations"
     | "/app/api"
+    | "/app/background-agents"
     | "/app/workspace";
   search?: { tab: "profile" | "security" | "notifications" | "api" };
 };
@@ -75,6 +78,7 @@ const GROUPS: { label: string; items: NavDef[] }[] = [
     label: "Automation",
     items: [
       { key: "integrations", label: "Integrations", icon: Plug, to: "/app/integrations" },
+      { key: "agents", label: "Agents", icon: Bot, to: "/app/background-agents" },
       { key: "developer", label: "Webhooks & API", icon: Code2, to: "/app/api" },
     ],
   },

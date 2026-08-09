@@ -6,6 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Handshake, CalendarCheck, DollarSign, Reply } from "lucide-react";
 import { useWorkspaceId } from "@/hooks/use-workspace";
 import { getWorkspacePerformance } from "@/lib/reports.functions";
+import { getConversationInsight } from "@/lib/agents/agents.functions";
+import { ConversationsReport, type OutcomeRow } from "@/components/app/conversations-report";
 import { formatMoney } from "@/lib/performance-intel";
 import {
   KpiCard,
@@ -34,11 +36,17 @@ function pct(n: number) {
 function Performance() {
   const { workspaceId } = useWorkspaceId();
   const fetchPerf = useServerFn(getWorkspacePerformance);
+  const fetchInsight = useServerFn(getConversationInsight);
   const { data, isLoading } = useQuery({
     queryKey: ["workspace-performance", workspaceId],
     queryFn: () => fetchPerf({ data: { workspaceId: workspaceId!, days: 30 } }),
     enabled: !!workspaceId,
     refetchInterval: 60_000,
+  });
+  const { data: insight } = useQuery({
+    queryKey: ["conversation-insight", workspaceId],
+    queryFn: () => fetchInsight({ data: { workspaceId: workspaceId! } }),
+    enabled: !!workspaceId,
   });
 
   if (isLoading || !data) {
@@ -162,6 +170,10 @@ function Performance() {
       <div className="mb-6 grid gap-6 lg:grid-cols-2">
         <AiInsights insights={insights} />
         <BestMessagePanel best={bestMessage} />
+      </div>
+
+      <div className="mb-6">
+        <ConversationsReport outcomes={(insight?.outcomes ?? []) as OutcomeRow[]} />
       </div>
 
       <div>
