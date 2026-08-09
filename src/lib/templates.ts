@@ -240,7 +240,6 @@ export const TEMPLATES: Template[] = [
     prompt: "Scrape business name, address, phone, website, and social links from Superpages by keyword and zip code",
     icon: Building2,
     tint: "bg-orange-500/10 text-orange-700",
-    logoDomain: "superpages.com",
     beta: true,
     credit_cost_per_lead: 1,
   },
