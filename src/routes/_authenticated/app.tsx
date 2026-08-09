@@ -14,6 +14,7 @@ import { SeatGuard } from "@/components/app/seat-guard";
 import { InboxNavButton } from "@/components/app/needs-reply";
 import { useEffect } from "react";
 import { AppRouteErrorState, RouteNotFoundState } from "@/components/route-error";
+import { SidebarSearch } from "@/components/app/sidebar-search";
 
 export const Route = createFileRoute("/_authenticated/app")({
   component: AppLayout,
@@ -57,8 +58,9 @@ function AppLayoutInner() {
       <AppSidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-14 flex items-center justify-between gap-2 border-b border-border bg-background px-3 sm:px-4">
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <SidebarTrigger className="md:hidden h-9 w-9 shrink-0" />
+            <div className="min-w-0 max-w-sm flex-1"><SidebarSearch /></div>
           </div>
           <TooltipProvider delayDuration={150}>
             <div className="flex shrink-0 items-center gap-1">
