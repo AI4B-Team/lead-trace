@@ -93,14 +93,14 @@ function TemplatesPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <MarketingNav />
       <main className="flex-1">
-        <div className="mx-auto max-w-[77.5rem] px-6 py-14">
+        <div className="mx-auto max-w-[77.5rem] px-4 sm:px-6 py-10 sm:py-14">
           <Link to="/" className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Back To Home
           </Link>
           <h1 className="mt-6 font-display text-4xl md:text-5xl font-black text-foreground">
             Template Library
           </h1>
-          <p className="mt-3 whitespace-nowrap text-lg text-muted-foreground">
+          <p className="mt-3 text-base sm:text-lg text-muted-foreground lg:whitespace-nowrap">
             Pick A Source To Start A Job. Every Template Runs The Same Skip Trace, Scrub, And Campaign Pipeline.
           </p>
           <div className="mt-8 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
