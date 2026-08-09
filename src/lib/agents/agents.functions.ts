@@ -26,11 +26,15 @@ export const getBackgroundAgents = createServerFn({ method: "GET" })
         .select("*")
         .eq("workspace_id", data.workspaceId)
         .eq("status", "pending")
+        // Nominations are worklist items, not proposals.
+        .neq("proposal_type", "lead_nomination")
         .order("created_at", { ascending: false })
         .limit(50),
       supabase
         .from("conversation_outcomes")
-        .select("outcome, objection_category, sentiment, touches_before_outcome, flagged, labeled_at")
+        .select(
+          "outcome, objection_category, sentiment, touches_before_outcome, flagged, labeled_at, record_type",
+        )
         .eq("workspace_id", data.workspaceId)
         .is("superseded_at", null)
         .order("labeled_at", { ascending: false })
