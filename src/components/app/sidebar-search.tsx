@@ -22,7 +22,7 @@ const JUMP_TO = [
 ] as const;
 
 /**
- * Sidebar-scoped search: the caret picks which library the query runs against
+ * Global header search: the caret picks which library the query runs against
  * so one field serves the two high-volume tables, and doubles as a jump menu
  * for surfaces that don't have a searchable table of their own.
  */
@@ -33,8 +33,7 @@ export function SidebarSearch({ autoFocus = false }: { autoFocus?: boolean }) {
   const active = SCOPES.find((s) => s.value === scope)!;
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Expanding the rail from the collapsed search icon should drop the caret
-  // straight into the field — the user already signalled intent to type.
+  // Callers can request focus (e.g. a keyboard shortcut or icon affordance).
   useEffect(() => {
     if (autoFocus) inputRef.current?.focus();
   }, [autoFocus]);
@@ -48,7 +47,7 @@ export function SidebarSearch({ autoFocus = false }: { autoFocus?: boolean }) {
   };
 
   return (
-    <div className="flex items-center gap-1 rounded-md border border-sidebar-border bg-sidebar-accent/40 px-1.5 focus-within:border-sidebar-ring">
+    <div className="flex w-full items-center gap-1 rounded-md border border-border bg-surface-muted px-1.5 focus-within:border-ring">
       <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
       <Input
         ref={inputRef}
@@ -62,7 +61,7 @@ export function SidebarSearch({ autoFocus = false }: { autoFocus?: boolean }) {
       <DropdownMenu>
         <DropdownMenuTrigger
           aria-label="Search Options"
-          className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         >
           <ChevronDown className="h-3.5 w-3.5" />
         </DropdownMenuTrigger>
