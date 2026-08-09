@@ -55,6 +55,12 @@ export type Nomination = {
   reasons: string[];
   /** Named signals that fired, so the Scorer can learn from real outcomes. */
   signals: SignalKey[];
+  /**
+   * True when nothing urgent fired — the lead qualified only by existing
+   * (never contacted, has a mobile, added recently). A flat score across a
+   * whole page of these is not a ranking and must not be presented as one.
+   */
+  coldStart: boolean;
 };
 
 /**
@@ -124,6 +130,28 @@ export const SIGNAL_LABEL: Record<SignalKey, string> = {
   freshly_added: "Added This Week",
   untried_line: "Another Number Never Tried",
 };
+
+/**
+ * Signals that describe urgency or unfinished business. Everything outside this
+ * set describes existence, which is not a reason to work someone today.
+ */
+export const URGENCY_SIGNALS: readonly SignalKey[] = [
+  "anchor_imminent",
+  "anchor_soon",
+  "anchor_dated",
+  "gone_cold",
+  "quiet_unrevisited",
+  "price_question",
+  "objection_open",
+  "unresolved",
+  "untried_line",
+  "multi_record_type",
+  "multi_source",
+];
+
+/** Plain sentence shown instead of a score when nothing urgent fired. */
+export const COLD_START_NOTE =
+  "No urgency signal yet — showing newest unworked leads rather than a ranking.";
 
 /** Fills any missing key from the defaults so a partial saved fit is safe. */
 export function normaliseWeights(input: unknown): SignalWeights {
