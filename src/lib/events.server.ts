@@ -75,8 +75,23 @@ export async function emitEvent(
     });
 
     let error: string | null = null;
+    const deliveries: {
+      workspace_id: string;
+      endpoint_id: string;
+      event_id: string;
+      event_type: string;
+      url: string;
+      status_code: number | null;
+      ok: boolean;
+      duration_ms: number;
+      error: string | null;
+    }[] = [];
     await Promise.all(
       targets.map(async (e) => {
+        const startedAt = Date.now();
+        let statusCode: number | null = null;
+        let ok = false;
+        let failure: string | null = null;
         try {
           const res = await fetch(e.url, {
             method: "POST",
@@ -89,12 +104,33 @@ export async function emitEvent(
             },
             body,
           });
-          if (!res.ok) error = `${e.url} responded ${res.status}`;
+          statusCode = res.status;
+          ok = res.ok;
+          if (!res.ok) {
+            failure = `${e.url} responded ${res.status}`;
+            error = failure;
+          }
         } catch (err) {
-          error = err instanceof Error ? err.message : "Delivery failed";
+          failure = err instanceof Error ? err.message : "Delivery failed";
+          error = failure;
         }
+        deliveries.push({
+          workspace_id: workspaceId,
+          endpoint_id: e.id,
+          event_id: row.id,
+          event_type: type,
+          url: e.url,
+          status_code: statusCode,
+          ok,
+          duration_ms: Date.now() - startedAt,
+          error: failure,
+        });
       }),
     );
+
+    if (deliveries.length) {
+      await supabase.from("webhook_deliveries").insert(deliveries as never);
+    }
 
     await supabase
       .from("events")

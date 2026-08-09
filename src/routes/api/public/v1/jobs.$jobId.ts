@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { apiAdminClient, authenticateApiRequest, jsonResponse } from "@/lib/api-auth.server";
+import { checkApiRate, tooManyRequests } from "@/lib/api-rate-limit.server";
 
 // GET /api/public/v1/jobs/:jobId → status + funnel counts + latest events
 export const Route = createFileRoute("/api/public/v1/jobs/$jobId")({
@@ -8,6 +9,8 @@ export const Route = createFileRoute("/api/public/v1/jobs/$jobId")({
       GET: async ({ request, params }) => {
         const caller = await authenticateApiRequest(request);
         if (!caller) return jsonResponse({ error: "Unauthorized" }, 401);
+        const rate = await checkApiRate(caller);
+        if (!rate.allowed) return tooManyRequests(rate.retryAfter, "Rate limit exceeded");
 
         const admin = apiAdminClient();
         const { data: job } = await admin

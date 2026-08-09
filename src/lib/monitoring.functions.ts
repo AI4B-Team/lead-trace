@@ -465,3 +465,18 @@ export const exportLeadRecords = createServerFn({ method: "GET" })
     }));
     return { rows: out };
   });
+
+/** Recent outbound webhook deliveries for the Settings → API history table. */
+export const listWebhookDeliveries = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ workspaceId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("webhook_deliveries")
+      .select("id, event_type, url, status_code, ok, duration_ms, error, created_at")
+      .eq("workspace_id", data.workspaceId)
+      .order("created_at", { ascending: false })
+      .limit(25);
+    if (error) throw error;
+    return { rows: rows ?? [] };
+  });

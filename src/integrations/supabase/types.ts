@@ -424,6 +424,24 @@ export type Database = {
           },
         ]
       }
+      api_rate_counters: {
+        Row: {
+          bucket: string
+          hits: number
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          hits?: number
+          window_start: string
+        }
+        Update: {
+          bucket?: string
+          hits?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
       approval_requests: {
         Row: {
           amount: number
@@ -3967,6 +3985,63 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_deliveries: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          endpoint_id: string | null
+          error: string | null
+          event_id: string | null
+          event_type: string
+          id: string
+          ok: boolean
+          status_code: number | null
+          url: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          endpoint_id?: string | null
+          error?: string | null
+          event_id?: string | null
+          event_type: string
+          id?: string
+          ok?: boolean
+          status_code?: number | null
+          url: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          endpoint_id?: string | null
+          error?: string | null
+          event_id?: string | null
+          event_type?: string
+          id?: string
+          ok?: boolean
+          status_code?: number | null
+          url?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_endpoint_id_fkey"
+            columns: ["endpoint_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_endpoints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_deliveries_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webhook_endpoints: {
         Row: {
           active: boolean
@@ -4220,6 +4295,10 @@ export type Database = {
           _reason: string
           _workspace_id: string
         }
+        Returns: number
+      }
+      bump_api_rate: {
+        Args: { _bucket: string; _window_seconds: number }
         Returns: number
       }
       claim_cron_tick: {

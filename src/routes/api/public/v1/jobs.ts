@@ -7,6 +7,7 @@ import {
   jsonResponse,
   resolveWorkspace,
 } from "@/lib/api-auth.server";
+import { checkApiRate, checkRunTriggerRate, tooManyRequests } from "@/lib/api-rate-limit.server";
 
 // GET  /api/public/v1/jobs?workspace_id=  → list jobs
 // POST /api/public/v1/jobs               → create (and optionally run) a job
@@ -24,6 +25,8 @@ export const Route = createFileRoute("/api/public/v1/jobs")({
       GET: async ({ request }) => {
         const caller = await authenticateApiRequest(request);
         if (!caller) return jsonResponse({ error: "Unauthorized" }, 401);
+        const rate = await checkApiRate(caller);
+        if (!rate.allowed) return tooManyRequests(rate.retryAfter, "Rate limit exceeded");
         const url = new URL(request.url);
         const workspaceId = resolveWorkspace(caller, url.searchParams.get("workspace_id"));
         if (!workspaceId) return jsonResponse({ error: "No accessible workspace" }, 403);
@@ -43,6 +46,8 @@ export const Route = createFileRoute("/api/public/v1/jobs")({
         if (!hasScope(caller, "write")) {
           return jsonResponse({ error: "This key is read-only" }, 403);
         }
+        const rate = await checkApiRate(caller);
+        if (!rate.allowed) return tooManyRequests(rate.retryAfter, "Rate limit exceeded");
 
         let body: z.infer<typeof createSchema>;
         try {
@@ -53,6 +58,11 @@ export const Route = createFileRoute("/api/public/v1/jobs")({
 
         const workspaceId = resolveWorkspace(caller, body.workspace_id);
         if (!workspaceId) return jsonResponse({ error: "No accessible workspace" }, 403);
+
+        const runRate = await checkRunTriggerRate(workspaceId);
+        if (!runRate.allowed) {
+          return tooManyRequests(runRate.retryAfter, "Run trigger limit exceeded for this workspace");
+        }
 
         const admin = apiAdminClient();
         const { data: job, error } = await admin
