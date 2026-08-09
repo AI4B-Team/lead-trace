@@ -157,10 +157,13 @@ export const listJobEvents = createServerFn({ method: "GET" })
       .from("job_events")
       .select("id, stage, message, count, created_at")
       .eq("job_id", data.jobId)
-      .order("created_at", { ascending: true })
+      .order("created_at", { ascending: false })
       .limit(200);
     if (error) throw error;
-    return { events: events ?? [] };
+    // Keep the newest 200 events, returned oldest-first so the narration feed
+    // reads top-to-bottom and the stuck-job watchdog sees the real latest event
+    // even on long runs that exceed the window.
+    return { events: (events ?? []).slice().reverse() };
   });
 
 export const listJobLeads = createServerFn({ method: "GET" })
