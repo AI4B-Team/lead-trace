@@ -30,6 +30,10 @@ async function execute(agent: AgentRow): Promise<RunOutcome> {
       const { runWisdomMiner } = await import("./wisdom.server");
       return runWisdomMiner(agent);
     }
+    case "booking_auditor": {
+      const { runBookingAuditor } = await import("./booking.server");
+      return runBookingAuditor(agent);
+    }
     default:
       return { status: "skipped", summary: "not implemented yet" };
   }
