@@ -5,11 +5,30 @@ import { useQuery } from "@tanstack/react-query";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { User, Settings, LogOut, Users, CreditCard, KeyRound, Sun, Shield, ChevronRight, Zap, UserPlus } from "lucide-react";
+import {
+  User,
+  Settings,
+  LogOut,
+  Users,
+  CreditCard,
+  Sun,
+  Shield,
+  ChevronRight,
+  ChevronLeft,
+  Check,
+  Languages,
+  Loader2,
+  Zap,
+  UserPlus,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/app/theme-toggle";
 import { meIsSuperAdmin } from "@/lib/admin.functions";
 import { useAvatarUrl } from "@/hooks/use-avatar-url";
+import { useTranslation } from "@/components/translation-provider";
+import { LANGUAGES } from "@/config/languages";
+import { usePlanContext } from "@/hooks/use-plan-context";
+import { planFor } from "@/lib/plans.shared";
 
 // Deterministic accent so each operator gets a recognizable avatar color
 // without storing anything extra on the profile.
@@ -34,6 +53,11 @@ export function ProfileDropdown({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
   const { theme, toggle } = useTheme();
   const avatarUrl = useAvatarUrl();
+  const { lang, setLang, translating } = useTranslation();
+  const [pane, setPane] = useState<"main" | "language">("main");
+  const currentLang = LANGUAGES.find((l) => l.g === lang) ?? LANGUAGES[0];
+  const { plan } = usePlanContext();
+  const planName = planFor(plan.plan).name;
   const fetchIsAdmin = useServerFn(meIsSuperAdmin);
   const { data: admin } = useQuery({
     queryKey: ["me-is-super-admin"],
@@ -61,6 +85,7 @@ export function ProfileDropdown({ className }: { className?: string }) {
 
   const go = (path: string) => {
     setOpen(false);
+    setPane("main");
     navigate({ to: path });
   };
 
@@ -71,7 +96,13 @@ export function ProfileDropdown({ className }: { className?: string }) {
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) setPane("main");
+      }}
+    >
       <PopoverTrigger asChild>
         <button
           aria-label="Open account menu"
@@ -149,11 +180,45 @@ export function ProfileDropdown({ className }: { className?: string }) {
 
         <div className="h-px bg-border mx-4" />
 
+        {pane === "language" ? (
+          <div className="py-2 px-2" data-no-translate>
+            <button
+              onClick={() => setPane("main")}
+              className="mb-1 flex w-full items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              <ChevronLeft className="h-4 w-4" /> Language
+              {translating && <Loader2 className="ml-auto h-4 w-4 animate-spin opacity-70" />}
+            </button>
+            <div className="max-h-72 overflow-y-auto">
+              {LANGUAGES.map((l) => (
+                <button
+                  key={l.code}
+                  onClick={() => setLang(l.g)}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-muted"
+                >
+                  <span className="text-base leading-none">{l.flag}</span>
+                  <span className="text-sm font-medium">{l.label}</span>
+                  {l.g === lang && <Check className="ml-auto h-4 w-4 text-primary" />}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
         <div className="py-2 px-2">
           <MenuItem icon={<Settings className="h-4 w-4" />} label="Account" onClick={() => go("/app/account")} />
           <MenuItem icon={<Users className="h-4 w-4" />} label="Team" onClick={() => go("/app/team")} />
-          <MenuItem icon={<CreditCard className="h-4 w-4" />} label="Billing" onClick={() => go("/app/billing")} />
-          <MenuItem icon={<KeyRound className="h-4 w-4" />} label="API" onClick={() => go("/app/api")} />
+          <MenuItem
+            icon={<CreditCard className="h-4 w-4" />}
+            label="Subscription"
+            onClick={() => go("/app/billing")}
+            pill={planName}
+          />
+          <MenuItem
+            icon={<Languages className="h-4 w-4" />}
+            label="Language"
+            onClick={() => setPane("language")}
+            trailing={`${currentLang.flag} ${currentLang.code}`}
+          />
           <MenuItem
             icon={<Sun className="h-4 w-4" />}
             label="Theme"
@@ -161,8 +226,9 @@ export function ProfileDropdown({ className }: { className?: string }) {
             trailing={theme === "dark" ? "Dark" : "Light"}
           />
         </div>
+        )}
 
-        {admin?.isSuperAdmin && (
+        {pane === "main" && admin?.isSuperAdmin && (
           <>
             <div className="h-px bg-border mx-4" />
             <div className="py-2 px-2">
@@ -199,11 +265,13 @@ function MenuItem({
   label,
   onClick,
   trailing,
+  pill,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
   trailing?: string;
+  pill?: string;
 }) {
   return (
     <button
@@ -212,7 +280,14 @@ function MenuItem({
     >
       <span className="text-muted-foreground">{icon}</span>
       <span className="text-sm font-medium">{label}</span>
-      {trailing ? (
+      {pill ? (
+        <span className="ml-auto flex items-center gap-1">
+          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+            {pill}
+          </span>
+          <ChevronRight className="h-4 w-4 text-muted-foreground/60" />
+        </span>
+      ) : trailing ? (
         <span className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
           {trailing}
           <ChevronRight className="h-4 w-4 opacity-60" />
