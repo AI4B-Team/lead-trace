@@ -229,15 +229,6 @@ export async function runLeadScout(agent: AgentRow): Promise<RunOutcome> {
     written += 1;
   }
 
-  if (written > 0 && agent.mode === "active") {
-    await db.from("notifications").insert({
-      workspace_id: workspaceId,
-      kind: "agent",
-      title: `Lead Scout nominated ${written} lead${written === 1 ? "" : "s"}`,
-      body: "Review the nominations on the Background Agents page.",
-    } as never);
-  }
-
   const topSkips = Object.entries(skipped)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)

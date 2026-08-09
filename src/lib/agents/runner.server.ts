@@ -4,7 +4,14 @@
  * "has not run in days".
  */
 import { AGENT_DEFINITIONS } from "./registry.shared";
-import { ensureAgentRows, finishRun, startRun, type AgentRow, type RunOutcome } from "./store.server";
+import {
+  ensureAgentRows,
+  finishRun,
+  notifyRunOutput,
+  startRun,
+  type AgentRow,
+  type RunOutcome,
+} from "./store.server";
 
 const IMPLEMENTED = new Set<string>(AGENT_DEFINITIONS.filter((a) => a.implemented).map((a) => a.key));
 
@@ -83,6 +90,7 @@ export async function runDueAgents(): Promise<{
       try {
         const out = await execute(agent);
         await finishRun(agent, runId, out);
+        await notifyRunOutput(agent, out);
         if (out.status === "failed") failed += 1;
         else ran += 1;
       } catch (err) {

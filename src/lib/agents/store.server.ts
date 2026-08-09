@@ -144,3 +144,24 @@ export async function writeProposal(
   if (error) throw new Error(error.message);
   return (data as { id?: string } | null)?.id ?? null;
 }
+
+/**
+ * One notification per run that produced something for a person to read.
+ * Flag-only runs notify too — an agent's first week is only useful if a human
+ * is actually reading its output, and silence would defeat that.
+ */
+export async function notifyRunOutput(agent: AgentRow, out: RunOutcome): Promise<void> {
+  if (!agent.workspace_id || out.status !== "ok") return;
+  const found = out.flagged ?? 0;
+  if (found < 1) return;
+  const def = AGENT_DEFINITIONS.find((d) => d.key === agent.agent_key);
+  const db = await admin();
+  await db.from("notifications").insert({
+    workspace_id: agent.workspace_id,
+    kind: "agent",
+    title: `${def?.name ?? agent.agent_key} Has ${found} Item${found === 1 ? "" : "s"} For You`,
+    body: out.summary
+      ? `${out.summary} Review On The Background Agents Page.`
+      : "Review On The Background Agents Page.",
+  } as never);
+}
