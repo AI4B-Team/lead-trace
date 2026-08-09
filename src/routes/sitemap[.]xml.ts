@@ -3,7 +3,7 @@ import type {} from "@tanstack/react-start";
 import { INDUSTRY_LANDINGS } from "@/lib/industry-landings";
 import { LEAD_PAGES } from "@/lib/lead-pages";
 
-
+const BASE_URL = "https://leadtrace.com";
 
 interface SitemapEntry {
   path: string;
@@ -14,8 +14,7 @@ interface SitemapEntry {
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
-      GET: async ({ request }: { request: Request }) => {
-        const origin = new URL(request.url).origin;
+      GET: async () => {
         const entries: SitemapEntry[] = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
           { path: "/how-it-works", changefreq: "monthly", priority: "0.8" },
