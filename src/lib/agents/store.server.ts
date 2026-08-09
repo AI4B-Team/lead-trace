@@ -155,13 +155,14 @@ export async function notifyRunOutput(agent: AgentRow, out: RunOutcome): Promise
   const found = out.flagged ?? 0;
   if (found < 1) return;
   const def = AGENT_DEFINITIONS.find((d) => d.key === agent.agent_key);
+  // The Scout's output is work, not a decision: it belongs in the worklist.
+  const where =
+    agent.agent_key === "lead_scout" ? "Review In Your Leads Worklist." : "Review In Settings → Agents.";
   const db = await admin();
   await db.from("notifications").insert({
     workspace_id: agent.workspace_id,
     kind: "agent",
     title: `${def?.name ?? agent.agent_key} Has ${found} Item${found === 1 ? "" : "s"} For You`,
-    body: out.summary
-      ? `${out.summary} Review On The Background Agents Page.`
-      : "Review On The Background Agents Page.",
+    body: out.summary ? `${out.summary} ${where}` : where,
   } as never);
 }

@@ -1,6 +1,7 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import {
   ArrowLeft,
+  Bot,
   Database,
   Building2,
   Layers,
@@ -33,6 +34,7 @@ const NAV: { to: string; label: string; icon: LucideIcon }[] = [
   { to: "/platform/sources", label: "Source Requests", icon: Layers },
   { to: "/platform/sequences", label: "Sequences", icon: Repeat },
   { to: "/platform/records", label: "Public Records", icon: Database },
+  { to: "/platform/agents", label: "Agent Runs", icon: Bot },
   { to: "/platform/access", label: "Admin Access", icon: ShieldCheck },
 ];
 

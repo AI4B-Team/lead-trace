@@ -55,6 +55,12 @@ export type Nomination = {
   reasons: string[];
   /** Named signals that fired, so the Scorer can learn from real outcomes. */
   signals: SignalKey[];
+  /**
+   * True when nothing urgent fired — the lead qualified only by existing
+   * (never contacted, has a mobile, added recently). A flat score across a
+   * whole page of these is not a ranking and must not be presented as one.
+   */
+  coldStart: boolean;
 };
 
 /**
@@ -124,6 +130,28 @@ export const SIGNAL_LABEL: Record<SignalKey, string> = {
   freshly_added: "Added This Week",
   untried_line: "Another Number Never Tried",
 };
+
+/**
+ * Signals that describe urgency or unfinished business. Everything outside this
+ * set describes existence, which is not a reason to work someone today.
+ */
+export const URGENCY_SIGNALS: readonly SignalKey[] = [
+  "anchor_imminent",
+  "anchor_soon",
+  "anchor_dated",
+  "gone_cold",
+  "quiet_unrevisited",
+  "price_question",
+  "objection_open",
+  "unresolved",
+  "untried_line",
+  "multi_record_type",
+  "multi_source",
+];
+
+/** Plain sentence shown instead of a score when nothing urgent fired. */
+export const COLD_START_NOTE =
+  "No urgency signal yet — showing newest unworked leads rather than a ranking.";
 
 /** Fills any missing key from the defaults so a partial saved fit is safe. */
 export function normaliseWeights(input: unknown): SignalWeights {
@@ -244,8 +272,9 @@ export function scoreLead(
     add("untried_line", "We have another number for this contact that has never been tried");
   }
 
+  const coldStart = !signals.some((s) => URGENCY_SIGNALS.includes(s));
   if (reasons.length === 0) reasons.push("Untouched and unworked, nothing against it");
-  return { leadId: lead.id, score: Math.round(score), reasons, signals };
+  return { leadId: lead.id, score: Math.round(score), reasons, signals, coldStart };
 }
 
 /** Ranks eligible leads and returns the top `limit`, highest score first. */
@@ -254,9 +283,11 @@ export function nominateLeads(
   limit: number,
   now = Date.now(),
   weights: SignalWeights = DEFAULT_SIGNAL_WEIGHTS,
-): { nominations: Nomination[]; skipped: Record<string, number> } {
+  weightsFitted = false,
+): { nominations: Nomination[]; skipped: Record<string, number>; coldStart: boolean } {
   const skipped: Record<string, number> = {};
   const scored: Nomination[] = [];
+  const addedAt = new Map(leads.map((l) => [l.id, l.firstSeenAt ?? ""]));
   for (const lead of leads) {
     const reason = ineligibleReason(lead, now);
     if (reason) {
@@ -265,7 +296,18 @@ export function nominateLeads(
     }
     scored.push(scoreLead(lead, now, weights));
   }
-  scored.sort((a, b) => b.score - a.score || a.leadId.localeCompare(b.leadId));
+  // Cold start: no fitted weights and nothing urgent anywhere in the pool. A
+  // flat score is not a ranking, so order by newest unworked and say so.
+  const coldStart = !weightsFitted && scored.length > 0 && scored.every((n) => n.coldStart);
+  if (coldStart) {
+    scored.sort(
+      (a, b) =>
+        (addedAt.get(b.leadId) ?? "").localeCompare(addedAt.get(a.leadId) ?? "") ||
+        a.leadId.localeCompare(b.leadId),
+    );
+  } else {
+    scored.sort((a, b) => b.score - a.score || a.leadId.localeCompare(b.leadId));
+  }
   // One nomination per contact: the same person held under two record types is
   // one person to call, and the best line wins.
   const contactOf = new Map(leads.map((l) => [l.id, l.contactKey ?? `line:${l.id}`]));
@@ -281,5 +323,5 @@ export function nominateLeads(
     seen.add(key);
     unique.push(nom);
   }
-  return { nominations: unique.slice(0, limit), skipped };
+  return { nominations: unique.slice(0, limit), skipped, coldStart };
 }

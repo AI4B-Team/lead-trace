@@ -3,13 +3,15 @@
  * genuinely worth a touch today.
  *
  * It never sends, never enrols a lead in a campaign and never changes lead
- * state. A nomination is a proposal a person accepts. Suppressed and
- * opted-out phones are dropped before scoring — the Scout is not allowed to
- * be the place a compliance mistake originates.
+ * state. A nomination is not a proposal: it is "here is who to work", so it
+ * lands in the worklist with an inline dismiss rather than in the approval
+ * queue. Suppressed phones, opted-out contacts and untrusted (legacy or
+ * unverified) data are dropped before scoring — the Scout is not allowed to be
+ * the place a compliance or data-honesty mistake originates.
  */
 import { nominateLeads, normaliseWeights, SCOUT_VERSION, type ScoutLead } from "./scout.shared";
 import { groupContacts, normalisePhone10, type ContactLine } from "@/lib/contact-lines.shared";
-import { writeProposal } from "./store.server";
+import { TRUSTED_PROVENANCE, isTrustedProvenance } from "@/lib/provenance.shared";
 import type { AgentRow, RunOutcome } from "./store.server";
 
 const DEFAULT_NOMINATIONS = 15;
@@ -33,7 +35,7 @@ export async function runLeadScout(agent: AgentRow): Promise<RunOutcome> {
       db
         .from("lead_records")
         .select(
-          "id, full_name, address, city, state, zip, email, phone, phone_type, disposition, record_types, source_types, list_count, first_seen_at, last_seen_at",
+          "id, full_name, address, city, state, zip, email, phone, phone_type, disposition, record_types, source_types, list_count, first_seen_at, last_seen_at, data_provenance",
         )
         .eq("workspace_id", workspaceId)
         .limit(LEAD_SCAN_LIMIT),
@@ -97,7 +99,21 @@ export async function runLeadScout(agent: AgentRow): Promise<RunOutcome> {
   }
 
   const now = Date.now();
-  const rows = leads as Array<Record<string, unknown>>;
+  const allRows = leads as Array<Record<string, unknown>>;
+
+  // H3, through the door the Scout opened: a lead whose provenance is not
+  // verified (or a list the operator uploaded themselves) is never nominated
+  // for outreach, no matter how well it scores. Legacy demo rows are the exact
+  // thing this rule exists to stop.
+  const rows = allRows.filter((r) => isTrustedProvenance((r["data_provenance"] as string | null) ?? null));
+  const untrusted = allRows.length - rows.length;
+  if (rows.length === 0) {
+    return {
+      status: "ok",
+      examined: 0,
+      summary: `read ${allRows.length} leads, none with verified provenance — skipped ${untrusted} unverified (${TRUSTED_PROVENANCE.join(" or ")} required)`,
+    };
+  }
 
   // P5.8.7 — group the book into contacts first. One person held under two
   // record types is one person: their opt-out covers both lines, their touches
@@ -176,9 +192,11 @@ export async function runLeadScout(agent: AgentRow): Promise<RunOutcome> {
     .eq("workspace_id", workspaceId)
     .eq("agent_key", "hot_lead_scorer")
     .maybeSingle();
-  const weights = normaliseWeights((scorerRow as { config?: { weights?: unknown } } | null)?.config?.weights);
+  const scorerConfig = (scorerRow as { config?: { weights?: unknown; last_fit_at?: string } } | null)?.config;
+  const weights = normaliseWeights(scorerConfig?.weights);
+  const weightsFitted = Boolean(scorerConfig?.last_fit_at);
 
-  const { nominations, skipped } = nominateLeads(candidates, limit, now, weights);
+  const { nominations, skipped, coldStart } = nominateLeads(candidates, limit, now, weights, weightsFitted);
   if (nominations.length === 0) {
     return {
       status: "ok",
@@ -187,46 +205,44 @@ export async function runLeadScout(agent: AgentRow): Promise<RunOutcome> {
     };
   }
 
-  // One proposal per nomination so an operator accepts or declines leads
-  // individually rather than approving a block.
-  const { data: openProposals } = await db
-    .from("agent_proposals")
-    .select("target_id")
-    .eq("workspace_id", workspaceId)
-    .eq("agent_key", "lead_scout")
-    .eq("status", "pending");
-  const alreadyOpen = new Set(
-    ((openProposals ?? []) as Array<{ target_id: string | null }>)
-      .map((p) => p.target_id)
-      .filter((v): v is string => Boolean(v)),
+  // Nominations go straight to the worklist. A row a person already dismissed
+  // stays dismissed: re-suggesting it every three hours is nagging, not work.
+  const { data: existingNoms } = await db
+    .from("worklist_nominations")
+    .select("lead_id, status")
+    .eq("workspace_id", workspaceId);
+  const settled = new Set(
+    ((existingNoms ?? []) as Array<{ lead_id: string; status: string }>)
+      .filter((n) => n.status !== "open")
+      .map((n) => n.lead_id),
   );
 
-  let written = 0;
-  for (const nom of nominations) {
-    if (alreadyOpen.has(nom.leadId)) continue;
-    const lead = byId.get(nom.leadId);
-    const who =
-      (lead?.["full_name"] as string | null) ||
-      (lead?.["address"] as string | null) ||
-      (lead?.["phone"] as string | null) ||
-      "Lead";
-    const where = [lead?.["city"], lead?.["state"]].filter(Boolean).join(", ");
-    await writeProposal(agent, {
-      proposalType: "lead_nomination",
-      targetTable: "lead_records",
-      targetId: nom.leadId,
-      targetField: null,
-      proposedValue: {
+  const payload = nominations
+    .filter((nom) => !settled.has(nom.leadId))
+    .map((nom) => {
+      const lead = byId.get(nom.leadId);
+      return {
+        workspace_id: workspaceId,
+        lead_id: nom.leadId,
+        agent_id: agent.id,
         score: nom.score,
         reasons: nom.reasons,
-        who,
-        where,
-        version: SCOUT_VERSION,
-      },
-      rationale: `${who}${where ? ` (${where})` : ""} — ${nom.reasons.join("; ")}.`,
-      evidenceRefs: [{ table: "lead_records", id: nom.leadId }],
+        signals: nom.signals,
+        record_types: ((lead?.["record_types"] as string[] | null) ?? []) as string[],
+        cold_start: coldStart || nom.coldStart,
+        scout_version: SCOUT_VERSION,
+        status: "open",
+        nominated_at: new Date().toISOString(),
+      };
     });
-    written += 1;
+
+  let written = 0;
+  if (payload.length > 0) {
+    const { error: nomErr } = await db
+      .from("worklist_nominations")
+      .upsert(payload as never, { onConflict: "workspace_id,lead_id" });
+    if (nomErr) return { status: "failed", examined: candidates.length, error: nomErr.message };
+    written = payload.length;
   }
 
   const topSkips = Object.entries(skipped)
@@ -240,6 +256,6 @@ export async function runLeadScout(agent: AgentRow): Promise<RunOutcome> {
     examined: candidates.length,
     actioned: written,
     flagged: written,
-    summary: `read ${rows.length} leads, nominated ${written}${suppressedCount > 0 ? `, dropped ${suppressedCount} suppressed` : ""}${topSkips ? ` — skipped ${topSkips}` : ""}`,
+    summary: `read ${rows.length} verified leads${untrusted > 0 ? ` (ignored ${untrusted} unverified)` : ""}, nominated ${written}${coldStart ? " — no urgency signal yet, newest unworked first" : ""}${suppressedCount > 0 ? `, dropped ${suppressedCount} suppressed` : ""}${topSkips ? ` — skipped ${topSkips}` : ""}`,
   };
 }

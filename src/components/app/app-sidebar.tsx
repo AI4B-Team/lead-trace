@@ -11,7 +11,6 @@ import {
   Radar,
   BarChart3,
   Bot,
-  Sparkles,
   Users,
   Home,
 } from "lucide-react";
@@ -44,7 +43,6 @@ const ITEMS = [
   { to: "/app/leads", label: "Leads", icon: Users },
   { to: "/app/property-search", label: "Property Search", icon: Home },
   { to: "/app/agent", label: "AI Agent", icon: Bot },
-  { to: "/app/background-agents", label: "Background Agents", icon: Sparkles },
   { to: "/app/campaigns", label: "Campaigns", icon: MessageSquare },
   { to: "/app/reports", label: "Performance", icon: BarChart3 },
 ] as const;

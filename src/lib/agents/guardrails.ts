@@ -79,6 +79,12 @@ export type ProposalDraft = {
  */
 export function assertProposalAllowed(draft: ProposalDraft): void {
   if (!draft.rationale?.trim()) fail("A proposal must cite its evidence in a rationale.");
+  // A nomination is "here is who to work", not "I want to change something".
+  // It belongs in the worklist; the approval queue is for the rare changes that
+  // genuinely need a person to read them.
+  if (draft.proposalType === "lead_nomination") {
+    fail("Lead nominations are worklist items, not proposals. Write them to worklist_nominations.");
+  }
   if (draft.targetTable) assertAgentMayWrite(draft.targetTable, draft.targetField);
   else if (draft.targetField) assertAgentMayWrite("__none__", draft.targetField);
 
