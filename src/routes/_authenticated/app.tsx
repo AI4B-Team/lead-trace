@@ -14,9 +14,19 @@ import { CreditMenu } from "@/components/app/credit-menu";
 import { SeatGuard } from "@/components/app/seat-guard";
 import { InboxNavButton } from "@/components/app/needs-reply";
 import { useEffect } from "react";
+import { AppRouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/_authenticated/app")({
   component: AppLayout,
+  // Keep failures and unknown paths inside the app chrome instead of falling
+  // through to the marketing-styled root boundary.
+  errorComponent: AppRouteErrorState,
+  notFoundComponent: () => (
+    <RouteNotFoundState
+      title="Screen Not Found"
+      message="That page doesn't exist in your workspace. Use the sidebar to get back on track."
+    />
+  ),
 });
 
 function AppLayout() {
