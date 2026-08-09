@@ -116,6 +116,10 @@ function ConversationsPage() {
   const [slashOpen, setSlashOpen] = useState(false);
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const team = useTeamContext();
+  // Mirrors the server's launch_campaign gate on replies/blacklist so a viewer
+  // sees a disabled composer instead of a rejected send.
+  const canReply = team.can("launch_campaign");
 
   const fetchThreads = useServerFn(listThreads);
   const fetchThread = useServerFn(getThread);
@@ -714,7 +718,9 @@ function ConversationsPage() {
                       placeholder={
                         activeThread?.is_optout
                           ? "Contact has opted out — replies disabled."
-                          : "Type a reply… / for AI commands"
+                          : canReply
+                            ? "Type a reply… / for AI commands"
+                            : "Read-Only Access — Ask An Admin To Send Replies."
                       }
                       disabled={activeThread?.is_optout || sending}
                       onKeyDown={(e) => {
