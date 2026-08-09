@@ -110,6 +110,8 @@ export const clearLeadShortlist = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => idInput.parse(input))
   .handler(async ({ data, context }) => {
+    const { assertWriter } = await import("./accountability.server");
+    await assertWriter(context.supabase, data.workspaceId, context.userId, "Change The Shortlist");
     const { error } = await context.supabase
       .from("lead_records")
       .update({
@@ -121,6 +123,17 @@ export const clearLeadShortlist = createServerFn({ method: "POST" })
       .eq("workspace_id", data.workspaceId)
       .eq("id", data.leadRecordId);
     if (error) throw error;
+    // Taking a record off the shortlist is a decision too, so it lands in the
+    // same feed as the approval that put it there.
+    const { logActivity } = await import("@/lib/activity.server");
+    await logActivity(context.supabase, data.workspaceId, {
+      type: "agent_decision",
+      summary: "Removed Lead From Shortlist",
+      detail: null,
+      refId: data.leadRecordId,
+      refType: "lead_record",
+      actorId: context.userId,
+    });
     return { ok: true as const };
   });
 
@@ -130,6 +143,8 @@ export const addLeadNote = createServerFn({ method: "POST" })
     idInput.extend({ body: z.string().trim().min(1).max(2000) }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertWriter } = await import("./accountability.server");
+    await assertWriter(context.supabase, data.workspaceId, context.userId, "Add Notes");
     const { error } = await context.supabase.from("lead_notes").insert({
       workspace_id: data.workspaceId,
       lead_record_id: data.leadRecordId,
@@ -146,6 +161,8 @@ export const deleteLeadNote = createServerFn({ method: "POST" })
     z.object({ workspaceId: z.string().uuid(), noteId: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertWriter } = await import("./accountability.server");
+    await assertWriter(context.supabase, data.workspaceId, context.userId, "Delete Notes");
     const { error } = await context.supabase
       .from("lead_notes")
       .delete()
