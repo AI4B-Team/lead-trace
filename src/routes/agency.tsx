@@ -12,6 +12,7 @@ export const Route = createFileRoute("/agency")({
       { property: "og:title", content: "White-Label Agency Platform — LeadTrace" },
       { property: "og:description", content: "Every client gets their own workspace, numbers, and compliance trail — under your brand, one flat rate." },
     ],
+    links: [{ rel: "canonical", href: "/agency" }],
   }),
   component: () => <IndustryLandingPage data={data} />,
 });

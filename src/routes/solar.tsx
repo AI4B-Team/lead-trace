@@ -12,6 +12,7 @@ export const Route = createFileRoute("/solar")({
       { property: "og:title", content: "Solar & Roofing Leads — LeadTrace" },
       { property: "og:description", content: "Homeowner and storm-response lists with roof-age filters. Book inspections from local numbers with reply-stop SMS." },
     ],
+    links: [{ rel: "canonical", href: "/solar" }],
   }),
   component: () => <IndustryLandingPage data={data} />,
 });

@@ -12,6 +12,7 @@ export const Route = createFileRoute("/education")({
       { property: "og:title", content: "Coaching & Education Leads — LeadTrace" },
       { property: "og:description", content: "Fill your cohort, book discovery calls. Ideal-client lists by trade, ZIP, or life stage." },
     ],
+    links: [{ rel: "canonical", href: "/education" }],
   }),
   component: () => <IndustryLandingPage data={data} />,
 });

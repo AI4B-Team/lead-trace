@@ -14,6 +14,7 @@ export const Route = createFileRoute("/industries")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "/industries" }],
   }),
   component: Industries,
 });

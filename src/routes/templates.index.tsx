@@ -59,6 +59,7 @@ export const Route = createFileRoute("/templates/")({
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
+    links: [{ rel: "canonical", href: "/templates" }],
   }),
   component: TemplatesPage,
 });

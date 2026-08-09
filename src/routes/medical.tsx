@@ -12,6 +12,7 @@ export const Route = createFileRoute("/medical")({
       { property: "og:title", content: "Medical & Wellness Leads — LeadTrace" },
       { property: "og:description", content: "Fill chairs, rebook lapsed patients. Med spa, dental, chiro, and clinic outreach with zero PHI stored." },
     ],
+    links: [{ rel: "canonical", href: "/medical" }],
   }),
   component: () => <IndustryLandingPage data={data} />,
 });

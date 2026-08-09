@@ -13,7 +13,12 @@ import { BRAND_NAME } from "@/config/brand";
 const searchSchema = z.object({ token: z.string().optional() });
 
 export const Route = createFileRoute("/accept-invite")({
-  head: () => ({ meta: [{ title: `Accept Invite — ${BRAND_NAME}` }] }),
+  head: () => ({
+    meta: [
+      { title: `Accept Invite — ${BRAND_NAME}` },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   validateSearch: searchSchema,
   component: AcceptInvitePage,
 });

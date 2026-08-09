@@ -31,6 +31,7 @@ export const Route = createFileRoute("/leads/$slug")({
         { name: "twitter:card", content: "summary_large_image" },
       ],
       scripts: [{ type: "application/ld+json", children: JSON.stringify(faqSchema) }],
+      links: [{ rel: "canonical", href: `/leads/${page.slug}` }],
     };
   },
   component: LeadPageRoute,

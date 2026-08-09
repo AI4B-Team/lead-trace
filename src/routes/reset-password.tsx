@@ -12,6 +12,7 @@ export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
       { title: "Choose A New Password — LeadTrace" },
+      { name: "robots", content: "noindex, nofollow" },
       {
         name: "description",
         content:

@@ -12,6 +12,7 @@ export const Route = createFileRoute("/compliance")({
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
+    links: [{ rel: "canonical", href: "/compliance" }],
   }),
   component: Compliance,
 });
