@@ -11,6 +11,7 @@ import {
   Radar,
   BarChart3,
   Bot,
+  Sparkles,
   Users,
   Home,
 } from "lucide-react";
