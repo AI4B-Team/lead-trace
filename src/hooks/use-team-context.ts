@@ -29,6 +29,11 @@ export function useTeamContext() {
     used: ctx?.used ?? { credits: 0, exportRows: 0 },
     /** Optimistic UI gate. Unknown role defaults to allowed; server decides. */
     can: (action: TeamAction) => ctx?.permissions?.[action] ?? !ctx,
+    /**
+     * False only for confirmed viewers. Mirrors the server's assertWriter gate
+     * so read-only members see disabled controls instead of a failed write.
+     */
+    canWrite: ctx ? ctx.role !== "viewer" : true,
     refetch: q.refetch,
   };
 }
