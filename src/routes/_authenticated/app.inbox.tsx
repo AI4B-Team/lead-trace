@@ -724,6 +724,7 @@ function ConversationsPage() {
                             : "Read-Only Access — Ask An Admin To Send Replies."
                       }
                       disabled={activeThread?.is_optout || sending}
+                      readOnly={!canReply}
                       onKeyDown={(e) => {
                         if (e.key === "Escape") setSlashOpen(false);
                         if (e.key === "Escape" && !slashOpen) setReply("");
@@ -745,7 +746,7 @@ function ConversationsPage() {
                         className="h-7 rounded-full text-xs cursor-pointer"
                         title="Save As Quick Reply"
                         onClick={saveSnippet}
-                        disabled={!reply.trim()}
+                        disabled={!reply.trim() || !canReply}
                       >
                         <Plus className="h-3.5 w-3.5 mr-1" /> Save
                       </Button>
@@ -755,7 +756,7 @@ function ConversationsPage() {
                         className="h-7 rounded-full text-xs cursor-pointer"
                         title="Ask AI For A Reply"
                         onClick={() => suggestM.mutate({ draft: reply.trim() || null })}
-                        disabled={suggestM.isPending}
+                        disabled={suggestM.isPending || !canReply}
                       >
                         <Sparkles className="h-3.5 w-3.5 mr-1 text-primary" /> AI
                       </Button>
@@ -777,12 +778,15 @@ function ConversationsPage() {
                           activeThread?.is_optout ||
                           sending ||
                           !reply.trim() ||
+                          !canReply ||
                           (numbersKnown && !hasSendingNumber)
                         }
                         size="sm"
                         className="ml-auto h-8 rounded-full px-4 cursor-pointer"
                         title={
-                          numbersKnown && !hasSendingNumber
+                          !canReply
+                            ? "Your Role Is Read-Only — Replies Are Disabled"
+                            : numbersKnown && !hasSendingNumber
                             ? "Add An Active Sending Number To Send Replies"
                             : undefined
                         }
