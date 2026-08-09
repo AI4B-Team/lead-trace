@@ -188,7 +188,7 @@ class BatchSkipTracingProvider implements SkipTraceProvider {
       mailingZip: str(hit?.zip) || null,
       absenteeOwner: null,
       phones,
-      emails: (hit?.emails ?? []).filter((e): e is string => typeof e === "string" && e.length > 0),
+      emails,
       addressHash: null,
       extras: {},
       tracedAt: new Date().toISOString(),
