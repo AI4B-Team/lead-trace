@@ -114,12 +114,93 @@ class RealeflowSemiProvider implements SkipTraceProvider {
   }
 }
 
+// ── BatchSkipTracing provider (paid full skip-trace) ───────────────────────
+
+class BatchSkipTracingProvider implements SkipTraceProvider {
+  readonly name = "batchskiptracing";
+
+  private cfg() {
+    const apiKey = process.env.BATCH_SKIP_TRACING_API_KEY;
+    const baseUrl = (process.env.BATCH_SKIP_TRACING_URL ?? "https://api.batchskiptracing.com").replace(/\/+$/, "");
+    if (!apiKey) {
+      throw new Error(
+        "BatchSkipTracing is not configured. Set BATCH_SKIP_TRACING_API_KEY before selecting this provider.",
+      );
+    }
+    return { apiKey, baseUrl };
+  }
+
+  async trace(input: SkipTraceInput): Promise<SkipTraceResult> {
+    if (!input.street) throw new Error("Lead has no property address to trace");
+    const q = [input.street, input.city, input.state, input.zip].filter(Boolean).join(", ");
+    const { apiKey, baseUrl } = this.cfg();
+
+    const res = await fetch(`${baseUrl}/v1/batch`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        "User-Agent": "LeadTrace-Integration/1.0",
+      },
+      body: JSON.stringify({
+        records: [
+          {
+            name: input.ownerName ?? undefined,
+            address: input.street,
+            city: input.city ?? undefined,
+            state: input.state ?? undefined,
+            zip: input.zip ?? undefined,
+          },
+        ],
+      }),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`BatchSkipTracing ${res.status}: ${text.slice(0, 200)}`);
+    }
+    const body = (await res.json()) as {
+      results?: Array<{
+        name?: string;
+        address?: string;
+        city?: string;
+        state?: string;
+        zip?: string;
+        phones?: string[] | Array<{ number?: string; type?: string }>;
+        emails?: string[];
+      }>;
+    };
+    const hit = body.results?.[0];
+    const phones: string[] = [];
+    if (hit?.phones) {
+      for (const p of hit.phones) {
+        if (!p) continue;
+        const s = typeof p === "string" ? p : p.number;
+        if (s) phones.push(s);
+      }
+    }
+    const emails = (hit?.emails ?? []).filter((e): e is string => typeof e === "string" && e.length > 0);
+    return {
+      provider: this.name,
+      ownerName: str(hit?.name) || input.ownerName,
+      mailingStreet: str(hit?.address) || null,
+      mailingCity: str(hit?.city) || null,
+      mailingState: str(hit?.state) || null,
+      mailingZip: str(hit?.zip) || null,
+      absenteeOwner: null,
+      phones,
+      emails,
+      addressHash: null,
+      extras: {},
+      tracedAt: new Date().toISOString(),
+    };
+  }
+}
+
 // ── Provider selection ─────────────────────────────────────────────────────
-// Future: add `class BatchDataProvider implements SkipTraceProvider` and
-// register it here; select with SKIPTRACE_PROVIDER=batchdata in env.
 
 const providers: Record<string, () => SkipTraceProvider> = {
   "realeflow-semi": () => new RealeflowSemiProvider(),
+  batchskiptracing: () => new BatchSkipTracingProvider(),
 };
 
 export function getSkipTraceProvider(): SkipTraceProvider {
@@ -131,4 +212,18 @@ export function getSkipTraceProvider(): SkipTraceProvider {
     );
   }
   return factory();
+}
+
+export function listSkipTraceProviders(): string[] {
+  return Object.keys(providers);
+}
+
+export function isSkipTraceProviderConfigured(key: string): boolean {
+  if (key === "realeflow-semi") {
+    return Boolean(process.env.REALEFLOW_BASE_URL && process.env.REALEFLOW_API_KEY && process.env.REALEFLOW_ACCOUNT_ID);
+  }
+  if (key === "batchskiptracing") {
+    return Boolean(process.env.BATCH_SKIP_TRACING_API_KEY);
+  }
+  return false;
 }

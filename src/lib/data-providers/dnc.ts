@@ -1,9 +1,10 @@
 import { DncUnavailableError, type DncScrubber, type ScrubResult, type ScrubStatus } from "./index";
 import { isRpvConfigured, rpvScrub } from "./rpv";
 
-// DNC + litigator scrubber abstraction. Two providers, in priority order:
+// DNC + litigator scrubber abstraction. Three providers, in priority order:
 //   1. RealPhoneValidation (native adapter) when RPV_API_TOKEN is set.
-//   2. A generic POST { phones } → { results } endpoint when DNC_API_URL +
+//   2. Blacklist Alliance (native adapter) when BLACKLIST_ALLIANCE_API_KEY is set.
+//   3. A generic POST { phones } → { results } endpoint when DNC_API_URL +
 //      DNC_API_KEY are set (works with a thin proxy in front of any vendor).
 //
 // FAIL-CLOSED CONTRACT: if no provider is configured, or the provider errors,
@@ -26,14 +27,14 @@ async function httpScrub(url: string, apiKey: string, phones: string[]): Promise
     throw new Error(`DNC scrub failed: ${res.status} ${text.slice(0, 200)}`);
   }
   const body = (await res.json()) as {
-    results: Array<{ phone: string; dnc?: boolean; litigator?: boolean }>;
+    results?: Array<{ phone?: string; dnc?: boolean; litigator?: boolean }>;
     proof?: Record<string, unknown>;
   };
-  const results = body.results.map((r) => {
+  const results = (body.results ?? []).map((r) => {
     let status: ScrubStatus = "clean";
     if (r.litigator) status = "litigator";
     else if (r.dnc) status = "dnc";
-    return { phone: r.phone, status };
+    return { phone: r.phone ?? "", status };
   });
   return {
     provider: new URL(url).hostname,
@@ -42,18 +43,63 @@ async function httpScrub(url: string, apiKey: string, phones: string[]): Promise
   };
 }
 
+// Blacklist Alliance native contract. POST { phones: string[] } with a Bearer
+// API key and read back { results: [{ phone, dnc, litigator }] }.
+async function blacklistAllianceScrub(apiKey: string, phones: string[]): Promise<ScrubResult> {
+  const baseUrl = (process.env.BLACKLIST_ALLIANCE_URL ?? "https://api.blacklistalliance.com").replace(/\/+$/, "");
+  const res = await fetch(`${baseUrl}/api/v1/lookup`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      "User-Agent": "LeadTrace-Integration/1.0",
+    },
+    body: JSON.stringify({ phones }),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Blacklist Alliance ${res.status}: ${text.slice(0, 200)}`);
+  }
+  const body = (await res.json()) as {
+    results?: Array<{ phone?: string; dnc?: boolean; litigator?: boolean }>;
+    proof?: Record<string, unknown>;
+  };
+  const results = (body.results ?? []).map((r) => {
+    let status: ScrubStatus = "clean";
+    if (r.litigator) status = "litigator";
+    else if (r.dnc) status = "dnc";
+    return { phone: r.phone ?? "", status };
+  });
+  return {
+    provider: "blacklistalliance",
+    results,
+    proof: body.proof ?? { count: phones.length, scrubbed_at: new Date().toISOString() },
+  };
+}
+
 export function getDncScrubber(): DncScrubber {
   return {
-    key: isRpvConfigured() ? "dnc.rpv" : "dnc.http",
+    key: isRpvConfigured()
+      ? "dnc.rpv"
+      : process.env.BLACKLIST_ALLIANCE_API_KEY
+        ? "dnc.blacklistalliance"
+        : "dnc.http",
     isConfigured() {
-      return isRpvConfigured() || Boolean(process.env.DNC_API_URL && process.env.DNC_API_KEY);
+      return isRpvConfigured() || Boolean(process.env.BLACKLIST_ALLIANCE_API_KEY) || Boolean(process.env.DNC_API_URL && process.env.DNC_API_KEY);
     },
     async scrub(phones) {
       const url = process.env.DNC_API_URL;
       const apiKey = process.env.DNC_API_KEY;
+      const baKey = process.env.BLACKLIST_ALLIANCE_API_KEY;
       if (phones.length === 0) {
         return {
-          provider: isRpvConfigured() ? "realphonevalidation" : url ? new URL(url).hostname : "none",
+          provider: isRpvConfigured()
+            ? "realphonevalidation"
+            : baKey
+              ? "blacklistalliance"
+              : url
+                ? new URL(url).hostname
+                : "none",
           results: [],
           proof: { count: 0, scrubbed_at: new Date().toISOString() },
         };
@@ -61,9 +107,19 @@ export function getDncScrubber(): DncScrubber {
       if (isRpvConfigured()) {
         return rpvScrub(phones);
       }
+      if (baKey) {
+        try {
+          return await blacklistAllianceScrub(baKey, phones);
+        } catch (err) {
+          console.error("[dnc] Blacklist Alliance scrub failed — failing closed:", err);
+          throw new DncUnavailableError(
+            `DNC and litigator scrubbing could not be completed: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        }
+      }
       if (!url || !apiKey) {
         throw new DncUnavailableError(
-          "DNC and litigator scrubbing is not configured. Add RPV_API_TOKEN (RealPhoneValidation) before any list is scrubbed or sent.",
+          "DNC and litigator scrubbing is not configured. Add RPV_API_TOKEN (RealPhoneValidation), BLACKLIST_ALLIANCE_API_KEY, or DNC_API_URL + DNC_API_KEY before any list is scrubbed or sent.",
         );
       }
       try {
