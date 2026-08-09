@@ -39,7 +39,7 @@ const PLAN_CHANGE_NOTE =
   "Checkout Is Not Connected Yet — Plan Changes Are Handled By Support Until Payments Go Live.";
 
 export const Route = createFileRoute("/_authenticated/app/billing")({
-  head: () => ({ meta: [{ title: "Billing — LeadTrace" }] }),
+  head: () => ({ meta: [{ title: "Subscription — LeadTrace" }] }),
   component: Billing,
 });
 
@@ -113,7 +113,7 @@ function Billing() {
   return (
     <div className="mx-auto max-w-[1400px]">
       <SettingsShell current="billing">
-      <PageHeader title="Billing" description="Plan, Metered Credits, And Recent Activity." />
+      <PageHeader title="Subscription" description="Plan, Metered Credits, And Recent Activity." />
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile
