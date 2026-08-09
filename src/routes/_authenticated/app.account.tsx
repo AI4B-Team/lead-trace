@@ -243,6 +243,7 @@ function AccountPage() {
 
             <div className="space-y-6">
               <IdentityCard
+                photoUrl={avatarUrl}
                 initials={initials || "LT"}
                 name={displayName}
                 email={user?.email ?? ""}
@@ -268,6 +269,7 @@ function AccountPage() {
             </div>
             <div className="space-y-6">
               <IdentityCard
+                photoUrl={avatarUrl}
                 initials={initials || "LT"}
                 name={displayName}
                 email={user?.email ?? ""}
@@ -393,6 +395,7 @@ function AccountPage() {
 
             <div className="space-y-6">
               <IdentityCard
+                photoUrl={avatarUrl}
                 initials={initials || "LT"}
                 name={displayName}
                 email={user?.email ?? ""}
@@ -408,11 +411,13 @@ function AccountPage() {
 }
 
 function IdentityCard({
+  photoUrl,
   initials,
   name,
   email,
   verified,
 }: {
+  photoUrl: string | null;
   initials: string;
   name: string;
   email: string;
@@ -422,9 +427,17 @@ function IdentityCard({
     <Card>
       <CardContent className="pt-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary font-display font-bold text-primary-foreground">
-            {initials}
-          </div>
+          {photoUrl ? (
+            <img
+              src={photoUrl}
+              alt={`${name} profile photo`}
+              className="h-12 w-12 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary font-display font-bold text-primary-foreground">
+              {initials}
+            </div>
+          )}
           <div className="min-w-0">
             <div className="truncate font-display font-bold text-foreground">{name}</div>
             <div className="truncate text-xs text-muted-foreground">{email}</div>
