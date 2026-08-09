@@ -18,7 +18,7 @@ export const Route = createFileRoute("/start")({
       },
       { name: "robots", content: "noindex, nofollow" },
     ],
-    links: [{ rel: "canonical", href: "/auth" }],
+    links: [{ rel: "canonical", href: "/start" }],
   }),
   component: StartRedirect,
 });
