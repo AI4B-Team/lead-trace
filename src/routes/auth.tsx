@@ -10,6 +10,8 @@ import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 import { Radar, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { safeRedirect } from "@/lib/prompt-handoff";
+import { mfaStepUpRequired } from "@/lib/mfa";
+import { MfaChallenge } from "@/components/auth/mfa-challenge";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: z.object({
@@ -51,6 +53,7 @@ function AuthPage() {
   const [magicBusy, setMagicBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
   const [resetBusy, setResetBusy] = useState(false);
+  const [needsMfa, setNeedsMfa] = useState(false);
 
   useEffect(() => {
     const hubError = new URLSearchParams(window.location.search).get("hub_error");
@@ -60,9 +63,17 @@ function AuthPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
+        // A verified authenticator means the session isn't trusted until the
+        // code is entered, so stay here and challenge instead of forwarding.
+        void mfaStepUpRequired().then((required) => {
+          if (required) {
+            setNeedsMfa(true);
+            return;
+          }
         const target = safeRedirect(search.redirect);
         if (target) window.location.href = target;
         else navigate({ to: "/app/dashboard" });
+        });
       }
     });
   }, [navigate, search.redirect]);
@@ -70,6 +81,11 @@ function AuthPage() {
   // Onboarding forwards the destination on, so new signups also land on it.
   const target = safeRedirect(search.redirect);
   const onboardingUrl = `/onboarding${target ? `?redirect=${encodeURIComponent(target)}` : ""}`;
+
+  const goAfterAuth = () => {
+    if (target) window.location.href = target;
+    else navigate({ to: "/onboarding" });
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,8 +103,11 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         try { localStorage.setItem("leadtrace_returning", "1"); } catch { /* ignore */ }
-        if (target) window.location.href = target;
-        else navigate({ to: "/onboarding" });
+        if (await mfaStepUpRequired()) {
+          setNeedsMfa(true);
+          return;
+        }
+        goAfterAuth();
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something Went Wrong");
@@ -194,14 +213,22 @@ function AuthPage() {
           <div className="flex items-center justify-center px-6 py-16">
           <div className="w-full max-w-md">
           <h1 className="font-display text-4xl font-black text-foreground">
-            {mode === "signup" ? "Start Free." : "Welcome Back."}
+            {needsMfa ? "One More Step." : mode === "signup" ? "Start Free." : "Welcome Back."}
           </h1>
           <p className="text-muted-foreground mt-2">
-            {mode === "signup"
-              ? "Create Your LeadTrace Workspace In Seconds."
-              : "Sign In To Run Your Pipeline."}
+            {needsMfa
+              ? "Your Account Has Two-Factor Authentication Turned On."
+              : mode === "signup"
+                ? "Create Your LeadTrace Workspace In Seconds."
+                : "Sign In To Run Your Pipeline."}
           </p>
 
+          {needsMfa ? (
+            <div className="mt-8">
+              <MfaChallenge onVerified={goAfterAuth} />
+            </div>
+          ) : (
+          <>
           <Button
             type="button"
             variant="outline"
@@ -285,6 +312,8 @@ function AuthPage() {
           <p className="text-xs text-muted-foreground mt-4 text-center">
             By Continuing You Agree To Our <Link to="/compliance" className="text-primary font-medium">Compliance Terms</Link>.
           </p>
+          </>
+          )}
           </div>
           </div>
         </section>

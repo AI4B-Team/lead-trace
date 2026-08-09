@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { mfaStepUpRequired } from "@/lib/mfa";
 import { AppRouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -11,6 +12,9 @@ export const Route = createFileRoute("/_authenticated")({
     // failures / token refresh hiccups don't bounce the user to /auth.
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/auth" });
+    // A registered authenticator has to be satisfied before the app renders,
+    // otherwise the second factor would be decorative.
+    if (await mfaStepUpRequired()) throw redirect({ to: "/auth" });
     return { user: data.session.user };
   },
   component: AuthenticatedShell,
