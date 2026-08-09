@@ -28,5 +28,13 @@ export async function applyCreditDelta(
     _actor_user_id: args.actorUserId ?? undefined,
   });
   if (error) throw new Error(error.message);
-  return (data as number) ?? 0;
+  const balance = (data as number) ?? 0;
+
+  // Advisory low-balance notice; never blocks or fails the debit itself.
+  if (args.delta < 0) {
+    const { maybeNotifyLowBalance } = await import("./credit-alerts.server");
+    await maybeNotifyLowBalance({ workspaceId: args.workspaceId, kind: args.kind, balance });
+  }
+
+  return balance;
 }

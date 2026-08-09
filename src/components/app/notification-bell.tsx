@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell, Inbox, MessageSquare, Repeat, Rocket, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Bell, Inbox, MessageSquare, Repeat, Rocket, AlertTriangle, CheckCircle2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useWorkspaceId } from "@/hooks/use-workspace";
@@ -14,6 +14,10 @@ const RUN_ICON: Record<string, typeof Repeat> = {
   run_auto_launched: Rocket,
   run_no_new: CheckCircle2,
   run_failed: AlertTriangle,
+  credits_low_scrape: Wallet,
+  credits_low_skip_trace: Wallet,
+  credits_low_sms: Wallet,
+  credits_refunded: Wallet,
 };
 
 function relative(iso: string) {
