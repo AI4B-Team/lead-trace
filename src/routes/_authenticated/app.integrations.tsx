@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import {
   Webhook, Zap, Link2, Sheet, Mail, Plug, Check, Building2, Database,
-  Contact, Cloud, Users, Workflow,
+  Contact, Cloud, Users, Workflow, ShieldCheck, AlertTriangle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { useWorkspaceId } from "@/hooks/use-workspace";
 import { HubConnection } from "@/components/app/hub-connection";
 import { listWebhooks } from "@/lib/monitoring.functions";
+import { getVendorStatus } from "@/lib/providers.functions";
 import { getHubLink } from "@/lib/hub.functions";
 import { submitFeedback } from "@/lib/help.functions";
 
@@ -51,6 +52,7 @@ function IntegrationsPage() {
   const { workspaceId } = useWorkspaceId();
   const fetchHooks = useServerFn(listWebhooks);
   const fetchHub = useServerFn(getHubLink);
+  const fetchVendors = useServerFn(getVendorStatus);
   const logRequest = useServerFn(submitFeedback);
   const navigate = useNavigate();
   const [open, setOpen] = useState<string | null>(null);
@@ -67,6 +69,10 @@ function IntegrationsPage() {
     queryKey: ["hub-link", workspaceId],
     queryFn: () => fetchHub({ data: { workspaceId: workspaceId! } }),
     enabled: !!workspaceId,
+  });
+  const { data: vendorData } = useQuery({
+    queryKey: ["vendor-status"],
+    queryFn: () => fetchVendors(),
   });
 
   const hookCount = hooks?.rows?.length ?? 0;
@@ -149,6 +155,32 @@ function IntegrationsPage() {
         <PageHeader title="Integrations" description="Connect LeadTrace to the rest of your stack." />
 
         <div className="space-y-8">
+          <section id="data vendors" className="scroll-mt-24">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h2 className="font-display text-base font-bold text-foreground">Data Vendors</h2>
+              <p className="text-xs text-muted-foreground">
+                The sources and compliance checks behind every list.
+              </p>
+            </div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              {(vendorData?.vendors ?? []).map((v) => (
+                <Card key={v.key}>
+                  <CardContent className="space-y-2 p-4">
+                    <div className="flex items-start gap-2">
+                      {v.configured ? (
+                        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+                      ) : (
+                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+                      )}
+                      <p className="text-sm font-medium leading-snug text-foreground">{v.label}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{v.detail}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+
           {groups.map((g) => (
             <section key={g.label} id={g.label.toLowerCase()} className="scroll-mt-24">
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
