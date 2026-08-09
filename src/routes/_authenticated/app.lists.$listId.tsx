@@ -182,7 +182,12 @@ function JobDetail() {
         : "Business Directories";
   const messageTemplates = (data as { messageTemplates?: string[] }).messageTemplates ?? [];
   // A dataset isn't contactable and SMS is US-only, so neither quotes a launch.
-  const estimate = campaignable ? launchEstimate(counts.clean, { templates: messageTemplates }) : null;
+  const estimate = campaignable
+    ? launchEstimate(counts.clean, {
+        templates: messageTemplates,
+        ratePerSegment: smsRate,
+      })
+    : null;
   const grade = qualityGrade(quality);
   // Never ship a funnel whose arithmetic disagrees with the Ready To Send card.
   // This runs in production too: on mismatch we surface a reconciling badge
@@ -587,8 +592,8 @@ function JobDetail() {
               label="Estimated Cost"
               note={
                 estimate.assumed
-                  ? "Assumes 1 Segment Per Message"
-                  : "Flat Rate Per Segment · Measured From Your Templates"
+                  ? `Assumes 1 Segment Per Message · $${estimate.ratePerSegment.toFixed(3)} Per Segment`
+                  : `$${estimate.ratePerSegment.toFixed(3)} Per Segment · Measured From Your Templates`
               }
             />
           </CardContent>
