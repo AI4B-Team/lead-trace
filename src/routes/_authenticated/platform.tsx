@@ -14,9 +14,17 @@ import { Button } from "@/components/ui/button";
 import { AdminGate, useSuperAdminGate } from "@/components/app/admin-shared";
 import { BRAND_NAME } from "@/config/brand";
 import { cn } from "@/lib/utils";
+import { AppRouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/_authenticated/platform")({
   component: PlatformLayout,
+  errorComponent: AppRouteErrorState,
+  notFoundComponent: () => (
+    <RouteNotFoundState
+      title="Console Screen Not Found"
+      message="That admin page doesn't exist. Use the console navigation to get back on track."
+    />
+  ),
 });
 
 const NAV: { to: string; label: string; icon: LucideIcon }[] = [
