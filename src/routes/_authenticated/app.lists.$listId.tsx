@@ -85,9 +85,21 @@ function JobDetail() {
   const { plan: planContext } = usePlanContext();
   const smsRate = planFor(planContext.plan).smsPerSegment;
 
-  const { data, isLoading, isError, error: reviewError } = useQuery({
+  const [loadFailed, setLoadFailed] = useState<string | null>(null);
+  const { data, isLoading } = useQuery({
     queryKey: ["job-review", jobId],
-    queryFn: () => fetchReview({ data: { jobId, timeZone: LOCAL_TZ } }),
+    // A missing or out-of-workspace list must land on a plain message, never an
+    // endless spinner, so the failure is captured instead of left pending.
+    queryFn: async () => {
+      try {
+        const res = await fetchReview({ data: { jobId, timeZone: LOCAL_TZ } });
+        setLoadFailed(null);
+        return res;
+      } catch (e) {
+        setLoadFailed(e instanceof Error ? e.message : "unknown");
+        return null;
+      }
+    },
     retry: false,
     refetchInterval: (q) => {
       const s = q.state.data?.job?.status;
@@ -101,8 +113,8 @@ function JobDetail() {
     refetchInterval: (q) => (data?.job?.status === "ready" || data?.job?.status === "failed" ? false : 2000),
   });
 
-  if (isError || (!isLoading && !data)) {
-    const msg = reviewError instanceof Error ? reviewError.message : "";
+  if (loadFailed) {
+    const msg = loadFailed;
     return (
       <Card className="max-w-lg">
         <CardHeader>
