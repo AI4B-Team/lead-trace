@@ -163,6 +163,15 @@ function IntegrationsPage() {
               </p>
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              {!vendorData &&
+                [0, 1, 2].map((i) => (
+                  <Card key={i}>
+                    <CardContent className="space-y-2 p-4">
+                      <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
+                      <div className="h-3 w-full animate-pulse rounded bg-muted" />
+                    </CardContent>
+                  </Card>
+                ))}
               {(vendorData?.vendors ?? []).map((v) => (
                 <Card key={v.key}>
                   <CardContent className="space-y-2 p-4">
