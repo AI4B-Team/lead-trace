@@ -117,3 +117,38 @@ export async function assertSpendAllowed(
 }
 
 export { evaluateExport, evaluateSpend };
+
+/**
+ * Role gate for any server path that mutates, spends or exports. Client-side
+ * `can()` checks are convenience only — this is the enforcement point.
+ */
+export async function assertAction(
+  supabase: AnyClient,
+  workspaceId: string,
+  userId: string,
+  action: TeamAction,
+): Promise<MemberContext> {
+  const ctx = await memberContext(supabase, workspaceId, userId);
+  if (!can(ctx.role, action)) {
+    const { denialMessage } = await import("./team-roles.shared");
+    throw new Error(denialMessage(ctx.role, action));
+  }
+  return ctx;
+}
+
+/** Same gate, resolved from a list (job) id. */
+export async function assertJobAction(
+  supabase: AnyClient,
+  jobId: string,
+  userId: string,
+  action: TeamAction,
+): Promise<{ workspaceId: string; ctx: MemberContext }> {
+  const { data: job } = await supabase
+    .from("jobs")
+    .select("workspace_id")
+    .eq("id", jobId)
+    .maybeSingle();
+  const workspaceId = (job as { workspace_id?: string } | null)?.workspace_id;
+  if (!workspaceId) throw new Error("List Not Found");
+  return { workspaceId, ctx: await assertAction(supabase, workspaceId, userId, action) };
+}

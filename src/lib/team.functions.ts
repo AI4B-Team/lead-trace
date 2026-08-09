@@ -105,9 +105,18 @@ export const removeMember = createServerFn({ method: "POST" })
     z.object({ workspaceId: z.string().uuid(), userId: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertMember(context.supabase, data.workspaceId, context.userId);
+    // Removing a seat is an admin action — a member must never be able to
+    // remove teammates (including an admin) from the workspace.
+    await assertAdmin(context.supabase, data.workspaceId, context.userId);
     if (data.userId === context.userId) throw new Error("Cannot remove yourself");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: target } = await supabaseAdmin
+      .from("workspace_members")
+      .select("role")
+      .eq("workspace_id", data.workspaceId)
+      .eq("user_id", data.userId)
+      .maybeSingle();
+    if (target?.role === "owner") throw new Error("The workspace owner cannot be removed.");
     const { count } = await supabaseAdmin
       .from("workspace_members")
       .select("user_id", { count: "exact", head: true })
