@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Search, ChevronDown, Users, ListChecks, MessageSquare, Radio, Home } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -26,11 +26,18 @@ const JUMP_TO = [
  * so one field serves the two high-volume tables, and doubles as a jump menu
  * for surfaces that don't have a searchable table of their own.
  */
-export function SidebarSearch() {
+export function SidebarSearch({ autoFocus = false }: { autoFocus?: boolean }) {
   const navigate = useNavigate();
   const [scope, setScope] = useState<Scope>("leads");
   const [value, setValue] = useState("");
   const active = SCOPES.find((s) => s.value === scope)!;
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Expanding the rail from the collapsed search icon should drop the caret
+  // straight into the field — the user already signalled intent to type.
+  useEffect(() => {
+    if (autoFocus) inputRef.current?.focus();
+  }, [autoFocus]);
 
   const submit = () => {
     const q = value.trim();
@@ -44,6 +51,7 @@ export function SidebarSearch() {
     <div className="flex items-center gap-1 rounded-md border border-sidebar-border bg-sidebar-accent/40 px-1.5 focus-within:border-sidebar-ring">
       <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
       <Input
+        ref={inputRef}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
