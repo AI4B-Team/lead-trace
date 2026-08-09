@@ -25,11 +25,25 @@ export function StatTile({
   /** Makes the subtitle its own action (e.g. filter to never-launched lists). */
   onHintClick?: () => void;
 }) {
-  const Comp = onClick ? "button" : "div";
   return (
-    <Comp
-      type={onClick ? "button" : undefined}
+    // Always a div: the tile can contain its own "?" hint button, and a button
+    // inside a button is invalid HTML (breaks hydration). Keyboard support is
+    // added explicitly when the tile itself is clickable.
+    <div
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
       onClick={onClick}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.target !== e.currentTarget) return;
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
       className={cn(
         "relative rounded-xl border px-4 py-3 text-left",
         tone === "alert"
@@ -87,6 +101,6 @@ export function StatTile({
         ) : (
           <div className="mt-1 text-xs text-muted-foreground">{hint}</div>
         ))}
-    </Comp>
+    </div>
   );
 }
