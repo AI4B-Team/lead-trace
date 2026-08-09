@@ -101,6 +101,26 @@ async function runBot(ctx: InboundContext): Promise<InboundOutcome["bot"]> {
 
   const { generateBotReply } = await import("@/lib/bot.server");
   const { buildKnowledgeBrief } = await import("@/lib/bot-training.server");
+
+  // Template-scoped profile. An unresolvable profile is a handoff, never a
+  // silent generic persona.
+  const { resolveProfileForLead } = await import("@/lib/bot-profiles.server");
+  let profile;
+  try {
+    profile = (await resolveProfileForLead(ctx.db as never, {
+      workspaceId: ctx.workspaceId,
+      leadId: ctx.leadId ?? null,
+    })).profile;
+  } catch {
+    if (ctx.inboundMessageId) {
+      await ctx.db
+        .from("messages")
+        .update({ handoff_reason: "no_bot_profile_resolved" })
+        .eq("id", ctx.inboundMessageId);
+    }
+    return "handoff";
+  }
+
   const { data: knowledgeRows } = await ctx.db
     .from("bot_knowledge")
     .select("title, content, source_type, source_url")
