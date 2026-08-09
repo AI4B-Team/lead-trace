@@ -363,7 +363,7 @@ function CreditCard({
   label: string;
   balance: number;
   rate: string;
-  onTopUp: () => void;
+  onTopUp: (() => void) | null;
 }) {
   return (
     <Card>
@@ -371,9 +371,15 @@ function CreditCard({
         <div className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">{label}</div>
         <div className="mt-2 font-display text-3xl font-black text-foreground">{balance.toLocaleString()}</div>
         <div className="text-xs text-muted-foreground mt-1">{rate}</div>
-        <Button className="w-full rounded-full mt-4" onClick={onTopUp}>
-          Top Up
-        </Button>
+        {onTopUp ? (
+          <Button className="w-full rounded-full mt-4" onClick={onTopUp}>
+            Top Up
+          </Button>
+        ) : (
+          <div className="mt-4 rounded-xl border border-border px-3 py-2 text-xs text-muted-foreground">
+            Checkout Is Not Connected Yet — Contact Support To Add Credits.
+          </div>
+        )}
       </CardContent>
     </Card>
   );
