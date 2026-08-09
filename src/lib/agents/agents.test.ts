@@ -4,6 +4,7 @@ import { fitSignalWeights, MIN_SAMPLES } from "./scorer.shared";
 import { DEFAULT_SIGNAL_WEIGHTS, type SignalKey } from "./scout.shared";
 import { AgentGuardrailError, assertAgentMayWrite, assertModeAllowed, assertProposalAllowed } from "./guardrails";
 import { ineligibleReason, nominateLeads, scoreLead, type ScoutLead } from "./scout.shared";
+import { draftCoachEdits, type CoachConversation } from "./coach.shared";
 
 const msg = (direction: string, body: string, extra: Record<string, unknown> = {}) => ({
   direction,
