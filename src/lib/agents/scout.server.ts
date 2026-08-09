@@ -8,6 +8,7 @@
  * be the place a compliance mistake originates.
  */
 import { nominateLeads, normaliseWeights, SCOUT_VERSION, type ScoutLead } from "./scout.shared";
+import { groupContacts, normalisePhone10, type ContactLine } from "@/lib/contact-lines.shared";
 import { writeProposal } from "./store.server";
 import type { AgentRow, RunOutcome } from "./store.server";
 
@@ -32,7 +33,7 @@ export async function runLeadScout(agent: AgentRow): Promise<RunOutcome> {
       db
         .from("lead_records")
         .select(
-          "id, full_name, address, city, state, phone, phone_type, disposition, record_types, source_types, list_count, first_seen_at, last_seen_at",
+          "id, full_name, address, city, state, zip, email, phone, phone_type, disposition, record_types, source_types, list_count, first_seen_at, last_seen_at",
         )
         .eq("workspace_id", workspaceId)
         .limit(LEAD_SCAN_LIMIT),
@@ -97,6 +98,32 @@ export async function runLeadScout(agent: AgentRow): Promise<RunOutcome> {
 
   const now = Date.now();
   const rows = leads as Array<Record<string, unknown>>;
+
+  // P5.8.7 — group the book into contacts first. One person held under two
+  // record types is one person: their opt-out covers both lines, their touches
+  // are counted together, and only their best line gets nominated.
+  const contactLines: ContactLine[] = rows.map((r) => ({
+    id: String(r["id"]),
+    phone: (r["phone"] as string | null) ?? null,
+    fullName: (r["full_name"] as string | null) ?? null,
+    address: (r["address"] as string | null) ?? null,
+    zip: (r["zip"] as string | null) ?? null,
+    email: (r["email"] as string | null) ?? null,
+  }));
+  const contactKeyByLead = groupContacts(contactLines);
+  const linesPerContact = new Map<string, number>();
+  const touchesPerContact = new Map<string, number>();
+  const optedOutContacts = new Set<string>();
+  for (const r of rows) {
+    const id = String(r["id"]);
+    const key = contactKeyByLead.get(id) ?? `line:${id}`;
+    linesPerContact.set(key, (linesPerContact.get(key) ?? 0) + 1);
+    const touch = touchByLead.get(id);
+    touchesPerContact.set(key, (touchesPerContact.get(key) ?? 0) + (touch?.touches ?? 0));
+    const norm = normalisePhone10((r["phone"] as string | null) ?? null);
+    if (touch?.optedOut || (norm && suppressedPhones.has(norm))) optedOutContacts.add(key);
+  }
+
   const byId = new Map<string, Record<string, unknown>>();
   const candidates: ScoutLead[] = [];
   let suppressedCount = 0;
@@ -105,8 +132,8 @@ export async function runLeadScout(agent: AgentRow): Promise<RunOutcome> {
     const id = String(r["id"]);
     const phone = (r["phone"] as string | null) ?? null;
     const touch = touchByLead.get(id);
-    const norm = normalisePhone(phone);
-    if (touch?.optedOut || (norm && suppressedPhones.has(norm))) {
+    const contactKey = contactKeyByLead.get(id) ?? `line:${id}`;
+    if (optedOutContacts.has(contactKey)) {
       suppressedCount += 1;
       continue;
     }
@@ -134,6 +161,10 @@ export async function runLeadScout(agent: AgentRow): Promise<RunOutcome> {
       sequenceStatus: seqRow?.status ?? null,
       anchorDaysRemaining:
         anchor !== null && !Number.isNaN(anchor) ? Math.ceil((anchor - now) / 86_400_000) : null,
+      contactKey,
+      contactLines: linesPerContact.get(contactKey) ?? 1,
+      contactTouches: touchesPerContact.get(contactKey) ?? 0,
+      contactOptedOut: optedOutContacts.has(contactKey),
     });
   }
 
