@@ -185,15 +185,24 @@ export function GettingStarted({ workspaceId }: { workspaceId: string | null }) 
 
               <ol className="mt-3 divide-y divide-border">
                 {steps.filter((s) => !s.done).map((s) => (
-                  <li key={s.key} className="flex items-center gap-4 py-3">
-                    <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground">
-                      {s.icon}
+                  <li key={s.key} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:gap-4">
+                    {/* Phone widths can't fit icon + copy + button in one row without
+                        squeezing the text to a few words per line, so stack there. */}
+                    <div className="flex min-w-0 items-start gap-3 sm:flex-1 sm:items-center sm:gap-4">
+                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground">
+                        {s.icon}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium text-foreground">{s.title}</div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">{s.body}</div>
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium text-foreground">{s.title}</div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">{s.body}</div>
-                    </div>
-                    <Button asChild size="sm" variant={s.key === next?.key ? "default" : "outline"} className="rounded-full shrink-0">
+                    <Button
+                      asChild
+                      size="sm"
+                      variant={s.key === next?.key ? "default" : "outline"}
+                      className="w-full rounded-full sm:w-auto sm:shrink-0"
+                    >
                       <Link to={s.to}>{s.cta}</Link>
                     </Button>
                   </li>
@@ -288,22 +297,24 @@ export function FirstRunSetup({ workspaceId }: { workspaceId: string | null }) {
 
         <ul className="mt-3 space-y-2">
           {items.map((i) => (
-            <li key={i.key} className="flex items-center gap-3">
-              <div
+            <li key={i.key} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <div className="flex min-w-0 items-start gap-3 sm:flex-1 sm:items-center">
+                <div
                 className={`grid h-7 w-7 shrink-0 place-items-center rounded-full ${
                   i.done ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
                 }`}
-              >
-                {i.done ? <Check className="h-4 w-4" /> : i.icon}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className={`text-sm font-medium ${i.done ? "text-muted-foreground line-through" : "text-foreground"}`}>
-                  {i.title}
+                >
+                  {i.done ? <Check className="h-4 w-4" /> : i.icon}
                 </div>
-                {!i.done && <div className="text-xs text-muted-foreground">{i.body}</div>}
+                <div className="min-w-0 flex-1">
+                  <div className={`text-sm font-medium ${i.done ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                    {i.title}
+                  </div>
+                  {!i.done && <div className="text-xs text-muted-foreground">{i.body}</div>}
+                </div>
               </div>
               {!i.done && (
-                <Button asChild size="sm" variant="outline" className="rounded-full shrink-0">
+                <Button asChild size="sm" variant="outline" className="w-full rounded-full sm:w-auto sm:shrink-0">
                   <Link to={i.to}>Set Up</Link>
                 </Button>
               )}
