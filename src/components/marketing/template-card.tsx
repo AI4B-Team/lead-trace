@@ -100,11 +100,11 @@ export function TemplateCard({
         iconClassName={large ? "h-6 w-6" : undefined}
         imgClassName={large ? "h-8 w-8" : undefined}
       />
-      <span className="min-w-0">
-        <span className="flex items-center gap-2">
+      <span className="min-w-0 flex-1">
+        <span className="flex min-w-0 items-center gap-2">
           <TemplateHealthDot status={health} />
           <span
-            className={`font-display font-bold text-foreground truncate ${compact ? "text-sm" : large ? "text-lg" : ""}`}
+            className={`min-w-0 font-display font-bold text-foreground truncate ${compact ? "text-sm" : large ? "text-lg" : ""}`}
           >
             {title}
           </span>
