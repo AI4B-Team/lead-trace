@@ -85,9 +85,10 @@ function JobDetail() {
   const { plan: planContext } = usePlanContext();
   const smsRate = planFor(planContext.plan).smsPerSegment;
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error: reviewError } = useQuery({
     queryKey: ["job-review", jobId],
     queryFn: () => fetchReview({ data: { jobId, timeZone: LOCAL_TZ } }),
+    retry: false,
     refetchInterval: (q) => {
       const s = q.state.data?.job?.status;
       return s && s !== "ready" && s !== "failed" && s !== "paused" ? 2000 : false;
@@ -99,6 +100,29 @@ function JobDetail() {
     queryFn: () => fetchEvents({ data: { jobId } }),
     refetchInterval: (q) => (data?.job?.status === "ready" || data?.job?.status === "failed" ? false : 2000),
   });
+
+  if (isError || (!isLoading && !data)) {
+    const msg = reviewError instanceof Error ? reviewError.message : "";
+    return (
+      <Card className="max-w-lg">
+        <CardHeader>
+          <CardTitle className="font-display">
+            {/List Not Found/i.test(msg) ? "This List Isn't Available" : "Could Not Load This List"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
+          <p>
+            {/List Not Found/i.test(msg)
+              ? "It may have been deleted, or it belongs to a different workspace than the one you have open."
+              : "Something went wrong loading this pipeline. Try again in a moment."}
+          </p>
+          <Button asChild size="sm" variant="outline" className="rounded-full">
+            <Link to="/app/lists">Back To Lists</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading || !data) {
     return <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading Pipeline…</div>;
