@@ -1,7 +1,10 @@
 import { DncUnavailableError, type DncScrubber, type ScrubResult, type ScrubStatus } from "./index";
+import { isRpvConfigured, rpvScrub } from "./rpv";
 
-// DNC + litigator scrubber abstraction. Uses a RealPhoneValidation or
-// Blacklist Alliance style HTTP API when DNC_API_URL + DNC_API_KEY are set.
+// DNC + litigator scrubber abstraction. Two providers, in priority order:
+//   1. RealPhoneValidation (native adapter) when RPV_API_TOKEN is set.
+//   2. A generic POST { phones } → { results } endpoint when DNC_API_URL +
+//      DNC_API_KEY are set (works with a thin proxy in front of any vendor).
 //
 // FAIL-CLOSED CONTRACT: if no provider is configured, or the provider errors,
 // this module THROWS. It never invents a clean/dnc split, and there is no
@@ -41,23 +44,26 @@ async function httpScrub(url: string, apiKey: string, phones: string[]): Promise
 
 export function getDncScrubber(): DncScrubber {
   return {
-    key: "dnc.http",
+    key: isRpvConfigured() ? "dnc.rpv" : "dnc.http",
     isConfigured() {
-      return Boolean(process.env.DNC_API_URL && process.env.DNC_API_KEY);
+      return isRpvConfigured() || Boolean(process.env.DNC_API_URL && process.env.DNC_API_KEY);
     },
     async scrub(phones) {
       const url = process.env.DNC_API_URL;
       const apiKey = process.env.DNC_API_KEY;
       if (phones.length === 0) {
         return {
-          provider: url ? new URL(url).hostname : "none",
+          provider: isRpvConfigured() ? "realphonevalidation" : url ? new URL(url).hostname : "none",
           results: [],
           proof: { count: 0, scrubbed_at: new Date().toISOString() },
         };
       }
+      if (isRpvConfigured()) {
+        return rpvScrub(phones);
+      }
       if (!url || !apiKey) {
         throw new DncUnavailableError(
-          "DNC and litigator scrubbing is not configured. Add DNC_API_URL and DNC_API_KEY before any list is scrubbed or sent.",
+          "DNC and litigator scrubbing is not configured. Add RPV_API_TOKEN (RealPhoneValidation) before any list is scrubbed or sent.",
         );
       }
       try {
