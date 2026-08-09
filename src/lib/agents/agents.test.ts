@@ -152,7 +152,10 @@ describe("agent guardrails (rules)", () => {
 
   it("never lets the Coach go active", () => {
     expect(() => assertModeAllowed("coach", "active")).toThrow();
-    expect(() => assertModeAllowed("lead_scout", "active")).not.toThrow();
+    // No agent is active-capable today, so 'active' is refused everywhere
+    // rather than being a switch that silently changes nothing.
+    expect(() => assertModeAllowed("lead_scout", "active")).toThrow();
+    expect(() => assertModeAllowed("lead_scout", "flag_only")).not.toThrow();
   });
 });
 
