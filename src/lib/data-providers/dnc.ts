@@ -1,9 +1,10 @@
 import { DncUnavailableError, type DncScrubber, type ScrubResult, type ScrubStatus } from "./index";
 import { isRpvConfigured, rpvScrub } from "./rpv";
 
-// DNC + litigator scrubber abstraction. Two providers, in priority order:
+// DNC + litigator scrubber abstraction. Three providers, in priority order:
 //   1. RealPhoneValidation (native adapter) when RPV_API_TOKEN is set.
-//   2. A generic POST { phones } → { results } endpoint when DNC_API_URL +
+//   2. Blacklist Alliance (native adapter) when BLACKLIST_ALLIANCE_API_KEY is set.
+//   3. A generic POST { phones } → { results } endpoint when DNC_API_URL +
 //      DNC_API_KEY are set (works with a thin proxy in front of any vendor).
 //
 // FAIL-CLOSED CONTRACT: if no provider is configured, or the provider errors,
