@@ -194,8 +194,10 @@ function ListMembershipCell({ leadId, count }: { leadId: string; count: number }
 
 function LeadsPageInner() {
   const { workspaceId } = useWorkspaceId();
+  const team = useTeamContext();
   const { onlyNew: onlyNewParam } = Route.useSearch();
   const fetchRecords = useServerFn(listLeadRecords);
+  const fetchExport = useServerFn(exportLeadRecords);
 
   const [q, setQ] = useState("");
   const [disposition, setDisposition] = useState<"all" | "clean" | "dnc" | "litigator">("all");
@@ -205,6 +207,7 @@ function LeadsPageInner() {
   const [onlyNew, setOnlyNew] = useState<boolean>(onlyNewParam === true);
   const [multiList, setMultiList] = useState(false);
   const [openLeadId, setOpenLeadId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["lead-records", workspaceId, q, disposition, sourceType, channel, lineType, onlyNew, multiList],
@@ -223,6 +226,36 @@ function LeadsPageInner() {
       }),
     enabled: !!workspaceId,
   });
+
+  // The download always mirrors the filters on screen, so what the operator
+  // sees is exactly what lands in the file. Routed through guardedExport so
+  // every row leaving the workspace is attributed, capped and watermarked.
+  const filters = { disposition, sourceType, channel, lineType: channel === "phone" ? lineType : "all" as const, onlyNew, multiList };
+  const onExport = async (format: ExportFormat) => {
+    if (!workspaceId) return;
+    if (!team.can("export_list")) {
+      return toast.error("Export Blocked", { description: denialMessage(team.role, "export_list") });
+    }
+    setExporting(true);
+    try {
+      const res = await fetchExport({
+        data: { workspaceId, ...filters, ...(q.trim() ? { search: q.trim() } : {}) },
+      });
+      const scope = disposition === "all" ? "Leads Library" : `Leads Library · ${disposition.toUpperCase()}`;
+      await guardedExport({
+        workspaceId,
+        rows: res.rows as Array<Record<string, unknown>>,
+        format,
+        scope,
+        fileName: (ext) => brandedFileName("Leads Library", "All Leads", ext),
+        sheetName: "Leads",
+      });
+    } catch (e) {
+      toast.error("Export Failed", { description: e instanceof Error ? e.message : "Could Not Build The File." });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const stats = data?.stats;
   const rows = data?.rows ?? [];
@@ -244,6 +277,21 @@ function LeadsPageInner() {
       <PageHeader
         title="Leads"
         description="Every Record You Own, De-Duplicated Across Every List."
+        actions={
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="rounded-full" disabled={exporting || rows.length === 0}>
+                {exporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => void onExport("csv")}>Download CSV</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => void onExport("xlsx")}>Download Excel</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => void onExport("both")}>Download Both</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        }
       />
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
