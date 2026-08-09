@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { toast } from "sonner";
 import {
@@ -22,6 +23,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { SettingsShell } from "@/components/app/settings-shell";
 import { TwoFactorCard } from "@/components/app/two-factor-card";
+import { removeAvatar, uploadAvatar } from "@/lib/avatar";
+import { useAvatarUrl } from "@/hooks/use-avatar-url";
 import {
   NotificationPrefs,
   normalizePrefs,
@@ -59,6 +62,16 @@ function AccountPage() {
   }, [user]);
 
   const saveProfile = async () => {
+    setSavingProfile(true);
+    const { error } = await supabase.auth.updateUser({
+      data: { full_name: fullName, phone },
+    });
+    setSavingProfile(false);
+    if (error) return toast.error(error.message);
+    toast.success("Profile Saved");
+  };
+
+  const legacySaveProfile = async () => {
     setSavingProfile(true);
     const { error } = await supabase.auth.updateUser({
       data: { full_name: fullName, phone },
