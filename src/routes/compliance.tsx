@@ -9,6 +9,8 @@ export const Route = createFileRoute("/compliance")({
       { name: "description", content: "DNC scrubbing on every list, automatic STOP handling, timestamped audit logs, quiet hours, and guided 10DLC registration. Non-bypassable." },
       { property: "og:title", content: "Compliance At LeadTrace" },
       { property: "og:description", content: "Built in. Non-bypassable. Selling point, not fine print." },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:type", content: "website" },
     ],
   }),
   component: Compliance,
