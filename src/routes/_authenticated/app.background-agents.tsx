@@ -309,7 +309,11 @@ function BackgroundAgentsPage() {
                       {agentDefinition(p.agent_key ?? "")?.name ?? p.agent_key}
                     </Badge>
                     <span className="font-semibold">
-                      {p.proposal_type === "lead_nomination" ? "Worth A Touch Today" : p.proposal_type}
+                      {p.proposal_type === "lead_nomination"
+                        ? "Worth A Touch Today"
+                        : p.proposal_type === "scorer_weights"
+                          ? "Updated Lead Weighting"
+                          : p.proposal_type}
                     </span>
                     {p.proposal_type === "lead_nomination" &&
                       typeof (p.proposed_value as { score?: number } | null)?.score === "number" && (
@@ -322,6 +326,24 @@ function BackgroundAgentsPage() {
                     )}
                   </div>
                   <p className="mt-1.5 text-sm text-muted-foreground">{p.rationale}</p>
+                  {p.proposal_type === "scorer_weights" &&
+                    Array.isArray((p.proposed_value as { changes?: unknown } | null)?.changes) && (
+                      <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                        {(
+                          (p.proposed_value as {
+                            changes: Array<{ label: string; from: number; to: number; samples: number }>;
+                          }).changes
+                        ).map((c) => (
+                          <li key={c.label} className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium text-foreground">{c.label}</span>
+                            <span>
+                              {c.from} → {c.to}
+                            </span>
+                            <span>from {c.samples} conversations</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   <div className="mt-2 flex gap-2">
                     <Button
                       size="sm"

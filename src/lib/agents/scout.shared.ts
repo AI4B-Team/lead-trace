@@ -41,7 +41,85 @@ export type Nomination = {
   leadId: string;
   score: number;
   reasons: string[];
+  /** Named signals that fired, so the Scorer can learn from real outcomes. */
+  signals: SignalKey[];
 };
+
+/**
+ * Every point a lead earns is attributable to one named signal. The Hot-Lead
+ * Scorer refits these weights against what this workspace has actually
+ * converted; the defaults are what a new workspace starts from.
+ */
+export const SIGNAL_KEYS = [
+  "anchor_imminent",
+  "anchor_soon",
+  "anchor_dated",
+  "never_touched",
+  "lightly_touched",
+  "heavily_touched",
+  "gone_cold",
+  "quiet_unrevisited",
+  "price_question",
+  "objection_open",
+  "unresolved",
+  "multi_record_type",
+  "multi_source",
+  "multi_list",
+  "mobile_verified",
+  "freshly_added",
+] as const;
+
+export type SignalKey = (typeof SIGNAL_KEYS)[number];
+export type SignalWeights = Record<SignalKey, number>;
+
+export const DEFAULT_SIGNAL_WEIGHTS: SignalWeights = {
+  anchor_imminent: 30,
+  anchor_soon: 18,
+  anchor_dated: 6,
+  never_touched: 22,
+  lightly_touched: 10,
+  heavily_touched: -12,
+  gone_cold: 14,
+  quiet_unrevisited: 12,
+  price_question: 16,
+  objection_open: 8,
+  unresolved: 4,
+  multi_record_type: 10,
+  multi_source: 6,
+  multi_list: 4,
+  mobile_verified: 6,
+  freshly_added: 5,
+};
+
+export const SIGNAL_LABEL: Record<SignalKey, string> = {
+  anchor_imminent: "Key Date Within Two Weeks",
+  anchor_soon: "Key Date Within Six Weeks",
+  anchor_dated: "Has A Dated Event",
+  never_touched: "Never Contacted",
+  lightly_touched: "Barely Touched",
+  heavily_touched: "Heavily Worked",
+  gone_cold: "Gone Cold",
+  quiet_unrevisited: "Went Quiet, Never Revisited",
+  price_question: "Ended On A Price Question",
+  objection_open: "Objection Left Unanswered",
+  unresolved: "Prior Thread Unresolved",
+  multi_record_type: "Multiple Record Types",
+  multi_source: "Confirmed By Multiple Sources",
+  multi_list: "Seen On Several Lists",
+  mobile_verified: "Verified Mobile Number",
+  freshly_added: "Added This Week",
+};
+
+/** Fills any missing key from the defaults so a partial saved fit is safe. */
+export function normaliseWeights(input: unknown): SignalWeights {
+  const raw = (input ?? {}) as Record<string, unknown>;
+  const out = { ...DEFAULT_SIGNAL_WEIGHTS };
+  for (const key of SIGNAL_KEYS) {
+    const v = Number(raw[key]);
+    if (Number.isFinite(v)) out[key] = v;
+  }
+  return out;
+}
 
 /** Outcomes that mean "do not nominate this lead again", ever. */
 const TERMINAL_OUTCOMES = new Set(["opted_out", "wrong_number", "not_owner", "hostile", "converted"]);
@@ -76,83 +154,77 @@ export function ineligibleReason(lead: ScoutLead, now = Date.now()): string | nu
  * Scores one lead. Deliberately additive and small-integer so the arithmetic is
  * legible in the UI next to the reasons.
  */
-export function scoreLead(lead: ScoutLead, now = Date.now()): Nomination {
+export function scoreLead(
+  lead: ScoutLead,
+  now = Date.now(),
+  weights: SignalWeights = DEFAULT_SIGNAL_WEIGHTS,
+): Nomination {
   const reasons: string[] = [];
+  const signals: SignalKey[] = [];
   let score = 0;
+  const add = (key: SignalKey, reason: string) => {
+    score += weights[key];
+    signals.push(key);
+    reasons.push(reason);
+  };
 
   const anchor = lead.anchorDaysRemaining;
   if (anchor !== null && anchor >= 0) {
     if (anchor <= 14) {
-      score += 30;
-      reasons.push(`Key date is ${anchor} day${anchor === 1 ? "" : "s"} away`);
+      add("anchor_imminent", `Key date is ${anchor} day${anchor === 1 ? "" : "s"} away`);
     } else if (anchor <= 45) {
-      score += 18;
-      reasons.push(`Key date is ${anchor} days away`);
+      add("anchor_soon", `Key date is ${anchor} days away`);
     } else {
-      score += 6;
-      reasons.push("Has a dated event on file");
+      add("anchor_dated", "Has a dated event on file");
     }
   }
 
   if (lead.touches === 0) {
-    score += 22;
-    reasons.push("Never been contacted");
+    add("never_touched", "Never been contacted");
   } else if (lead.touches <= 2) {
-    score += 10;
-    reasons.push(`Only ${lead.touches} touch${lead.touches === 1 ? "" : "es"} so far`);
+    add("lightly_touched", `Only ${lead.touches} touch${lead.touches === 1 ? "" : "es"} so far`);
   } else if (lead.touches >= 6) {
-    score -= 12;
-    reasons.push(`${lead.touches} touches already — worked hard`);
+    add("heavily_touched", `${lead.touches} touches already — worked hard`);
   }
 
   const sinceTouch = daysSince(lead.lastTouchedAt, now);
   if (lead.touches > 0 && sinceTouch !== null && sinceTouch >= 30) {
-    score += 14;
-    reasons.push(`Gone cold for ${sinceTouch} days`);
+    add("gone_cold", `Gone cold for ${sinceTouch} days`);
   }
 
   if (lead.lastOutcome === "went_quiet" && sinceTouch !== null && sinceTouch >= 21) {
-    score += 12;
-    reasons.push("Went quiet a while back and was never revisited");
+    add("quiet_unrevisited", "Went quiet a while back and was never revisited");
   }
   if (lead.lastOutcome === "price_question") {
-    score += 16;
-    reasons.push("Last conversation ended on a price question");
+    add("price_question", "Last conversation ended on a price question");
   }
   if (lead.lastOutcome === "objection_raised") {
-    score += 8;
-    reasons.push("Raised an objection that was never answered");
+    add("objection_open", "Raised an objection that was never answered");
   }
   if (lead.lastOutcome === "unclear") {
-    score += 4;
-    reasons.push("Prior thread was never resolved either way");
+    add("unresolved", "Prior thread was never resolved either way");
   }
 
   if (lead.recordTypes.length > 1) {
-    score += 10;
-    reasons.push(`Appears under ${lead.recordTypes.length} record types`);
+    add("multi_record_type", `Appears under ${lead.recordTypes.length} record types`);
   }
   if (lead.sourceTypes.length > 1) {
-    score += 6;
-    reasons.push(`Confirmed by ${lead.sourceTypes.length} sources`);
+    add("multi_source", `Confirmed by ${lead.sourceTypes.length} sources`);
   }
   if (lead.listCount > 2) {
-    score += 4;
-    reasons.push(`Showed up on ${lead.listCount} lists`);
+    add("multi_list", `Showed up on ${lead.listCount} lists`);
   }
   if (lead.phoneType && ["mobile", "wireless"].includes(lead.phoneType.toLowerCase())) {
-    score += 6;
-    reasons.push("Verified mobile number");
+    add("mobile_verified", "Verified mobile number");
   }
 
   const age = daysSince(lead.firstSeenAt, now);
   if (age !== null && age <= 7) {
-    score += 5;
-    reasons.push("Added within the last week");
+    add("freshly_added", "Added within the last week");
   }
 
   if (reasons.length === 0) reasons.push("Untouched and unworked, nothing against it");
-  return { leadId: lead.id, score, reasons };
+  return { leadId: lead.id, score: Math.round(score), reasons, signals };
 }
 
 /** Ranks eligible leads and returns the top `limit`, highest score first. */
@@ -160,6 +232,7 @@ export function nominateLeads(
   leads: ScoutLead[],
   limit: number,
   now = Date.now(),
+  weights: SignalWeights = DEFAULT_SIGNAL_WEIGHTS,
 ): { nominations: Nomination[]; skipped: Record<string, number> } {
   const skipped: Record<string, number> = {};
   const scored: Nomination[] = [];
@@ -169,7 +242,7 @@ export function nominateLeads(
       skipped[reason] = (skipped[reason] ?? 0) + 1;
       continue;
     }
-    scored.push(scoreLead(lead, now));
+    scored.push(scoreLead(lead, now, weights));
   }
   scored.sort((a, b) => b.score - a.score || a.leadId.localeCompare(b.leadId));
   return { nominations: scored.slice(0, limit), skipped };
