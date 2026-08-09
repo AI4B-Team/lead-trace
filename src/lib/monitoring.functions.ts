@@ -363,6 +363,13 @@ export const saveWebhook = createServerFn({ method: "POST" })
         workspaceId: z.string().uuid(),
         url: z.string().url(),
         eventTypes: z.array(z.string().max(60)).default([]),
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        workspaceId: z.string().uuid(),
+        url: z.string().url(),
+        eventTypes: z.array(z.string().max(60)).default([]),
       })
       .parse(input),
   )
