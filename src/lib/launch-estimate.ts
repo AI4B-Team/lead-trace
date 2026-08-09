@@ -3,6 +3,11 @@
  * actually reach and cost. Rates follow the pricing model (flat SMS per
  * segment, never multiplied by tier).
  */
+/**
+ * Fallback per-segment rate (the Free/Starter price). Paid tiers send their
+ * own plan rate in, so a Growth or Scale workspace is never quoted the
+ * entry-level price it does not pay.
+ */
 export const SMS_RATE_PER_SEGMENT = 0.012;
 
 /** Default drip sequence length used for the pre-launch estimate. */
@@ -31,6 +36,8 @@ export type LaunchEstimate = {
   segmentsPerMessage: number;
   /** True when no real templates existed and we assumed 1 segment/message. */
   assumed: boolean;
+  /** Per-segment rate used for this quote. */
+  ratePerSegment: number;
 };
 
 /**
@@ -40,8 +47,9 @@ export type LaunchEstimate = {
  */
 export function launchEstimate(
   cleanLeads: number,
-  opts?: { steps?: number; templates?: string[] },
+  opts?: { steps?: number; templates?: string[]; ratePerSegment?: number },
 ): LaunchEstimate {
+  const rate = opts?.ratePerSegment ?? SMS_RATE_PER_SEGMENT;
   const reach = Math.max(0, Math.round(cleanLeads));
   const templates = (opts?.templates ?? []).filter((t) => typeof t === "string" && t.trim().length > 0);
   const steps = templates.length > 0 ? templates.length : (opts?.steps ?? DEFAULT_SEQUENCE_STEPS);
@@ -54,9 +62,10 @@ export function launchEstimate(
     steps,
     messages,
     segments,
-    cost: segments * SMS_RATE_PER_SEGMENT,
+    cost: segments * rate,
     segmentsPerMessage: steps > 0 ? segmentsPerSequence / steps : 1,
     assumed: templates.length === 0,
+    ratePerSegment: rate,
   };
 }
 
