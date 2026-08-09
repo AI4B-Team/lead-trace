@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useWorkspaceId } from "@/hooks/use-workspace";
+import { useSuperAdminGate } from "@/components/app/admin-shared";
 import { getBilling, topUpCredits, setRefundEmailThreshold } from "@/lib/billing.functions";
 import {
   annualMonthly,
@@ -50,6 +51,10 @@ function Billing() {
   const [topUpKind, setTopUpKind] = useState<CreditKind | null>(null);
   const saveThreshold = useServerFn(setRefundEmailThreshold);
   const [threshold, setThreshold] = useState<string>("");
+  // Credits can only be granted by platform staff until checkout is live, so
+  // customers see a support note instead of a button that would 403.
+  const adminGate = useSuperAdminGate();
+  const canGrantCredits = !!adminGate.data?.isSuperAdmin;
 
   const { data } = useQuery({
     queryKey: ["billing", workspaceId],
@@ -199,7 +204,7 @@ function Billing() {
             label={CREDIT_PACKS[k].label}
             balance={data?.balances[k] ?? 0}
             rate={`${formatUsd(CREDIT_PACKS[k].pricePerThousand)} / 1,000 ${CREDIT_PACKS[k].unit}`}
-            onTopUp={() => setTopUpKind(k)}
+            onTopUp={canGrantCredits ? () => setTopUpKind(k) : null}
           />
         ))}
       </div>
@@ -358,7 +363,7 @@ function CreditCard({
   label: string;
   balance: number;
   rate: string;
-  onTopUp: () => void;
+  onTopUp: (() => void) | null;
 }) {
   return (
     <Card>
@@ -366,9 +371,15 @@ function CreditCard({
         <div className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">{label}</div>
         <div className="mt-2 font-display text-3xl font-black text-foreground">{balance.toLocaleString()}</div>
         <div className="text-xs text-muted-foreground mt-1">{rate}</div>
-        <Button className="w-full rounded-full mt-4" onClick={onTopUp}>
-          Top Up
-        </Button>
+        {onTopUp ? (
+          <Button className="w-full rounded-full mt-4" onClick={onTopUp}>
+            Top Up
+          </Button>
+        ) : (
+          <div className="mt-4 rounded-xl border border-border px-3 py-2 text-xs text-muted-foreground">
+            Checkout Is Not Connected Yet — Contact Support To Add Credits.
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -504,7 +515,8 @@ function TopUpDialog({
             <span className="font-display text-lg font-bold">{formatUsd(price)}</span>
           </div>
           <div className="text-xs text-muted-foreground">
-            Demo mode: credits are added instantly. Real billing wires to your payment provider.
+            Platform grant: credits are added instantly and recorded in the ledger. Customer
+            self-serve top-ups unlock when checkout goes live.
           </div>
         </div>
         <DialogFooter>
