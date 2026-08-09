@@ -4,7 +4,6 @@ import { AppSidebar } from "@/components/app/app-sidebar";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
-import { WorkspaceSwitcher } from "@/components/app/workspace-switcher";
 import { ProfileDropdown } from "@/components/app/profile-dropdown";
 import { NotificationBell } from "@/components/app/notification-bell";
 import { ActivityPanel } from "@/components/app/activity-panel";
