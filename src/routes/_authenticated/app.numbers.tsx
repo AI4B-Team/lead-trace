@@ -80,6 +80,8 @@ function Numbers() {
   }
 
   const numbers = data.rows;
+  const allowance = data.allowance;
+  const planBlocksNumbers = allowance ? !allowance.canBuy : false;
   const unforwarded = numbers.filter((n) => !n.forward_calls_to).length;
   const active = numbers.filter((n) => n.status === "active").length;
   const avg = numbers.length
@@ -131,8 +133,14 @@ function Numbers() {
             <DialogTrigger asChild>
               <Button
                 className="rounded-full"
-                disabled={!canBuy}
-                title={canBuy ? undefined : "Only Admins Can Purchase Numbers"}
+                disabled={!canBuy || planBlocksNumbers}
+                title={
+                  planBlocksNumbers
+                    ? `The ${allowance?.planName} Plan Does Not Include Sending Numbers`
+                    : canBuy
+                      ? undefined
+                      : "Only Admins Can Purchase Numbers"
+                }
               >
                 <Plus className="mr-1 h-4 w-4" /> Buy Numbers
               </Button>
@@ -140,6 +148,15 @@ function Numbers() {
             <DialogContent>
               <DialogHeader><DialogTitle>Buy Numbers Into A Region</DialogTitle></DialogHeader>
               <div className="space-y-4">
+                {allowance && (
+                  <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                    {allowance.owned} Of {allowance.included} Included On {allowance.planName}.
+                    {" "}
+                    {allowance.owned >= allowance.included
+                      ? "Additional Numbers Bill At $1.50/Mo Each."
+                      : `${allowance.included - allowance.owned} Left Before Extras Bill At $1.50/Mo Each.`}
+                  </p>
+                )}
                 <div>
                   <Label>Region</Label>
                   <Select value={region} onValueChange={(v) => setRegion(v as Region)}>
@@ -199,7 +216,17 @@ function Numbers() {
       )}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatTile label="Total Numbers" value={numbers.length} hint="In This Workspace" />
+        <StatTile
+          label="Total Numbers"
+          value={allowance ? `${numbers.length} / ${allowance.included}` : numbers.length}
+          hint={
+            allowance
+              ? allowance.extras > 0
+                ? `${allowance.extras} Extra · $${allowance.extraMonthly.toFixed(2)}/Mo`
+                : `Included On ${allowance.planName}`
+              : "In This Workspace"
+          }
+        />
         <StatTile label="Active" value={active} hint="Eligible To Send" />
         <StatTile label="Rotating" value={rotating} hint="In Live Campaigns" />
         <StatTile
