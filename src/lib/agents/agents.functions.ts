@@ -3,6 +3,84 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /** Agent status, recent runs, pending proposals and the outcome summary. */
+
+/**
+ * The daily brief's "Waiting On You": pending proposals only. Deliberately
+ * light — the dashboard should not pay for the run log or reviewer lookups.
+ */
+export const getPendingProposals = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ workspaceId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { isWorkspaceMember } = await import("@/lib/access-checks");
+    if (!(await isWorkspaceMember(context.supabase, data.workspaceId, context.userId))) {
+      throw new Error("Forbidden");
+    }
+    const { data: rows, error } = await context.supabase
+      .from("agent_proposals")
+      .select("id, agent_key, proposal_type, target_field, rationale, proposed_value, created_at")
+      .eq("workspace_id", data.workspaceId)
+      .eq("status", "pending")
+      .neq("proposal_type", "lead_nomination")
+      .order("created_at", { ascending: false })
+      .limit(10);
+    if (error) throw new Error(error.message);
+    return { proposals: rows ?? [] };
+  });
+
+/**
+ * Conversation insight for the Performance page, segmented by record type. A
+ * workspace running Distress Feed and Google Maps is running two businesses.
+ */
+export const getConversationInsight = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ workspaceId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { isWorkspaceMember } = await import("@/lib/access-checks");
+    if (!(await isWorkspaceMember(context.supabase, data.workspaceId, context.userId))) {
+      throw new Error("Forbidden");
+    }
+    const { data: rows, error } = await context.supabase
+      .from("conversation_outcomes")
+      .select(
+        "outcome, objection_category, sentiment, touches_before_outcome, flagged, labeled_at, record_type, bot_profile_id",
+      )
+      .eq("workspace_id", data.workspaceId)
+      .is("superseded_at", null)
+      .order("labeled_at", { ascending: false })
+      .limit(2000);
+    if (error) throw new Error(error.message);
+    return { outcomes: rows ?? [] };
+  });
+
+/** Full run log across every workspace. Platform admin debug surface. */
+export const getPlatformAgentRuns = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { isSuperAdmin } = await import("@/lib/access-checks");
+    if (!(await isSuperAdmin(context.supabase, context.userId))) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: runs, error } = await supabaseAdmin
+      .from("agent_runs")
+      .select(
+        "id, workspace_id, agent_key, started_at, finished_at, status, items_examined, items_actioned, items_flagged, summary, error",
+      )
+      .order("started_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    const ids = Array.from(
+      new Set(((runs ?? []) as Array<{ workspace_id: string | null }>).map((r) => r.workspace_id).filter(Boolean)),
+    ) as string[];
+    const { data: wss } = ids.length
+      ? await supabaseAdmin.from("workspaces").select("id, name").in("id", ids)
+      : { data: [] };
+    const names: Record<string, string> = {};
+    for (const w of (wss ?? []) as Array<{ id: string; name: string | null }>) {
+      names[w.id] = w.name ?? w.id.slice(0, 8);
+    }
+    return { runs: runs ?? [], workspaces: names };
+  });
+
 export const getBackgroundAgents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ workspaceId: z.string().uuid() }).parse(input))
