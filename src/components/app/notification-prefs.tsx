@@ -77,8 +77,7 @@ export const NOTIFY_GROUPS: GroupDef[] = [
       {
         key: "complianceEvents",
         label: "Compliance Events",
-        hint: "Blacklist Additions, DNC Hits, And Quiet-Hours Blocks.",
-        soon: true,
+        hint: "Daily Digest Of DNC Hits, Blocked Sends, And Quiet-Hours Blocks.",
       },
     ],
   },
