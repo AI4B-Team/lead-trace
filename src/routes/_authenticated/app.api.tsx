@@ -1,12 +1,11 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { KeyRound, ShieldCheck, Gauge, Terminal, BookOpen, Code2, Webhook, Plug } from "lucide-react";
+import { ShieldCheck, Gauge, Terminal, BookOpen, Code2, Webhook, Plug } from "lucide-react";
 import { PageHeader } from "@/components/app/page-header";
 import { SettingsShell } from "@/components/app/settings-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { WebhookEndpoints } from "@/components/app/webhook-endpoints";
-import { ApiKeysCard } from "@/components/app/api-keys-card";
 import { WebhookDeliveries } from "@/components/app/webhook-deliveries";
 
 export const Route = createFileRoute("/_authenticated/app/api")({
@@ -36,13 +35,11 @@ function DeveloperPage() {
     <div className="mx-auto max-w-[1400px]">
       <SettingsShell current="developer">
         <PageHeader
-          title="API"
-          description="API keys, event webhooks, rate limits, and endpoint references for building on LeadTrace."
+          title="Webhooks & API Reference"
+          description="Event webhooks, rate limits, and endpoint references for building on LeadTrace. API keys live on your Account page."
         />
 
         <div className="max-w-4xl space-y-6">
-          <ApiKeysCard />
-
           <section id="webhooks" className="scroll-mt-24">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h2 className="font-display text-base font-bold text-foreground">Event Webhooks</h2>

@@ -75,7 +75,7 @@ const GROUPS: { label: string; items: NavDef[] }[] = [
     label: "Automation",
     items: [
       { key: "integrations", label: "Integrations", icon: Plug, to: "/app/integrations" },
-      { key: "developer", label: "API", icon: Code2, to: "/app/api" },
+      { key: "developer", label: "Webhooks & API", icon: Code2, to: "/app/api" },
     ],
   },
   {
