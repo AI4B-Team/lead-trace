@@ -125,8 +125,8 @@ export function LeadDetailDrawer({
     mutationFn: () => clearShortlistFn({ data: { workspaceId: workspaceId!, leadRecordId: leadRecordId! } }),
     onSuccess: () => {
       toast.success("Removed From Shortlist");
-      queryClient.invalidateQueries({ queryKey: ["lead-detail"] });
-      queryClient.invalidateQueries({ queryKey: ["lead-records"] });
+      void invalidate();
+      void qc.invalidateQueries({ queryKey: ["lead-records"] });
     },
     onError: (e) => toast.error("Could Not Update", { description: e instanceof Error ? e.message : "Try Again." }),
   });
