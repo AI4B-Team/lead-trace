@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import {
   ListChecks, Repeat, Megaphone, Rocket, PauseCircle, Wallet, Zap, Phone,
-  Thermometer, BadgeCheck, Clock, Sparkles, ShieldCheck, Activity as ActivityIcon,
+  Thermometer, BadgeCheck, Clock, Sparkles, ShieldCheck, Bot, Activity as ActivityIcon,
 } from "lucide-react";
 import { listActivity } from "@/lib/activity.functions";
 import { ACTIVITY_ICON, activityLink, type ActivityEvent } from "@/lib/activity.shared";
@@ -22,6 +22,7 @@ const ICONS: Record<string, typeof ActivityIcon> = {
   clock: Clock,
   sparkles: Sparkles,
   shield: ShieldCheck,
+  bot: Bot,
 };
 
 export function relativeTime(iso: string) {

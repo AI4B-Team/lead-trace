@@ -14,7 +14,7 @@ export const getBackgroundAgents = createServerFn({ method: "GET" })
     const { ensureAgentRows } = await import("./store.server");
     const agents = await ensureAgentRows(data.workspaceId);
     const { supabase } = context;
-    const [{ data: runs }, { data: proposals }, { data: outcomes }] = await Promise.all([
+    const [{ data: runs }, { data: proposals }, { data: outcomes }, { data: decided }] = await Promise.all([
       supabase
         .from("agent_runs")
         .select("id, agent_key, started_at, finished_at, status, items_examined, items_actioned, items_flagged, summary, error")
@@ -35,7 +35,36 @@ export const getBackgroundAgents = createServerFn({ method: "GET" })
         .is("superseded_at", null)
         .order("labeled_at", { ascending: false })
         .limit(1000),
+      // The decision trail. Six months after a complaint, this is the answer to
+      // "who approved that, and when?" — kept next to the pending queue so the
+      // record is visible without an export.
+      supabase
+        .from("agent_proposals")
+        .select(
+          "id, agent_key, proposal_type, target_field, rationale, status, reviewed_at, reviewed_by, review_note",
+        )
+        .eq("workspace_id", data.workspaceId)
+        .in("status", ["approved", "rejected"])
+        .order("reviewed_at", { ascending: false })
+        .limit(25),
     ]);
+
+    // Reviewer emails: a user id in an audit trail is not an answer.
+    const reviewerIds = Array.from(
+      new Set(
+        ((decided ?? []) as Array<{ reviewed_by: string | null }>)
+          .map((d) => d.reviewed_by)
+          .filter((v): v is string => Boolean(v)),
+      ),
+    );
+    const reviewers: Record<string, string> = {};
+    if (reviewerIds.length > 0) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      for (const uid of reviewerIds) {
+        const { data: u } = await supabaseAdmin.auth.admin.getUserById(uid);
+        reviewers[uid] = u?.user?.email ?? uid.slice(0, 8);
+      }
+    }
     return {
       agents: agents.map((a) => ({
         id: a.id,
@@ -50,6 +79,8 @@ export const getBackgroundAgents = createServerFn({ method: "GET" })
       runs: runs ?? [],
       proposals: proposals ?? [],
       outcomes: outcomes ?? [],
+      decisions: decided ?? [],
+      reviewers,
     };
   });
 
@@ -108,6 +139,13 @@ export const reviewAgentProposal = createServerFn({ method: "POST" })
       .eq("workspace_id", data.workspaceId)
       .eq("status", "pending");
     if (error) throw new Error(error.message);
+
+    const { data: reviewed } = await context.supabase
+      .from("agent_proposals")
+      .select("agent_key, proposal_type, target_field, rationale")
+      .eq("id", data.proposalId)
+      .eq("workspace_id", data.workspaceId)
+      .maybeSingle();
 
     // A weight refit is the one proposal type that has an effect on approval:
     // it writes the learned weighting onto the Scorer's own row. Everything
@@ -186,6 +224,30 @@ export const reviewAgentProposal = createServerFn({ method: "POST" })
           changeNote: data.note ?? `Approved ${row.proposal_type} on ${row.target_field}`,
         });
       }
+    }
+
+    // Every decision lands in the activity feed under the deciding member's
+    // name, whether it was an approval or a refusal. A rejected proposal is
+    // part of the record too: it says a person looked and said no.
+    {
+      const meta = (reviewed ?? {}) as {
+        agent_key?: string | null;
+        proposal_type?: string | null;
+        target_field?: string | null;
+        rationale?: string | null;
+      };
+      const { agentDefinition } = await import("./registry.shared");
+      const agentName = agentDefinition(meta.agent_key ?? "")?.name ?? meta.agent_key ?? "Agent";
+      const verb = data.decision === "approved" ? "Approved" : "Rejected";
+      const { logActivity } = await import("@/lib/activity.server");
+      await logActivity(context.supabase, data.workspaceId, {
+        type: "agent_decision",
+        summary: `${verb} ${agentName} Proposal${meta.target_field ? ` On ${meta.target_field}` : ""}`,
+        detail: data.note ?? meta.rationale ?? null,
+        refId: data.proposalId,
+        refType: "agent_proposal",
+        actorId: context.userId,
+      });
     }
     return { ok: true };
   });

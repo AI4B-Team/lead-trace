@@ -20,6 +20,8 @@ export const ACTIVITY_TYPES = [
   "cadence_set",
   "adapter_requested",
   "compliance_digest",
+  // A person's decision on something a background agent proposed.
+  "agent_decision",
   // Internal accountability (who spent, who exported, who changed access).
   // Distinct from the compliance record, which stays a single-purpose legal log.
   "list_exported",
@@ -49,6 +51,7 @@ export const ACTIVITY_GROUPS: Array<{ key: string; label: string; types: Activit
   { key: "credits", label: "Credits", types: ["credits_purchased", "credits_low"] },
   { key: "numbers", label: "Numbers", types: ["number_added", "number_cooled", "brand_status"] },
   { key: "compliance", label: "Compliance", types: ["compliance_digest"] },
+  { key: "agents", label: "Agents", types: ["agent_decision"] },
   {
     key: "team",
     label: "Team",
@@ -70,6 +73,7 @@ export const ACTIVITY_ICON: Record<string, string> = {
   cadence_set: "clock",
   adapter_requested: "sparkles",
   compliance_digest: "shield",
+  agent_decision: "bot",
   list_exported: "download",
   member_invited: "user-plus",
   member_removed: "user-minus",
