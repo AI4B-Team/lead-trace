@@ -79,6 +79,8 @@ export const getVendorStatus = createServerFn({ method: "GET" })
     const scrubber = getDncScrubber();
     const scrubConfigured = scrubber.isConfigured();
     const skipProvider = process.env.SKIPTRACE_PROVIDER ?? "realeflow-semi";
+    const { isSkipTraceProviderConfigured } = await import("./skiptrace/provider.server");
+    const skipConfigured = isSkipTraceProviderConfigured(skipProvider);
 
     const vendors: VendorStatus[] = [
       {
@@ -102,12 +104,16 @@ export const getVendorStatus = createServerFn({ method: "GET" })
       },
       {
         key: "skiptrace",
-        label: "Skip Trace",
-        configured: true,
-        detail:
-          skipProvider === "realeflow-semi"
+        label:
+          skipProvider === "batchskiptracing"
+            ? "Skip Trace — BatchSkipTracing"
+            : "Skip Trace — Semi-Trace",
+        configured: skipConfigured,
+        detail: !skipConfigured
+          ? `Not connected. "${skipProvider}" is selected but its credentials are missing, so skip trace will fail rather than guess.`
+          : skipProvider === "realeflow-semi"
             ? "Semi-trace only: confirmed owner name and mailing address. No phone vendor is connected yet."
-            : `Provider: ${skipProvider}.`,
+            : "Connected. Full skip trace returns owner name, mailing address, phones, and emails.",
       },
     ];
     return { vendors };
