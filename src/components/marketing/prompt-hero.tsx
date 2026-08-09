@@ -152,6 +152,7 @@ export function PromptHero({ selectedTemplate }: { selectedTemplate?: Template |
         >
           <textarea
             value={value}
+            aria-label="Describe The Leads You Want"
             onFocus={stopTyping}
             onChange={(e) => {
               stopTyping();
@@ -210,6 +211,7 @@ export function PromptHero({ selectedTemplate }: { selectedTemplate?: Template |
             <input
               ref={fileInputRef}
               type="file"
+              aria-label="Upload A Lead List File"
               multiple
               accept=".csv,.xlsx,.xls,.txt"
               className="hidden"
