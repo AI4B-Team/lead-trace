@@ -31,6 +31,7 @@ export const ACTIVITY_TYPES = [
   "member_limits_set",
 ] as const;
 
+
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];
 
 export type ActivityEvent = {
