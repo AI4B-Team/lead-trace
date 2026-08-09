@@ -37,3 +37,27 @@ snapshot with `change_source = agent_proposal`, the proposal id, and the
 approving user — so "what was the bot told to say on this date, and who signed it
 off?" is answerable from one query. The Coach and Wisdom Miner have no active
 mode, enforced in `assertModeAllowed`.
+
+## Wisdom Miner (P5.8.6) — proposals only, permanently
+
+Watches for human takeovers: an outbound SMS sent by a person (not the bot) in a
+thread the bot had been driving. The inbound message immediately before it is
+what they were answering. Those two lines become a candidate objection entry
+(`trigger` = the question, `approved_response` = the operator's exact words).
+
+Rules, all enforced in `wisdom.shared.ts` and unit-tested:
+- Additive only. Existing objections and FAQs are never removed or rewritten.
+- Thrown away: threads labeled `opted_out` / `hostile` / `wrong_person` /
+  `complaint`; replies answered more than 24h after the question; replies under
+  40 chars or 8 words; replies over 600 chars.
+- Thrown away as `personal_detail`: anything containing a phone number, email,
+  link, 7+ digit run, a specific dollar figure, a street address, a weekday, a
+  clock time, or a personal commitment ("I'll swing by"). A one-off reply about
+  one property is not standing wording.
+- Same question answered several times: one proposal, keeping the fullest reply,
+  with every thread key listed as evidence.
+- Duplicates suppressed against existing wording and pending proposals.
+
+Capture lands on the workspace default profile. Approval goes through the review
+queue only, which snapshots a new `bot_profile_versions` row carrying the
+proposal id and the approver — so wording on any date is reconstructable.
