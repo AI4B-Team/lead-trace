@@ -43,7 +43,7 @@ export function BotProfiles({ workspaceId }: { workspaceId: string }) {
 
   const { data, isLoading } = useQuery({
     queryKey: ["bot-profiles", workspaceId],
-    queryFn: () => list({ data: { workspaceId } }) as Promise<Row[]>,
+    queryFn: () => list({ data: { workspaceId } }) as unknown as Promise<Row[]>,
     enabled: !!workspaceId,
   });
 
