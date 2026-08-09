@@ -81,6 +81,9 @@ function JobDetail() {
   const [legacyDismissed, setLegacyDismissed] = useState(false);
   // Nobody rereads the log once the run lands — collapse it on completion.
   const [collapsedOnce, setCollapsedOnce] = useState(false);
+  // SMS is quoted at the workspace's own plan rate, not the entry-level price.
+  const { plan: planContext } = usePlanContext();
+  const smsRate = planFor(planContext.plan).smsPerSegment;
 
   const { data, isLoading } = useQuery({
     queryKey: ["job-review", jobId],
