@@ -120,13 +120,25 @@ export const logExport = createServerFn({ method: "POST" })
 
     if (verdict.outcome === "blocked") return { allowed: false as const, reason: verdict.reason };
     if (verdict.outcome === "needs_approval") {
-      await context.supabase.from("approval_requests").insert({
-        workspace_id: data.workspaceId,
-        requested_by: context.userId,
+      const summary = `Export ${data.rowCount.toLocaleString()} Rows · ${data.scope}`;
+      const { data: row } = await context.supabase
+        .from("approval_requests")
+        .insert({
+          workspace_id: data.workspaceId,
+          requested_by: context.userId,
+          kind: "export",
+          amount: data.rowCount,
+          summary,
+          detail: { scope: data.scope, refId: data.refId ?? null, fileType: data.fileType },
+        })
+        .select("id")
+        .maybeSingle();
+      const { announceApprovalRequest } = await import("./accountability.server");
+      await announceApprovalRequest(context.supabase, data.workspaceId, {
         kind: "export",
-        amount: data.rowCount,
-        summary: `Export ${data.rowCount.toLocaleString()} Rows · ${data.scope}`,
-        detail: { scope: data.scope, refId: data.refId ?? null, fileType: data.fileType },
+        summary,
+        requesterId: context.userId,
+        requestId: row?.id ?? null,
       });
       return { allowed: false as const, reason: verdict.reason, pendingApproval: true as const };
     }
@@ -460,7 +472,7 @@ export const decideApproval = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireAdmin(context.supabase, data.workspaceId, context.userId);
-    const { error } = await context.supabase
+    const { data: updated, error } = await context.supabase
       .from("approval_requests")
       .update({
         status: data.decision,
@@ -469,8 +481,18 @@ export const decideApproval = createServerFn({ method: "POST" })
         decision_note: data.note ?? null,
       })
       .eq("id", data.requestId)
-      .eq("workspace_id", data.workspaceId);
+      .eq("workspace_id", data.workspaceId)
+      .select("summary")
+      .maybeSingle();
     if (error) throw error;
+    const { announceApprovalDecision } = await import("./accountability.server");
+    await announceApprovalDecision(context.supabase, data.workspaceId, {
+      decision: data.decision,
+      summary: updated?.summary ?? "Request",
+      deciderId: context.userId,
+      requestId: data.requestId,
+      note: data.note ?? null,
+    });
     return { ok: true };
   });
 
