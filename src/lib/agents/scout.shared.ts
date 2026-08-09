@@ -60,14 +60,14 @@ function daysSince(iso: string | null, now: number): number | null {
  * Why a lead is out of scope. Returning the reason rather than a boolean keeps
  * the run log honest about what was skipped.
  */
-export function ineligibleReason(lead: ScoutLead): string | null {
+export function ineligibleReason(lead: ScoutLead, now = Date.now()): string | null {
   if (!lead.phone) return "no phone on file";
   if (lead.phoneType && lead.phoneType.toLowerCase() === "landline") return "landline";
   if (TERMINAL_DISPOSITIONS.has(lead.disposition)) return `disposition ${lead.disposition}`;
   if (lead.lastOutcome && TERMINAL_OUTCOMES.has(lead.lastOutcome)) return `outcome ${lead.lastOutcome}`;
   if (lead.sequenceStatus === "active") return "already in an active sequence";
   if (lead.hasReplied && lead.lastOutcome === null) return "live conversation — belongs to a human";
-  const since = daysSince(lead.lastTouchedAt, Date.now());
+  const since = daysSince(lead.lastTouchedAt, now);
   if (since !== null && since < 4) return "touched in the last few days";
   return null;
 }
@@ -164,7 +164,7 @@ export function nominateLeads(
   const skipped: Record<string, number> = {};
   const scored: Nomination[] = [];
   for (const lead of leads) {
-    const reason = ineligibleReason(lead);
+    const reason = ineligibleReason(lead, now);
     if (reason) {
       skipped[reason] = (skipped[reason] ?? 0) + 1;
       continue;
