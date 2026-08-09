@@ -173,10 +173,12 @@ class BatchSkipTracingProvider implements SkipTraceProvider {
     const phones: string[] = [];
     if (hit?.phones) {
       for (const p of hit.phones) {
+        if (!p) continue;
         const s = typeof p === "string" ? p : p.number;
         if (s) phones.push(s);
       }
     }
+    const emails = (hit?.emails ?? []).filter((e): e is string => typeof e === "string" && e.length > 0);
     return {
       provider: this.name,
       ownerName: str(hit?.name) || input.ownerName,
