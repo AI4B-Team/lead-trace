@@ -127,7 +127,7 @@ export function IndustryPreview() {
       <div className="mx-auto max-w-6xl px-6">
         <div className="text-center">
           <div className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Industries</div>
-          <h2 className="mt-3 font-display text-4xl font-black leading-tight text-foreground md:text-5xl whitespace-nowrap">
+          <h2 className="mt-3 font-display text-4xl font-black leading-tight text-foreground md:text-5xl lg:whitespace-nowrap">
             Same Platform. Built For Your Industry.
           </h2>
         </div>

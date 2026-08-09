@@ -259,10 +259,10 @@ function HowItWorksSection() {
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto max-w-7xl text-center">
           <div className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">How It Works</div>
-          <h2 className="mt-3 font-display text-3xl font-black leading-tight text-foreground md:text-4xl lg:text-[2.75rem] whitespace-nowrap">
+          <h2 className="mt-3 font-display text-3xl font-black leading-tight text-foreground md:text-4xl lg:text-[2.75rem] lg:whitespace-nowrap">
             However Your Leads Start, They End Outreach-Ready.
           </h2>
-          <p className="mx-auto mt-4 max-w-none text-base text-muted-foreground whitespace-nowrap">
+          <p className="mx-auto mt-4 max-w-none text-base text-muted-foreground lg:whitespace-nowrap">
             Generate new leads, upload your own lists, or process public records — all through the same pipeline.
           </p>
         </div>
