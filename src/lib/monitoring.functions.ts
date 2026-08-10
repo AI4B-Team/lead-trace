@@ -287,10 +287,17 @@ export const setJobSchedule = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { nextRunFor } = await import("./monitoring.shared");
     const next = data.schedule === "one_time" ? null : nextRunFor(data.schedule, new Date());
+    // Cadence belongs to the list, not to an individual run of it.
+    const { data: job } = await context.supabase
+      .from("jobs")
+      .select("parent_job_id")
+      .eq("id", data.jobId)
+      .maybeSingle();
+    const targetId = (job?.parent_job_id as string | null) ?? data.jobId;
     const { error } = await context.supabase
       .from("jobs")
       .update({ schedule: data.schedule, next_run_at: next })
-      .eq("id", data.jobId);
+      .eq("id", targetId);
     if (error) throw error;
     return { ok: true, next_run_at: next };
   });
