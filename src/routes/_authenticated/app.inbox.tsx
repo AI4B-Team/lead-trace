@@ -211,7 +211,8 @@ function ConversationsPage() {
       }),
     onError: (e) => toast.error(e instanceof Error ? e.message : "Could Not Generate Replies"),
     onSuccess: (res) => {
-      if (!res?.suggestions?.length) toast.error("AI Replies Are Unavailable Right Now — Write Your Own Or Try Again.");
+      if (!res?.suggestions?.length)
+        toast.error("AI Replies Are Unavailable Right Now — Write Your Own Or Try Again.");
     },
   });
   // Memoized so the suggestion carousel does not reset its index on every render.
