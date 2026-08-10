@@ -53,7 +53,9 @@ export function proxyUrl(): string | null {
   return value && value.trim() ? value.trim() : null;
 }
 
-type Runtime = "deno" | "bun" | "none";
+import { hasSocketRuntime, tunnelFetch } from "./proxy-tunnel";
+
+type Runtime = "deno" | "bun" | "workers" | "none";
 
 /** Which proxy mechanism this runtime supports for outbound fetches. */
 export function proxyRuntime(): Runtime {
@@ -63,6 +65,8 @@ export function proxyRuntime(): Runtime {
   };
   if (typeof g.Deno?.createHttpClient === "function") return "deno";
   if (g.Bun) return "bun";
+  // Cloudflare Workers has no proxy option on fetch; we tunnel over a socket.
+  if (hasSocketRuntime()) return "workers";
   return "none";
 }
 
@@ -137,6 +141,15 @@ export async function realauctionFetch(url: string, init: RequestInit = {}): Pro
     }).Deno;
     denoClient ??= deno.createHttpClient({ proxy: { url: proxy } });
     return fetch(url, { ...init, client: denoClient } as RequestInit);
+  }
+  if (runtime === "workers") {
+    const headers: Record<string, string> = {};
+    const incoming = new Headers((init.headers ?? {}) as HeadersInit);
+    incoming.forEach((value, key) => {
+      headers[key] = value;
+    });
+    headers["User-Agent"] ??= REALAUCTION_USER_AGENT;
+    return tunnelFetch(url, proxy, headers);
   }
   return fetch(url, { ...init, proxy } as RequestInit);
 }
