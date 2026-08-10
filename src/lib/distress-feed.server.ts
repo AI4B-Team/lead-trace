@@ -180,6 +180,8 @@ export type PullTarget = {
   portalUrl?: string;
   /** Minimum minutes between pulls for this source (data_sources.crawl_interval_minutes). */
   intervalMinutes?: number;
+  /** Vendor requiring the residential proxy (RealForeclose / RealTaxDeed). */
+  proxied?: boolean;
   pull?: () => Promise<RawFiling[]>;
 };
 
@@ -207,11 +209,10 @@ export function splitOwner(name: string): { first: string | null; last: string |
  */
 async function pullHillsboroughTaxDeed(): Promise<RawFiling[]> {
   const base = "https://hillsborough.realtaxdeed.com";
-  const res = await fetch(`${base}/index.cfm?zaction=AUCTION&Zmethod=UPCOMING`, {
-    headers: { "User-Agent": "LeadTraceBot/1.0 (+https://leadtrace.io/bot)" },
-  });
-  if (!res.ok) throw new Error(`RealAuction responded ${res.status}`);
-  const html = await res.text();
+  // Must go through the shared polite path: this vendor only answers a
+  // residential proxy IP with a browser User-Agent.
+  const { politeHtml } = await import("./data-providers/scraper-policy");
+  const { html } = await politeHtml(`${base}/index.cfm?zaction=AUCTION&Zmethod=UPCOMING`);
 
   const filings: RawFiling[] = [];
   const blocks = html.split(/class="AUCTION_ITEM/).slice(1);
@@ -340,6 +341,7 @@ async function dynamicRealtaxdeedTargets(): Promise<PullTarget[]> {
         path: "portal" as const,
         portalUrl: `https://${r.domain}`,
         intervalMinutes: Number(r.crawl_interval_minutes ?? 1440),
+        proxied: true,
         pull: () => pullRealtaxdeedCounty(sub, county),
       };
     });
@@ -448,6 +450,7 @@ export const PULL_TARGETS: PullTarget[] = [
     recordType: "tax_deed",
     path: "portal",
     portalUrl: "https://hillsborough.realtaxdeed.com",
+    proxied: true,
     pull: pullHillsboroughTaxDeed,
   },
   {
@@ -602,7 +605,10 @@ export async function runNightlyPulls(): Promise<{
     added: number;
     error?: string;
     skipped?: string;
+    bytes?: number;
+    httpStatus?: number | null;
   }>;
+  bytesUsed: number;
 }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const results: Array<{
@@ -612,6 +618,8 @@ export async function runNightlyPulls(): Promise<{
     added: number;
     error?: string;
     skipped?: string;
+    bytes?: number;
+    httpStatus?: number | null;
   }> = [];
 
   // Static targets win over dynamic ones for the same county + record type, so
@@ -652,9 +660,42 @@ export async function runNightlyPulls(): Promise<{
     if (!lastOk.has(key)) lastOk.set(key, String(p.started_at));
   }
 
+  // RealAuction egress: proxy-or-skip. A direct fetch would only 403, so an
+  // unavailable proxy skips those counties rather than burning the tick.
+  const proxyMod = await import("./data-providers/realauction-proxy");
+  const proxy = proxyMod.realauctionProxyStatus();
+  proxyMod.startRealauctionBudget();
+  let vendorHalted: string | null = proxy.available
+    ? null
+    : `proxy unavailable — ${proxy.reason ?? "unknown"}`;
+  if (vendorHalted) console.error(`[distress-feed] RealAuction sweep skipped: ${vendorHalted}`);
+
   for (const target of allTargets) {
     if (target.path === "records_request" || !target.pull) {
       // Nothing to fetch: this county/type is supplied by the records-request agent.
+      continue;
+    }
+    if (target.proxied && vendorHalted) {
+      results.push({
+        county: target.county,
+        recordType: target.recordType,
+        found: 0,
+        added: 0,
+        skipped: vendorHalted,
+      });
+      await supabaseAdmin.from("distress_pulls").insert({
+        fips: countyKey(target.state, target.county),
+        state: target.state.toUpperCase(),
+        county: target.county,
+        record_type: target.recordType,
+        status: "skipped",
+        records_found: 0,
+        records_added: 0,
+        bytes_downloaded: 0,
+        error: vendorHalted,
+        started_at: new Date().toISOString(),
+        finished_at: new Date().toISOString(),
+      } as never);
       continue;
     }
     const interval = target.intervalMinutes ?? 1440;
@@ -670,6 +711,7 @@ export async function runNightlyPulls(): Promise<{
       continue;
     }
     const startedAt = new Date().toISOString();
+    const bytesBefore = proxyMod.bytesUsed();
     let found = 0;
     let added = 0;
     let failure: string | undefined;
@@ -679,7 +721,16 @@ export async function runNightlyPulls(): Promise<{
       added = await ingestDistressRecords(supabaseAdmin, target, filings);
     } catch (err) {
       failure = err instanceof Error ? err.message : "Pull failed";
+      if (err instanceof proxyMod.BandwidthCapError) {
+        vendorHalted = err.message;
+        console.error(`[distress-feed] ${err.message}`);
+      } else if (err instanceof proxyMod.ProxyUnavailableError) {
+        vendorHalted = err.message;
+        console.error(`[distress-feed] ${err.message}`);
+      }
     }
+    const bytes = target.proxied ? proxyMod.bytesUsed() - bytesBefore : 0;
+    const httpStatus = target.proxied ? proxyMod.lastVendorStatus() : null;
     await supabaseAdmin.from("distress_pulls").insert({
       fips: countyKey(target.state, target.county),
       state: target.state.toUpperCase(),
@@ -688,14 +739,26 @@ export async function runNightlyPulls(): Promise<{
       status: failure ? "error" : "ok",
       records_found: found,
       records_added: added,
+      bytes_downloaded: bytes,
+      http_status: httpStatus,
       error: failure ?? null,
       started_at: startedAt,
       finished_at: new Date().toISOString(),
     } as never);
-    results.push({ county: target.county, recordType: target.recordType, found, added, error: failure });
+    results.push({
+      county: target.county,
+      recordType: target.recordType,
+      found,
+      added,
+      error: failure,
+      bytes,
+      httpStatus,
+    });
   }
 
-  return { ok: results.every((r) => !r.error), targets: results.length, results };
+  const bytesTotal = proxyMod.endRealauctionBudget();
+  console.log(`[distress-feed] RealAuction bytes downloaded this sweep: ${bytesTotal}`);
+  return { ok: results.every((r) => !r.error), targets: results.length, results, bytesUsed: bytesTotal };
 }
 
 /** Record types we are configured to pull for a county, for the county page. */

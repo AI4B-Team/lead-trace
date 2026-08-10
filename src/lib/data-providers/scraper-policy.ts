@@ -8,6 +8,14 @@
 // flagged for manual re-auth.
 // ---------------------------------------------------------------------------
 
+import {
+  assertBudgetAvailable,
+  isRealauctionUrl,
+  realauctionFetch,
+  REALAUCTION_USER_AGENT,
+  recordVendorFetch,
+} from "./realauction-proxy";
+
 export const BOT_CONTACT_URL = "https://leadtrace.app/compliance";
 export const BOT_USER_AGENT = `LeadTraceBot/1.0 (+${BOT_CONTACT_URL})`;
 
@@ -18,17 +26,22 @@ export const BOT_USER_AGENT = `LeadTraceBot/1.0 (+${BOT_CONTACT_URL})`;
  */
 const MIN_DELAY_MS = 3_000;
 const MAX_DELAY_MS = 4_000;
+/** RealAuction is a paid residential path onto county boxes: go slower still. */
+const VENDOR_MIN_DELAY_MS = 5_000;
+const VENDOR_MAX_DELAY_MS = 6_000;
 const lastHit = new Map<string, number>();
 
-export function politeDelayMs(): number {
-  return MIN_DELAY_MS + Math.floor(Math.random() * (MAX_DELAY_MS - MIN_DELAY_MS));
+export function politeDelayMs(vendor = false): number {
+  const min = vendor ? VENDOR_MIN_DELAY_MS : MIN_DELAY_MS;
+  const max = vendor ? VENDOR_MAX_DELAY_MS : MAX_DELAY_MS;
+  return min + Math.floor(Math.random() * (max - min));
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function throttle(host: string) {
+async function throttle(host: string, vendor = false) {
   const now = Date.now();
-  const wait = (lastHit.get(host) ?? 0) + politeDelayMs() - now;
+  const wait = (lastHit.get(host) ?? 0) + politeDelayMs(vendor) - now;
   if (wait > 0) await sleep(wait);
   lastHit.set(host, Date.now());
 }
@@ -41,7 +54,11 @@ async function disallowedPaths(origin: string): Promise<string[]> {
   if (cached) return cached;
   let rules: string[] = [];
   try {
-    const res = await fetch(`${origin}/robots.txt`, { headers: { "User-Agent": BOT_USER_AGENT } });
+    const robotsUrl = `${origin}/robots.txt`;
+    const vendor = isRealauctionUrl(robotsUrl);
+    const res = vendor
+      ? await realauctionFetch(robotsUrl, { headers: { "User-Agent": REALAUCTION_USER_AGENT } })
+      : await fetch(robotsUrl, { headers: { "User-Agent": BOT_USER_AGENT } });
     if (res.ok) {
       const text = await res.text();
       let applies = false;
@@ -72,25 +89,43 @@ export async function robotsAllows(url: string): Promise<boolean> {
  * 429/503. Throws on anything else non-OK so callers can mark the source
  * failed instead of silently returning nothing.
  */
-export async function politeFetch(url: string, init: RequestInit = {}, attempt = 0): Promise<Response> {
+export async function politeFetch(
+  url: string,
+  init: RequestInit = {},
+  attempt = 0,
+): Promise<Response> {
   const host = new URL(url).host;
+  // Vendor requests are proxied and carry a browser UA; everything else keeps
+  // direct egress and the honest bot UA.
+  const vendor = isRealauctionUrl(url);
+  if (vendor) assertBudgetAvailable();
   if (attempt === 0 && !(await robotsAllows(url))) {
     throw new Error(`robots.txt Disallows ${url}`);
   }
-  await throttle(host);
-  const res = await fetch(url, {
+  await throttle(host, vendor);
+  const requestInit: RequestInit = {
     ...init,
-    headers: { Accept: "application/json", "User-Agent": BOT_USER_AGENT, ...(init.headers ?? {}) },
-  });
+    headers: {
+      Accept: "application/json",
+      "User-Agent": vendor ? REALAUCTION_USER_AGENT : BOT_USER_AGENT,
+      ...(init.headers ?? {}),
+    },
+  };
+  const res = vendor ? await realauctionFetch(url, requestInit) : await fetch(url, requestInit);
   if ((res.status === 429 || res.status === 503) && attempt < 4) {
     const retryAfter = Number(res.headers.get("retry-after"));
-    const backoff = Number.isFinite(retryAfter) && retryAfter > 0
-      ? retryAfter * 1000
-      : 2_000 * Math.pow(2, attempt);
+    const backoff =
+      Number.isFinite(retryAfter) && retryAfter > 0
+        ? retryAfter * 1000
+        : 2_000 * Math.pow(2, attempt);
     await sleep(backoff);
     return politeFetch(url, init, attempt + 1);
   }
-  if (!res.ok) throw new Error(`Source Returned HTTP ${res.status}`);
+  if (!res.ok) {
+    // No retries on a block: log the status and let the caller skip the county.
+    if (vendor) recordVendorFetch(0, res.status);
+    throw new Error(`Source Returned HTTP ${res.status}`);
+  }
   return res;
 }
 
@@ -99,12 +134,18 @@ export async function politeJson<T = unknown>(url: string, init?: RequestInit): 
   return (await res.json()) as T;
 }
 
-export async function politeHtml(url: string, init: RequestInit = {}): Promise<{ html: string; status: number }> {
+export async function politeHtml(
+  url: string,
+  init: RequestInit = {},
+): Promise<{ html: string; status: number; bytes: number }> {
   const res = await politeFetch(url, {
     ...init,
     headers: { Accept: "text/html,application/xhtml+xml", ...(init.headers ?? {}) },
   });
-  return { html: await res.text(), status: res.status };
+  const html = await res.text();
+  const bytes = html.length;
+  if (isRealauctionUrl(url)) recordVendorFetch(bytes, res.status);
+  return { html, status: res.status, bytes };
 }
 
 // ---------------------------------------------------------------------------
