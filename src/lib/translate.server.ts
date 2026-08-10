@@ -22,7 +22,9 @@ export async function translateStrings(texts: string[], lang: string): Promise<s
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      // UI strings: cheapest/fastest tier, no thinking needed.
+      model: "google/gemini-3.1-flash-lite",
+      reasoning: { enabled: false },
       messages: [
         {
           role: "system",
