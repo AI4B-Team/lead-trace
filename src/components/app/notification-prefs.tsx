@@ -208,8 +208,17 @@ export function NotificationPrefs({
                             />
                           </div>
                         );
-                        if (!disabled) return <div key={c.key}>{control}</div>;
-                        void pending;
+                        if (!disabled) {
+                          if (!note) return <div key={c.key}>{control}</div>;
+                          return (
+                            <Tooltip key={c.key}>
+                              <TooltipTrigger asChild>
+                                <div>{control}</div>
+                              </TooltipTrigger>
+                              <TooltipContent>{note}</TooltipContent>
+                            </Tooltip>
+                          );
+                        }
                         return (
                           <Tooltip key={c.key}>
                             <TooltipTrigger asChild>
