@@ -422,6 +422,12 @@ function Dashboard() {
                   );
                 })}
               </div>
+            ) : !loaded ? (
+              <div className="space-y-3 py-4">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="h-12 animate-pulse rounded-xl bg-muted" />
+                ))}
+              </div>
             ) : (
               <div className="py-10 text-center">
                 <div className="text-sm text-muted-foreground">No Lists Yet.</div>
