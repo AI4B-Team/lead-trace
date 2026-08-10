@@ -84,7 +84,7 @@ function Campaigns() {
         title="Campaigns"
         description="Only Clean Files Can Be Loaded. Reply-Stops-Drip Is Automatic."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant={view === "cards" ? "default" : "outline"}
               className="rounded-full"

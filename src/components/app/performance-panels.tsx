@@ -115,7 +115,7 @@ export function RevenueFunnel({
             <div className="mt-2 h-5 overflow-hidden rounded-full bg-surface-muted">
               <div
                 className="h-full rounded-full bg-primary transition-all"
-                style={{ width: `${Math.max((s.value / top) * 100, s.value ? 3 : 0)}%` }}
+                style={{ width: `${Math.min(Math.max((s.value / top) * 100, s.value ? 3 : 0), 100)}%` }}
               />
             </div>
             {!s.value && s.empty && (
