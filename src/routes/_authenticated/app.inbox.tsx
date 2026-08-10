@@ -196,6 +196,7 @@ function ConversationsPage() {
     queryFn: () => runSummary({ data: { workspaceId: workspaceId!, threadKey: selected! } }),
     enabled: !!workspaceId && !!selected && msgCount > 0,
     staleTime: 5 * 60_000,
+    retry: 1,
   });
 
   const suggestM = useMutation({
@@ -209,8 +210,12 @@ function ConversationsPage() {
         },
       }),
     onError: (e) => toast.error(e instanceof Error ? e.message : "Could Not Generate Replies"),
+    onSuccess: (res) => {
+      if (!res?.suggestions?.length) toast.error("AI Replies Are Unavailable Right Now — Write Your Own Or Try Again.");
+    },
   });
-  const suggestions = suggestM.data?.suggestions ?? [];
+  // Memoized so the suggestion carousel does not reset its index on every render.
+  const suggestions = useMemo(() => suggestM.data?.suggestions ?? [], [suggestM.data]);
 
   // Archive/star/status now live server-side, so the filter tab is the whole
   // story — no client-side re-filtering that could disagree with the counts.
