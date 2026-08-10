@@ -125,6 +125,7 @@ export async function suggestReplies(opts: {
           "Output only the message text.",
         ].join("\n"),
         context,
+        160,
       );
       return body ? { tone, body: body.replace(/^["']|["']$/g, "").slice(0, 320) } : null;
     }),
