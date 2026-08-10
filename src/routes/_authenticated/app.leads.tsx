@@ -270,6 +270,9 @@ function LeadsPageInner() {
   };
 
   const stats = data?.stats;
+  // Until the first response lands, show a dash instead of a hard zero —
+  // a loading "0" reads as "you have no leads", which is a lie.
+  const num = (v: number | undefined) => (v === undefined ? "—" : v.toLocaleString());
   const rows = data?.rows ?? [];
   // Data-driven columns: the Leads master merges many list shapes, so its
   // columns follow what's present in the CURRENT filtered view — never one
@@ -312,18 +315,18 @@ function LeadsPageInner() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <Stat icon={<Users className="h-4 w-4" />} label="Total Leads" value={(stats?.total ?? 0).toLocaleString()} help="The total number of unique lead records across every list in this workspace, after de-duplication." />
+          <Stat icon={<Users className="h-4 w-4" />} label="Total Leads" value={num(stats?.total)} help="The total number of unique lead records across every list in this workspace, after de-duplication." />
           <Stat
             icon={<ShieldCheck className="h-4 w-4" />}
             label="Clean / Textable"
-            value={(stats?.clean ?? 0).toLocaleString()}
+            value={num(stats?.clean)}
             tone="text-success"
-            sub={`Reachable — SMS ${(stats?.smsEligible ?? 0).toLocaleString()} · Email ${(stats?.emailReachable ?? 0).toLocaleString()} · Mail ${(stats?.mailable ?? 0).toLocaleString()}`}
+            sub={`Reachable — SMS ${num(stats?.smsEligible)} · Email ${num(stats?.emailReachable)} · Mail ${num(stats?.mailable)}`}
             help={`Leads that passed DNC, litigator, and line-type checks and are safe to message. Reachable by SMS: ${(stats?.smsEligible ?? 0).toLocaleString()}, email: ${(stats?.emailReachable ?? 0).toLocaleString()}, direct mail: ${(stats?.mailable ?? 0).toLocaleString()}.`}
           />
-          <Stat icon={<ShieldAlert className="h-4 w-4" />} label="DNC Suppressed" value={(stats?.dnc ?? 0).toLocaleString()} tone="text-warn" help="Leads suppressed because they matched the Do Not Call list or opted out." />
-          <Stat icon={<Ban className="h-4 w-4" />} label="Litigators Blocked" value={(stats?.litigator ?? 0).toLocaleString()} tone="text-danger" help="Leads flagged as known litigators or serial TCPA plaintiffs and blocked from outreach." />
-          <Stat icon={<Sparkles className="h-4 w-4" />} label="New This Week" value={(stats?.newThisWeek ?? 0).toLocaleString()} tone="text-primary" help="New lead records first seen in the last 7 days across any list." />
+          <Stat icon={<ShieldAlert className="h-4 w-4" />} label="DNC Suppressed" value={num(stats?.dnc)} tone="text-warn" help="Leads suppressed because they matched the Do Not Call list or opted out." />
+          <Stat icon={<Ban className="h-4 w-4" />} label="Litigators Blocked" value={num(stats?.litigator)} tone="text-danger" help="Leads flagged as known litigators or serial TCPA plaintiffs and blocked from outreach." />
+          <Stat icon={<Sparkles className="h-4 w-4" />} label="New This Week" value={num(stats?.newThisWeek)} tone="text-primary" help="New lead records first seen in the last 7 days across any list." />
       </div>
 
       {/* One condensed metadata line: mix, record types, and de-dupe note. */}

@@ -72,6 +72,9 @@ function Dashboard() {
   const [creditTotals, setCreditTotals] = useState<CreditTotals>({ scrape: 0, skip_trace: 0, sms: 0 });
   const [weekly, setWeekly] = useState<Array<{ day: string; count: number }>>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
+  // Until the first metrics round-trip lands, zeros are a lie ("you have no
+  // leads/lists"). Everything numeric renders as a dash while loading.
+  const [loaded, setLoaded] = useState(false);
 
   // Recent Activity replaces the old credit card: what happened, not accounting.
   useEffect(() => {
@@ -258,6 +261,7 @@ function Dashboard() {
         totals[k] = Math.max(totals[k], bal[k]);
       }
       setCreditTotals(totals);
+      setLoaded(true);
     })();
   }, [workspaceId]);
 
@@ -297,21 +301,21 @@ function Dashboard() {
         <div>
           <div className="text-[11px] font-semibold uppercase tracking-[0.18em] opacity-70">Contacts Ready</div>
           <div className="mt-1 font-display text-5xl font-black leading-none">
-            {metrics.leads.toLocaleString()}
+            {loaded ? metrics.leads.toLocaleString() : "—"}
           </div>
           <p className="mt-3 text-sm opacity-75">
-            Enough for a full 4-message drip sequence — <span className="font-semibold opacity-100">≈{dripMessages.toLocaleString()} messages</span>
+            Enough for a full 4-message drip sequence — <span className="font-semibold opacity-100">≈{loaded ? dripMessages.toLocaleString() : "—"} messages</span>
           </p>
         </div>
         <div className="mt-5 flex items-start gap-12 sm:mt-0">
           <TooltipProvider delayDuration={150}>
-            <HeroStat label="Added Today" value={`+${metrics.leadsToday.toLocaleString()}`} />
+            <HeroStat label="Added Today" value={loaded ? `+${metrics.leadsToday.toLocaleString()}` : "—"} />
             <HeroStat
               label="Deliverability"
               value={metrics.deliverability ? `${metrics.deliverability}%` : "—"}
               info={metrics.deliverability ? undefined : "Starts Tracking With Your First Campaign"}
             />
-            <HeroStat label="Credits" value={totalCredits.toLocaleString()} />
+            <HeroStat label="Credits" value={loaded ? totalCredits.toLocaleString() : "—"} />
           </TooltipProvider>
         </div>
       </div>
@@ -331,22 +335,24 @@ function Dashboard() {
           <Metric
             icon={<ListChecks className="h-4 w-4" />}
             label="Lists"
-            value={metrics.lists.toString()}
-            note={metrics.processing ? `${metrics.processing} Running` : "All Processed"}
+            value={loaded ? metrics.lists.toString() : "—"}
+            note={!loaded ? "Loading…" : metrics.processing ? `${metrics.processing} Running` : "All Processed"}
             noteTone={metrics.processing ? "success" : undefined}
             help="The number of lists you have built or uploaded, including one-time and recurring lists."
           />
           <Metric
             icon={<MessageSquare className="h-4 w-4" />}
             label="Live Campaigns"
-            value={(metrics.sending + metrics.scheduled).toString()}
+            value={loaded ? (metrics.sending + metrics.scheduled).toString() : "—"}
             note={
-              metrics.sending + metrics.scheduled
+              !loaded
+                ? "Loading…"
+                : metrics.sending + metrics.scheduled
                 ? `${metrics.sending} Sending · ${metrics.scheduled} Scheduled`
                 : undefined
             }
             noteNode={
-              metrics.sending + metrics.scheduled ? undefined : (
+              !loaded || metrics.sending + metrics.scheduled ? undefined : (
                 <>
                   None Running Yet —{" "}
                   <Link to="/app/campaigns/new" className="font-semibold text-primary underline-offset-2 hover:underline">
@@ -415,6 +421,12 @@ function Dashboard() {
                     </Link>
                   );
                 })}
+              </div>
+            ) : !loaded ? (
+              <div className="space-y-3 py-4">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="h-12 animate-pulse rounded-xl bg-muted" />
+                ))}
               </div>
             ) : (
               <div className="py-10 text-center">
