@@ -53,9 +53,7 @@ export function proxyUrl(): string | null {
   return value && value.trim() ? value.trim() : null;
 }
 
-import { hasSocketRuntime, tunnelFetch } from "./proxy-tunnel";
-
-type Runtime = "deno" | "bun" | "workers" | "none";
+type Runtime = "deno" | "bun" | "none";
 
 /** Which proxy mechanism this runtime supports for outbound fetches. */
 export function proxyRuntime(): Runtime {
@@ -65,8 +63,10 @@ export function proxyRuntime(): Runtime {
   };
   if (typeof g.Deno?.createHttpClient === "function") return "deno";
   if (g.Bun) return "bun";
-  // Cloudflare Workers has no proxy option on fetch; we tunnel over a socket.
-  if (hasSocketRuntime()) return "workers";
+  // Cloudflare Workers cannot proxy: fetch() has no proxy option, and a manual
+  // CONNECT tunnel cannot set the TLS server name, so the vendor's load
+  // balancer rejects the handshake (measured 2026-08-10). Plain HTTP through
+  // the proxy is answered with a 301 to HTTPS. A Deno or Bun runner is required.
   return "none";
 }
 
@@ -78,7 +78,10 @@ export function realauctionProxyStatus(): { available: boolean; reason?: string 
   if (!proxyUrl()) return { available: false, reason: "PROXY_URL is not set" };
   const runtime = proxyRuntime();
   if (runtime === "none") {
-    return { available: false, reason: "runtime cannot route fetch through an HTTP proxy" };
+    return {
+      available: false,
+      reason: "this runtime cannot route fetch through an HTTP proxy (needs a Deno or Bun runner)",
+    };
   }
   return { available: true };
 }
@@ -143,15 +146,6 @@ export async function realauctionFetch(url: string, init: RequestInit = {}): Pro
     ).Deno;
     denoClient ??= deno.createHttpClient({ proxy: { url: proxy } });
     return fetch(url, { ...init, client: denoClient } as RequestInit);
-  }
-  if (runtime === "workers") {
-    const headers: Record<string, string> = {};
-    const incoming = new Headers((init.headers ?? {}) as HeadersInit);
-    incoming.forEach((value, key) => {
-      headers[key] = value;
-    });
-    headers["User-Agent"] ??= REALAUCTION_USER_AGENT;
-    return tunnelFetch(url, proxy, headers);
   }
   return fetch(url, { ...init, proxy } as RequestInit);
 }
