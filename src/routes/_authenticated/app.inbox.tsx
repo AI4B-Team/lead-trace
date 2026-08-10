@@ -636,6 +636,8 @@ function ConversationsPage() {
                   bullets={summaryQ.data?.summary?.bullets ?? []}
                   nextStep={summaryQ.data?.summary?.nextStep ?? null}
                   loading={summaryQ.isFetching}
+                  failed={summaryQ.isError}
+                  onRetry={() => summaryQ.refetch()}
                   onUseNextStep={() =>
                     suggestM.mutate({
                       command: null,
