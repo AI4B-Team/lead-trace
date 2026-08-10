@@ -307,7 +307,7 @@ function Dashboard() {
             Enough for a full 4-message drip sequence — <span className="font-semibold opacity-100">≈{loaded ? dripMessages.toLocaleString() : "—"} messages</span>
           </p>
         </div>
-        <div className="mt-5 flex items-start gap-12 sm:mt-0">
+        <div className="mt-5 flex flex-wrap items-start gap-x-8 gap-y-4 sm:mt-0 sm:gap-12">
           <TooltipProvider delayDuration={150}>
             <HeroStat label="Added Today" value={loaded ? `+${metrics.leadsToday.toLocaleString()}` : "—"} />
             <HeroStat
