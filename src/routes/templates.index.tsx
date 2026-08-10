@@ -1,3 +1,4 @@
+import { canonicalUrl } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, ChevronDown, Check, SlidersHorizontal } from "lucide-react";
@@ -5,7 +6,6 @@ import { MarketingNav, MarketingFooter } from "@/components/marketing/marketing-
 import { TemplateCard } from "@/components/marketing/template-card";
 import { TEMPLATES, hasCategory, type TemplateCategory } from "@/lib/templates";
 import {
-import { canonicalUrl } from "@/lib/seo";
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,

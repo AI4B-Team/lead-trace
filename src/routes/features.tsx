@@ -1,7 +1,7 @@
+import { canonicalUrl } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import {
-import { canonicalUrl } from "@/lib/seo";
   Search, Landmark, Upload, UserSearch, ShieldCheck, MessageSquare, Activity, Lock,
 } from "lucide-react";
 

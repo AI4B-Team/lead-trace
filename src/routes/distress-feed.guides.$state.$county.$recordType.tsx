@@ -1,3 +1,4 @@
+import { canonicalUrl } from "@/lib/seo";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/marketing-layout";
@@ -5,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { getGuideDetail } from "@/lib/distress-feed.functions";
 import { countyFromSlug, countySlug, recordTypeBySlug, recordTypeLabel } from "@/lib/distress-feed.shared";
 import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
-import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/distress-feed/guides/$state/$county/$recordType")({
   loader: async ({ params }) => {

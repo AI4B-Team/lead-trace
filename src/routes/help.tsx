@@ -1,3 +1,4 @@
+import { canonicalUrl } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { MarketingLayout } from "@/components/marketing/marketing-layout";
@@ -5,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
-import { canonicalUrl } from "@/lib/seo";
   Search, Upload, ShieldCheck, MessageSquare, Phone, CreditCard, Rocket, Landmark, Settings2,
   Star, Play, ArrowRight, Clock, FileSpreadsheet, Users, Webhook, Ban, BadgeCheck, Receipt,
   Gauge, Building2, Reply, Layers,
