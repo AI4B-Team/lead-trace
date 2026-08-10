@@ -136,9 +136,11 @@ export async function realauctionFetch(url: string, init: RequestInit = {}): Pro
   // IPRoyal "Randomize IP" hands out a fresh US residential IP per request, so
   // one client can be reused — there is no session to pin.
   if (runtime === "deno") {
-    const deno = (globalThis as unknown as {
-      Deno: { createHttpClient: (o: { proxy: { url: string } }) => unknown };
-    }).Deno;
+    const deno = (
+      globalThis as unknown as {
+        Deno: { createHttpClient: (o: { proxy: { url: string } }) => unknown };
+      }
+    ).Deno;
     denoClient ??= deno.createHttpClient({ proxy: { url: proxy } });
     return fetch(url, { ...init, client: denoClient } as RequestInit);
   }

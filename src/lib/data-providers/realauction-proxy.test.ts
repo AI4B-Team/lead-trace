@@ -46,9 +46,9 @@ describe("fail-safe when the proxy is missing", () => {
 
   it("never falls back to a direct vendor fetch", async () => {
     const spy = vi.spyOn(globalThis, "fetch");
-    await expect(realauctionFetch("https://duval.realtaxdeed.com/index.cfm")).rejects.toBeInstanceOf(
-      ProxyUnavailableError,
-    );
+    await expect(
+      realauctionFetch("https://duval.realtaxdeed.com/index.cfm"),
+    ).rejects.toBeInstanceOf(ProxyUnavailableError);
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
@@ -70,7 +70,10 @@ describe("egress routing", () => {
 
   it("sends vendor requests through the proxy with a browser User-Agent", async () => {
     const calls: Array<{ url: string; init: RequestInit | undefined }> = [];
-    vi.spyOn(globalThis, "fetch").mockImplementation((async (input: RequestInfo | URL, init?: RequestInit) => {
+    vi.spyOn(globalThis, "fetch").mockImplementation((async (
+      input: RequestInfo | URL,
+      init?: RequestInit,
+    ) => {
       calls.push({ url: String(input), init });
       return htmlResponse();
     }) as typeof fetch);
@@ -84,7 +87,10 @@ describe("egress routing", () => {
 
   it("leaves other sources on direct egress with the honest bot User-Agent", async () => {
     const calls: Array<{ url: string; init: RequestInit | undefined }> = [];
-    vi.spyOn(globalThis, "fetch").mockImplementation((async (input: RequestInfo | URL, init?: RequestInit) => {
+    vi.spyOn(globalThis, "fetch").mockImplementation((async (
+      input: RequestInfo | URL,
+      init?: RequestInit,
+    ) => {
       calls.push({ url: String(input), init });
       return new Response("{}", { status: 200 });
     }) as typeof fetch);
@@ -106,7 +112,9 @@ describe("egress routing", () => {
       return htmlResponse("blocked", 403);
     }) as typeof fetch);
 
-    await expect(politeFetch("https://citrus.realtaxdeed.com/index.cfm")).rejects.toThrow("HTTP 403");
+    await expect(politeFetch("https://citrus.realtaxdeed.com/index.cfm")).rejects.toThrow(
+      "HTTP 403",
+    );
     expect(hits).toBe(1);
     expect(lastVendorStatus()).toBe(403);
     endRealauctionBudget();

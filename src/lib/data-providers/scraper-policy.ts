@@ -89,7 +89,11 @@ export async function robotsAllows(url: string): Promise<boolean> {
  * 429/503. Throws on anything else non-OK so callers can mark the source
  * failed instead of silently returning nothing.
  */
-export async function politeFetch(url: string, init: RequestInit = {}, attempt = 0): Promise<Response> {
+export async function politeFetch(
+  url: string,
+  init: RequestInit = {},
+  attempt = 0,
+): Promise<Response> {
   const host = new URL(url).host;
   // Vendor requests are proxied and carry a browser UA; everything else keeps
   // direct egress and the honest bot UA.
@@ -110,9 +114,10 @@ export async function politeFetch(url: string, init: RequestInit = {}, attempt =
   const res = vendor ? await realauctionFetch(url, requestInit) : await fetch(url, requestInit);
   if ((res.status === 429 || res.status === 503) && attempt < 4) {
     const retryAfter = Number(res.headers.get("retry-after"));
-    const backoff = Number.isFinite(retryAfter) && retryAfter > 0
-      ? retryAfter * 1000
-      : 2_000 * Math.pow(2, attempt);
+    const backoff =
+      Number.isFinite(retryAfter) && retryAfter > 0
+        ? retryAfter * 1000
+        : 2_000 * Math.pow(2, attempt);
     await sleep(backoff);
     return politeFetch(url, init, attempt + 1);
   }

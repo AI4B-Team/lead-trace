@@ -53,7 +53,10 @@ async function readHead(
   for (;;) {
     const at = indexOfSequence(buf, CRLF2);
     if (at >= 0) {
-      return { head: decoder.decode(buf.slice(0, at)), rest: concat(buf.slice(at + 4), new Uint8Array(0)) };
+      return {
+        head: decoder.decode(buf.slice(0, at)),
+        rest: concat(buf.slice(at + 4), new Uint8Array(0)),
+      };
     }
     const { value, done } = await reader.read();
     if (done) throw new Error("proxy closed the connection before headers completed");
