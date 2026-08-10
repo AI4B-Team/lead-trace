@@ -180,6 +180,8 @@ export type PullTarget = {
   portalUrl?: string;
   /** Minimum minutes between pulls for this source (data_sources.crawl_interval_minutes). */
   intervalMinutes?: number;
+  /** Vendor requiring the residential proxy (RealForeclose / RealTaxDeed). */
+  proxied?: boolean;
   pull?: () => Promise<RawFiling[]>;
 };
 
@@ -207,11 +209,10 @@ export function splitOwner(name: string): { first: string | null; last: string |
  */
 async function pullHillsboroughTaxDeed(): Promise<RawFiling[]> {
   const base = "https://hillsborough.realtaxdeed.com";
-  const res = await fetch(`${base}/index.cfm?zaction=AUCTION&Zmethod=UPCOMING`, {
-    headers: { "User-Agent": "LeadTraceBot/1.0 (+https://leadtrace.io/bot)" },
-  });
-  if (!res.ok) throw new Error(`RealAuction responded ${res.status}`);
-  const html = await res.text();
+  // Must go through the shared polite path: this vendor only answers a
+  // residential proxy IP with a browser User-Agent.
+  const { politeHtml } = await import("./data-providers/scraper-policy");
+  const { html } = await politeHtml(`${base}/index.cfm?zaction=AUCTION&Zmethod=UPCOMING`);
 
   const filings: RawFiling[] = [];
   const blocks = html.split(/class="AUCTION_ITEM/).slice(1);
@@ -340,6 +341,7 @@ async function dynamicRealtaxdeedTargets(): Promise<PullTarget[]> {
         path: "portal" as const,
         portalUrl: `https://${r.domain}`,
         intervalMinutes: Number(r.crawl_interval_minutes ?? 1440),
+        proxied: true,
         pull: () => pullRealtaxdeedCounty(sub, county),
       };
     });
