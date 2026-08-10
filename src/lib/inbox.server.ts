@@ -63,6 +63,7 @@ export async function summarizeConversation(turns: Turn[]): Promise<Conversation
       "Never invent facts that are not in the transcript.",
     ].join("\n"),
     transcript(turns),
+    220,
   );
   if (!out) return null;
   const bullets: string[] = [];
