@@ -12,7 +12,6 @@
 type CfSocket = {
   readable: ReadableStream<Uint8Array>;
   writable: WritableStream<Uint8Array>;
-  startTls: (options?: { expectedServerHostname?: string }) => CfSocket;
   close: () => Promise<void>;
 };
 
@@ -80,8 +79,14 @@ function parseChunked(body: Uint8Array): Uint8Array<ArrayBuffer> {
 }
 
 /**
- * One proxied GET over an HTTP CONNECT tunnel. Returns a standard Response so
- * callers cannot tell the difference from a normal fetch.
+ * One proxied GET in forward-proxy mode: the request line carries the absolute
+ * URI and the proxy fetches it for us.
+ *
+ * Why not CONNECT + TLS: Workers' `startTls()` derives its SNI from the socket's
+ * original hostname (the proxy), so the vendor rejects the handshake. The vendor
+ * serves the identical public-records pages over plain HTTP on the same host, so
+ * the proxy hop is made in the clear and the tunnel problem disappears. Nothing
+ * confidential is sent — no credentials, no query beyond the auction date.
  */
 export async function tunnelFetch(
   targetUrl: string,
@@ -89,55 +94,28 @@ export async function tunnelFetch(
   headers: Record<string, string>,
 ): Promise<Response> {
   const target = new URL(targetUrl);
+  target.protocol = "http:";
   const proxy = new URL(proxyUrl);
-  const port = target.protocol === "https:" ? 443 : 80;
 
   const { connect } = (await import(/* @vite-ignore */ "cloudflare:sockets" as string)) as {
-    connect: (a: { hostname: string; port: number }, o?: { secureTransport?: string }) => CfSocket;
+    connect: (a: { hostname: string; port: number }) => CfSocket;
   };
+  const socket = connect({ hostname: proxy.hostname, port: Number(proxy.port || 8080) });
 
-  let socket = connect(
-    { hostname: proxy.hostname, port: Number(proxy.port || 8080) },
-    { secureTransport: "starttls" },
-  );
-
-  const writer = socket.writable.getWriter();
-  const connectLines = [
-    `CONNECT ${target.hostname}:${port} HTTP/1.1`,
-    `Host: ${target.hostname}:${port}`,
-  ];
-  if (proxy.username) {
-    connectLines.push(`Proxy-Authorization: Basic ${basicAuth(proxy.username, proxy.password)}`);
-  }
-  await writer.write(encoder.encode(`${connectLines.join("\r\n")}\r\n\r\n`));
-  writer.releaseLock();
-
-  const tunnelReader = socket.readable.getReader();
-  const { head: connectHead } = await readHead(tunnelReader);
-  const connectStatus = Number(connectHead.split(" ")[1] ?? 0);
-  if (connectStatus !== 200) {
-    tunnelReader.releaseLock();
-    await socket.close().catch(() => {});
-    throw new Error(`proxy CONNECT failed with HTTP ${connectStatus}`);
-  }
-  tunnelReader.releaseLock();
-
-  // The tunnel was opened to the proxy, so TLS must be told which hostname the
-  // certificate belongs to; without it the vendor rejects the handshake.
-  if (target.protocol === "https:") {
-    socket = socket.startTls({ expectedServerHostname: target.hostname });
-  }
-
-  const reqWriter = socket.writable.getWriter();
-  const requestLines = [
-    `GET ${target.pathname}${target.search} HTTP/1.1`,
+  const lines = [
+    `GET ${target.href} HTTP/1.1`,
     `Host: ${target.host}`,
     "Connection: close",
     "Accept-Encoding: identity",
-    ...Object.entries(headers).map(([k, v]) => `${k}: ${v}`),
   ];
-  await reqWriter.write(encoder.encode(`${requestLines.join("\r\n")}\r\n\r\n`));
-  reqWriter.releaseLock();
+  if (proxy.username) {
+    lines.push(`Proxy-Authorization: Basic ${basicAuth(proxy.username, proxy.password)}`);
+  }
+  for (const [k, v] of Object.entries(headers)) lines.push(`${k}: ${v}`);
+
+  const writer = socket.writable.getWriter();
+  await writer.write(encoder.encode(`${lines.join("\r\n")}\r\n\r\n`));
+  writer.releaseLock();
 
   const reader = socket.readable.getReader();
   const { head, rest } = await readHead(reader);
@@ -150,14 +128,14 @@ export async function tunnelFetch(
   reader.releaseLock();
   await socket.close().catch(() => {});
 
-  const lines = head.split("\r\n");
-  const status = Number(lines[0]?.split(" ")[1] ?? 0) || 502;
+  const headLines = head.split("\r\n");
+  const status = Number(headLines[0]?.split(" ")[1] ?? 0) || 502;
   const resHeaders = new Headers();
-  for (const line of lines.slice(1)) {
+  for (const line of headLines.slice(1)) {
     const at = line.indexOf(":");
     if (at > 0) {
       const name = line.slice(0, at).trim();
-      // Hop-by-hop / body-framing headers describe the tunnel, not our Response.
+      // Hop-by-hop / body-framing headers describe the proxy hop, not our Response.
       if (/^(transfer-encoding|connection|content-length|content-encoding)$/i.test(name)) continue;
       resHeaders.append(name, line.slice(at + 1).trim());
     }
