@@ -161,7 +161,10 @@ export async function askAssistant(opts: {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      // Current-gen Flash with thinking off: the assistant returns a JSON spec,
+      // so latency matters far more than a chain of thought.
+      model: "google/gemini-3.6-flash",
+      reasoning: { enabled: false },
       messages: [
         { role: "system", content: systemPrompt(opts.coveredPairs, opts.niches, opts.recordTypes, opts.templateCatalog ?? "none") },
         { role: "system", content: `Current List Spec (JSON): ${JSON.stringify(opts.spec)}` },
