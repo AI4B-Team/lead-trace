@@ -17,6 +17,8 @@ export const CHANNELS = [
     label: "Email",
     icon: Mail,
     live: false,
+    /** Saved intent: the toggle works, delivery starts when the domain is verified. */
+    pending: true,
     note: "Email Delivery Switches On Once A Verified Sending Domain Is Connected. Your Choices Are Saved Until Then.",
   },
   {
@@ -175,9 +177,10 @@ export function NotificationPrefs({
                     <div className="flex items-center justify-end gap-6">
                       {CHANNELS.map((c) => {
                         const always = "always" in c && c.always === true;
+                        const pending = "pending" in c && c.pending === true;
                         const note = "note" in c ? (c.note as string) : undefined;
                         const unavailable = group.soon || item.soon;
-                        const disabled = !c.live || unavailable;
+                        const disabled = unavailable || (!c.live && !pending);
                         if (always && !unavailable) {
                           return (
                             <Tooltip key={c.key}>
@@ -206,6 +209,7 @@ export function NotificationPrefs({
                           </div>
                         );
                         if (!disabled) return <div key={c.key}>{control}</div>;
+                        void pending;
                         return (
                           <Tooltip key={c.key}>
                             <TooltipTrigger asChild>
