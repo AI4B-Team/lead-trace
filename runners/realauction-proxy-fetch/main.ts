@@ -29,6 +29,8 @@
 //   * PROXY_URL is never returned or logged; only bytes and status are logged
 // ---------------------------------------------------------------------------
 
+import { tunnelGet } from "./tunnel.ts";
+
 const VENDOR_HOSTS = ["realforeclose.com", "realtaxdeed.com"];
 
 const CHROME_UA =
@@ -134,23 +136,46 @@ Deno.serve(async (req: Request) => {
     lastHit.set(host, Date.now());
 
     try {
-      const res = await fetch(url, {
-        headers: { "User-Agent": CHROME_UA, Accept: accept },
-        redirect: "follow",
-        client: proxiedClient(proxyUrl),
-      } as RequestInit);
-      const text = await res.text();
+      // Primary transport: raw CONNECT + TLS. Deno Deploy ignores
+      // createHttpClient({ proxy }), so the request would leave un-proxied and
+      // the vendor closes the handshake. The tunnel works on Deploy and on a
+      // plain Deno host alike; createHttpClient stays as a fallback.
+      let status: number;
+      let text: string;
+      let contentType: string;
+      try {
+        const t = await tunnelGet(
+          proxyUrl,
+          url,
+          { "User-Agent": CHROME_UA, Accept: accept },
+          MAX_BODY_BYTES + 1,
+        );
+        status = t.status;
+        text = t.body;
+        contentType = t.contentType;
+      } catch (tunnelErr) {
+        const why = tunnelErr instanceof Error ? tunnelErr.message : "tunnel failed";
+        console.error(`[realauction-relay] tunnel unavailable (${why.replace(/https?:\/\/\S+/g, "[redacted]")}) — trying client proxy`);
+        const res = await fetch(url, {
+          headers: { "User-Agent": CHROME_UA, Accept: accept },
+          redirect: "follow",
+          client: proxiedClient(proxyUrl),
+        } as RequestInit);
+        status = res.status;
+        text = await res.text();
+        contentType = res.headers.get("content-type") ?? "text/html";
+      }
       const bytes = text.length;
       // Status and size only. Never the proxy URL or its credentials.
-      console.log(`[realauction-relay] ${host} status=${res.status} bytes=${bytes}`);
+      console.log(`[realauction-relay] ${host} status=${status} bytes=${bytes}`);
       if (bytes > MAX_BODY_BYTES) {
-        return json({ error: "response_too_large", status: res.status, bytes }, 502);
+        return json({ error: "response_too_large", status, bytes }, 502);
       }
       // No retries: the caller decides what to do with a non-200.
       return json({
-        status: res.status,
+        status,
         bytes,
-        contentType: res.headers.get("content-type") ?? "text/html",
+        contentType,
         body: text,
       });
     } catch (err) {
