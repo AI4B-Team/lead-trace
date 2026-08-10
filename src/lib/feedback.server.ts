@@ -4,7 +4,7 @@
  */
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-3.6-flash";
+const MODEL = "google/gemini-3.1-flash-lite";
 
 const SYSTEM = `You rewrite messy product feedback for LeadTrace, a lead-generation and SMS outreach SaaS.
 Rewrite the user's note as one concise, specific request in the user's own first-person voice.
