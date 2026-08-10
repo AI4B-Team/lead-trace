@@ -72,6 +72,9 @@ function Dashboard() {
   const [creditTotals, setCreditTotals] = useState<CreditTotals>({ scrape: 0, skip_trace: 0, sms: 0 });
   const [weekly, setWeekly] = useState<Array<{ day: string; count: number }>>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
+  // Until the first metrics round-trip lands, zeros are a lie ("you have no
+  // leads/lists"). Everything numeric renders as a dash while loading.
+  const [loaded, setLoaded] = useState(false);
 
   // Recent Activity replaces the old credit card: what happened, not accounting.
   useEffect(() => {
