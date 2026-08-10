@@ -241,8 +241,8 @@ export function NotificationPrefs({
         );
       })}
       <p className="text-xs text-muted-foreground">
-        These Settings Control What Gets Sent To You. In-App Badges And The Activity Feed Always Reflect Live Account
-        Events.
+        In-App Alerts Are Always On — The Bell And Activity Feed Reflect Live Account Events. Email Choices Are Saved
+        Now And Start Sending As Soon As A Verified Sending Domain Is Connected.
       </p>
     </div>
   );
