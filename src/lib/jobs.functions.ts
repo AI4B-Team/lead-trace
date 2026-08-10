@@ -497,10 +497,14 @@ export const setListSchedule = createServerFn({ method: "POST" })
     const { scheduleFieldsFor } = await import("./recurring.server");
     const { data: job } = await context.supabase
       .from("jobs")
-      .select("source_type, workspace_id, name")
+      .select("source_type, workspace_id, name, parent_job_id")
       .eq("id", data.jobId)
       .maybeSingle();
     if (!job?.workspace_id) throw new Error("List Not Found");
+    // A cadence always belongs to the list, never to one of its runs. Editing
+    // it from a run row must retarget the parent, or the cron would skip it
+    // forever (runDueLists only walks parent rows).
+    const targetId = (job.parent_job_id as string | null) ?? data.jobId;
     {
       const { assertAction } = await import("./accountability.server");
       await assertAction(context.supabase, job.workspace_id, context.userId, "build_list");
@@ -509,7 +513,7 @@ export const setListSchedule = createServerFn({ method: "POST" })
       throw new Error("Uploaded Lists Are One-Time Only — There Is Nothing To Re-Scrape.");
     }
     const fields = scheduleFieldsFor(data.cadence, data.customMinutes);
-    const { error } = await context.supabase.from("jobs").update(fields).eq("id", data.jobId);
+    const { error } = await context.supabase.from("jobs").update(fields).eq("id", targetId);
     if (error) throw error;
     if (job?.workspace_id) {
       const { logActivity } = await import("./activity.server");
@@ -525,7 +529,7 @@ export const setListSchedule = createServerFn({ method: "POST" })
         type: "cadence_set",
         summary: `Schedule Set To ${CADENCE_LABEL[data.cadence] ?? data.cadence}`,
         detail: job.name ?? null,
-        refId: data.jobId,
+        refId: targetId,
         refType: "list",
         actorId: context.userId,
       });
@@ -543,19 +547,31 @@ export const setListScheduleActive = createServerFn({ method: "POST" })
     await assertJobAction(context.supabase, data.jobId, context.userId, "build_list");
     const { data: job } = await context.supabase
       .from("jobs")
-      .select("schedule, custom_interval_minutes")
+      .select("schedule, custom_interval_minutes, parent_job_id")
       .eq("id", data.jobId)
       .maybeSingle();
+    // Same rule as the cadence setter: pausing/resuming applies to the list.
+    const targetId = (job?.parent_job_id as string | null) ?? data.jobId;
+    // Cadence lives on the list row, so read it from the target too.
+    let sched = { schedule: job?.schedule ?? null, custom_interval_minutes: job?.custom_interval_minutes ?? null };
+    if (targetId !== data.jobId) {
+      const { data: parent } = await context.supabase
+        .from("jobs")
+        .select("schedule, custom_interval_minutes")
+        .eq("id", targetId)
+        .maybeSingle();
+      if (parent) sched = parent;
+    }
     const { nextRunFrom, normalizeCadence } = await import("./schedule.shared");
-    const cadence = normalizeCadence(job?.schedule ?? null);
+    const cadence = normalizeCadence(sched.schedule ?? null);
     const next =
       data.active && cadence !== "one_time"
-        ? nextRunFrom(cadence, job?.custom_interval_minutes ?? null)
+        ? nextRunFrom(cadence, sched.custom_interval_minutes ?? null)
         : null;
     const { error } = await context.supabase
       .from("jobs")
       .update({ schedule_active: data.active, next_run_at: next })
-      .eq("id", data.jobId);
+      .eq("id", targetId);
     if (error) throw error;
     return { active: data.active, next_run_at: next };
   });
