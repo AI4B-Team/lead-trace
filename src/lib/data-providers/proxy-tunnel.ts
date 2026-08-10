@@ -12,7 +12,7 @@
 type CfSocket = {
   readable: ReadableStream<Uint8Array>;
   writable: WritableStream<Uint8Array>;
-  startTls: () => CfSocket;
+  startTls: (options?: { expectedServerHostname?: string }) => CfSocket;
   close: () => Promise<void>;
 };
 
@@ -122,7 +122,11 @@ export async function tunnelFetch(
   }
   tunnelReader.releaseLock();
 
-  if (target.protocol === "https:") socket = socket.startTls();
+  // The tunnel was opened to the proxy, so TLS must be told which hostname the
+  // certificate belongs to; without it the vendor rejects the handshake.
+  if (target.protocol === "https:") {
+    socket = socket.startTls({ expectedServerHostname: target.hostname });
+  }
 
   const reqWriter = socket.writable.getWriter();
   const requestLines = [
