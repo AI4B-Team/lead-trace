@@ -19,7 +19,7 @@ export function PageHeader({
           <p className={`text-sm text-muted-foreground mt-1 max-w-2xl ${descriptionClassName ?? ""}`}>{description}</p>
         )}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }
