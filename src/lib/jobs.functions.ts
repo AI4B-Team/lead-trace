@@ -547,9 +547,11 @@ export const setListScheduleActive = createServerFn({ method: "POST" })
     await assertJobAction(context.supabase, data.jobId, context.userId, "build_list");
     const { data: job } = await context.supabase
       .from("jobs")
-      .select("schedule, custom_interval_minutes")
+      .select("schedule, custom_interval_minutes, parent_job_id")
       .eq("id", data.jobId)
       .maybeSingle();
+    // Same rule as the cadence setter: pausing/resuming applies to the list.
+    const targetId = (job?.parent_job_id as string | null) ?? data.jobId;
     const { nextRunFrom, normalizeCadence } = await import("./schedule.shared");
     const cadence = normalizeCadence(job?.schedule ?? null);
     const next =
@@ -559,7 +561,7 @@ export const setListScheduleActive = createServerFn({ method: "POST" })
     const { error } = await context.supabase
       .from("jobs")
       .update({ schedule_active: data.active, next_run_at: next })
-      .eq("id", data.jobId);
+      .eq("id", targetId);
     if (error) throw error;
     return { active: data.active, next_run_at: next };
   });
