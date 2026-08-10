@@ -552,11 +552,21 @@ export const setListScheduleActive = createServerFn({ method: "POST" })
       .maybeSingle();
     // Same rule as the cadence setter: pausing/resuming applies to the list.
     const targetId = (job?.parent_job_id as string | null) ?? data.jobId;
+    // Cadence lives on the list row, so read it from the target too.
+    let sched = { schedule: job?.schedule ?? null, custom_interval_minutes: job?.custom_interval_minutes ?? null };
+    if (targetId !== data.jobId) {
+      const { data: parent } = await context.supabase
+        .from("jobs")
+        .select("schedule, custom_interval_minutes")
+        .eq("id", targetId)
+        .maybeSingle();
+      if (parent) sched = parent;
+    }
     const { nextRunFrom, normalizeCadence } = await import("./schedule.shared");
-    const cadence = normalizeCadence(job?.schedule ?? null);
+    const cadence = normalizeCadence(sched.schedule ?? null);
     const next =
       data.active && cadence !== "one_time"
-        ? nextRunFrom(cadence, job?.custom_interval_minutes ?? null)
+        ? nextRunFrom(cadence, sched.custom_interval_minutes ?? null)
         : null;
     const { error } = await context.supabase
       .from("jobs")
