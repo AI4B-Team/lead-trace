@@ -3,7 +3,7 @@
  * stage names and order on every surface: jobs table, job detail, dashboard,
  * and exports. Full words only, never truncated labels.
  *
- * Found → Deduped → Verified → Traced → Scrubbed → Clean
+ * Found → Deduped → Mobile Verified → Skip Traced → Scrubbed → Clean
  *
  * "Leads" is reserved for the deduplicated Leads library. Job-level raw
  * counts are always called "Rows Processed".
@@ -22,8 +22,8 @@ export type PipelineStageKey = (typeof PIPELINE_STAGE_KEYS)[number];
 export const PIPELINE_STAGE_LABEL: Record<PipelineStageKey, string> = {
   found: "Found",
   deduped: "Deduped",
-  verified: "Verified",
-  skipTraced: "Traced",
+  verified: "Mobile Verified",
+  skipTraced: "Skip Traced",
   scrubbed: "Scrubbed",
   clean: "Clean",
 };

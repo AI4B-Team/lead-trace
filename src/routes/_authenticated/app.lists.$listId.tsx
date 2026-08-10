@@ -340,12 +340,15 @@ function JobDetail() {
           </>
         ) : (
           <>
-        <Stat label={isCreatorRun ? "Email Found" : "Verified"} value={funnel[2]!.remaining.toLocaleString()} />
+        <Stat
+          label={isCreatorRun ? "Email Found" : "Mobile Verified"}
+          value={funnel[2]!.remaining.toLocaleString()}
+        />
         {isCreatorRun ? (
           <Stat label="Contact Emails" value={counts.clean.toLocaleString()} />
         ) : (
           <Stat
-            label="Traced"
+            label="Skip Traced"
             value={traced > 0 ? traced.toLocaleString() : "Not Needed"}
             muted={traced === 0}
           />
