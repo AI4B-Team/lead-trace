@@ -261,6 +261,7 @@ function Dashboard() {
         totals[k] = Math.max(totals[k], bal[k]);
       }
       setCreditTotals(totals);
+      setLoaded(true);
     })();
   }, [workspaceId]);
 
