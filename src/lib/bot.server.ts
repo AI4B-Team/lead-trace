@@ -118,7 +118,9 @@ export async function generateBotReply(opts: {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        // SMS auto-reply: a lead is waiting, so use fast Flash with thinking off.
+        model: "google/gemini-3.6-flash",
+        reasoning: { enabled: false },
         messages: [
           {
             role: "system",
