@@ -97,7 +97,7 @@ export async function tunnelFetch(
   target.protocol = "http:";
   const proxy = new URL(proxyUrl);
 
-  const { connect } = (await import(/* @vite-ignore */ ("cloudflare:sockets" as string))) as {
+  const { connect } = (await import(/* @vite-ignore */ "cloudflare:sockets" as string)) as {
     connect: (a: { hostname: string; port: number }) => CfSocket;
   };
   const socket = connect({ hostname: proxy.hostname, port: Number(proxy.port || 8080) });
