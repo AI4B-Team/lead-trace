@@ -76,7 +76,7 @@ export const Route = createFileRoute("/leads/")({
 
 const NICHE_FACTS = [
   { icon: Globe, label: "Nationwide" },
-  { icon: Smartphone, label: "Verified" },
+  { icon: Smartphone, label: "Mobile Verified" },
   { icon: Zap, label: "Built On Demand" },
 ];
 
@@ -575,7 +575,7 @@ function LeadsIndexBody() {
               title="Delivered As"
               footLabel="554 Records Ready"
               items={[
-                { icon: <Smartphone className="h-4 w-4" />, label: "Verified" },
+                { icon: <Smartphone className="h-4 w-4" />, label: "Mobile Verified" },
                 { icon: <FileSpreadsheet className="h-4 w-4" />, label: "Export Ready" },
                 { icon: <Star className="h-4 w-4" />, label: "Never Resold" },
                 { icon: <Send className="h-4 w-4" />, label: "SMS Campaign Ready" },
