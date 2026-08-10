@@ -60,7 +60,11 @@ export function ConvoBadgeChip({ badge, className }: { badge: ConvoBadge; classN
   return (
     <Badge
       variant="outline"
-      className={cn("text-[10px] font-semibold px-1.5 py-0 h-[18px]", TONE_CLASS[BADGE_TONE[badge]], className)}
+      className={cn(
+        "text-[10px] font-semibold px-1.5 py-0 h-[18px]",
+        TONE_CLASS[BADGE_TONE[badge]],
+        className,
+      )}
     >
       {badge}
     </Badge>
@@ -72,7 +76,10 @@ export function Stars({ score, className }: { score: number; className?: string 
   return (
     <span className={cn("inline-flex items-center gap-0.5", className)} aria-label={`${n} of 5`}>
       {[1, 2, 3, 4, 5].map((i) => (
-        <Star key={i} className={cn("h-3 w-3", i <= n ? "fill-warn text-warn" : "text-muted-foreground/30")} />
+        <Star
+          key={i}
+          className={cn("h-3 w-3", i <= n ? "fill-warn text-warn" : "text-muted-foreground/30")}
+        />
       ))}
     </span>
   );
@@ -91,7 +98,13 @@ export type ThreadRow = {
   intent: Intent;
   sentiment: Sentiment;
   badges: ConvoBadge[];
-  lead: { full_name: string | null; business_name: string | null; phone: string | null; city: string | null; state: string | null } | null;
+  lead: {
+    full_name: string | null;
+    business_name: string | null;
+    phone: string | null;
+    city: string | null;
+    state: string | null;
+  } | null;
   lead_tags?: Array<{ id: string; name: string; color: string }>;
   campaign: { name: string; status: string | null } | null;
   lead_id?: string | null;
@@ -115,7 +128,8 @@ export function ConversationRow({
   /** Star toggle lives on the row so triage never needs the thread open. */
   onToggleStar?: () => void;
 }) {
-  const name = thread.lead?.full_name || thread.lead?.business_name || thread.lead?.phone || thread.thread_key;
+  const name =
+    thread.lead?.full_name || thread.lead?.business_name || thread.lead?.phone || thread.thread_key;
   const statusDot = thread.is_optout
     ? "bg-danger"
     : thread.intent === "appointment"
@@ -142,7 +156,13 @@ export function ConversationRow({
       )}
     >
       <div className="flex items-start gap-2">
-        <span className={cn("mt-1.5 h-2 w-2 rounded-full shrink-0", statusDot, thread.needs_reply && !thread.is_optout && "animate-pulse")} />
+        <span
+          className={cn(
+            "mt-1.5 h-2 w-2 rounded-full shrink-0",
+            statusDot,
+            thread.needs_reply && !thread.is_optout && "animate-pulse",
+          )}
+        />
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <span className="font-semibold truncate text-sm">{name}</span>
@@ -157,7 +177,9 @@ export function ConversationRow({
                   }}
                   className={cn(
                     "rounded p-0.5 transition-colors hover:bg-muted",
-                    thread.starred ? "text-warn" : "text-muted-foreground/50 hover:text-muted-foreground",
+                    thread.starred
+                      ? "text-warn"
+                      : "text-muted-foreground/50 hover:text-muted-foreground",
                   )}
                 >
                   <Star className={cn("h-3.5 w-3.5", thread.starred && "fill-current")} />
@@ -204,7 +226,9 @@ export function ConversationRow({
             </div>
           )}
           {thread.campaign && (
-            <div className="text-[10px] text-muted-foreground mt-1.5 truncate">{thread.campaign.name}</div>
+            <div className="text-[10px] text-muted-foreground mt-1.5 truncate">
+              {thread.campaign.name}
+            </div>
           )}
         </div>
       </div>
@@ -217,22 +241,37 @@ export function AiSummary({
   bullets,
   nextStep,
   loading,
+  failed,
+  onRetry,
   onUseNextStep,
 }: {
   bullets: string[];
   nextStep: string | null;
   loading: boolean;
+  failed?: boolean;
+  onRetry?: () => void;
   onUseNextStep?: () => void;
 }) {
   return (
     <div className="border-b bg-muted/20 px-4 py-2.5">
       <div className="flex items-center gap-1.5 mb-1.5">
         <Sparkles className="h-3.5 w-3.5 text-primary" />
-        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">AI Summary</span>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          AI Summary
+        </span>
         {loading && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
       </div>
       {loading && !bullets.length ? (
         <p className="text-xs text-muted-foreground">Reading The Conversation…</p>
+      ) : failed && !bullets.length ? (
+        <div className="flex items-center gap-2">
+          <p className="text-xs text-muted-foreground">Summary Unavailable Right Now.</p>
+          {onRetry && (
+            <Button size="sm" variant="ghost" className="h-5 text-[10px] px-1.5" onClick={onRetry}>
+              Try Again
+            </Button>
+          )}
+        </div>
       ) : bullets.length ? (
         <ul className="space-y-0.5">
           {bullets.map((b) => (
@@ -253,7 +292,12 @@ export function AiSummary({
             {nextStep}
           </span>
           {onUseNextStep && (
-            <Button size="sm" variant="ghost" className="h-5 text-[10px] px-1.5 shrink-0" onClick={onUseNextStep}>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-5 text-[10px] px-1.5 shrink-0"
+              onClick={onUseNextStep}
+            >
               Draft It
             </Button>
           )}
@@ -312,7 +356,12 @@ export function SuggestedReplies({
                 Next ({(i % suggestions.length) + 1}/{suggestions.length})
               </Button>
             )}
-            <Button size="sm" variant="ghost" className="h-6 text-[10px] px-2" onClick={onRegenerate}>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 text-[10px] px-2"
+              onClick={onRegenerate}
+            >
               Regenerate
             </Button>
           </div>
@@ -322,9 +371,15 @@ export function SuggestedReplies({
         <div className="mt-1.5 h-8 rounded-lg bg-muted animate-pulse" />
       ) : active ? (
         <div className="mt-1.5 flex items-start gap-2">
-        <p className="text-xs text-foreground flex-1 whitespace-pre-wrap line-clamp-4">{active.body}</p>
+          <p className="text-xs text-foreground flex-1 whitespace-pre-wrap line-clamp-4">
+            {active.body}
+          </p>
           <div className="flex gap-1 shrink-0">
-            <Button size="sm" className="h-6 text-[10px] px-2 rounded-full" onClick={() => onUse(active.body)}>
+            <Button
+              size="sm"
+              className="h-6 text-[10px] px-2 rounded-full"
+              onClick={() => onUse(active.body)}
+            >
               Use
             </Button>
             <Button
@@ -342,11 +397,24 @@ export function SuggestedReplies({
   );
 }
 
-export type TimelineEvent = { at: string; label: string; kind: "sent" | "received" | "ai" | "human" | "system" };
+export type TimelineEvent = {
+  at: string;
+  label: string;
+  kind: "sent" | "received" | "ai" | "human" | "system";
+};
 
 /** Build an intelligent activity trail from raw messages. */
 export function buildTimeline(
-  messages: Array<{ id: string; direction: string; body: string | null; created_at: string; is_bot: boolean; handoff_reason: string | null; status: string | null; is_optout: boolean | null }>,
+  messages: Array<{
+    id: string;
+    direction: string;
+    body: string | null;
+    created_at: string;
+    is_bot: boolean;
+    handoff_reason: string | null;
+    status: string | null;
+    is_optout: boolean | null;
+  }>,
   intentOf: (body: string | null) => Intent,
 ): TimelineEvent[] {
   const out: TimelineEvent[] = [];
@@ -360,13 +428,23 @@ export function buildTimeline(
     } else {
       out.push({ at: m.created_at, label: "Lead Replied", kind: "received" });
       const intent = intentOf(m.body);
-      if (m.is_optout) out.push({ at: m.created_at, label: "STOP Detected — Suppressed", kind: "system" });
-      else if (intent === "appointment") out.push({ at: m.created_at, label: "AI Detected Appointment Intent", kind: "ai" });
-      else if (intent === "qualified") out.push({ at: m.created_at, label: "AI Detected Interest", kind: "ai" });
-      else if (intent === "question") out.push({ at: m.created_at, label: "AI Detected A Question", kind: "ai" });
-      else if (intent === "negative") out.push({ at: m.created_at, label: "AI Detected Objection", kind: "ai" });
+      if (m.is_optout)
+        out.push({ at: m.created_at, label: "STOP Detected — Suppressed", kind: "system" });
+      else if (intent === "appointment")
+        out.push({ at: m.created_at, label: "AI Detected Appointment Intent", kind: "ai" });
+      else if (intent === "qualified")
+        out.push({ at: m.created_at, label: "AI Detected Interest", kind: "ai" });
+      else if (intent === "question")
+        out.push({ at: m.created_at, label: "AI Detected A Question", kind: "ai" });
+      else if (intent === "negative")
+        out.push({ at: m.created_at, label: "AI Detected Objection", kind: "ai" });
     }
-    if (m.handoff_reason) out.push({ at: m.created_at, label: `Handed Off To Human · ${m.handoff_reason.replace(/_/g, " ")}`, kind: "system" });
+    if (m.handoff_reason)
+      out.push({
+        at: m.created_at,
+        label: `Handed Off To Human · ${m.handoff_reason.replace(/_/g, " ")}`,
+        kind: "system",
+      });
   }
   return out;
 }
@@ -386,10 +464,16 @@ export function AiTimeline({ events }: { events: TimelineEvent[] }) {
       <span className="absolute left-[3px] top-1 bottom-1 w-px bg-border" />
       {events.map((e, i) => (
         <li key={`${e.at}-${i}`} className="relative pb-2.5 last:pb-0">
-          <span className={cn("absolute -left-4 top-1 h-[7px] w-[7px] rounded-full", KIND_STYLE[e.kind])} />
+          <span
+            className={cn(
+              "absolute -left-4 top-1 h-[7px] w-[7px] rounded-full",
+              KIND_STYLE[e.kind],
+            )}
+          />
           <div className="text-[11px] font-medium leading-tight">{e.label}</div>
           <div className="text-[10px] text-muted-foreground">
-            {new Date(e.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} · {dayLabel(e.at)}
+            {new Date(e.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} ·{" "}
+            {dayLabel(e.at)}
           </div>
         </li>
       ))}
@@ -427,7 +511,13 @@ export type ThreadContext = {
   job: { name: string | null; source_type: string; record_type: string; params: unknown } | null;
   brand: { name: string } | null;
   tag: { name: string; color: string } | null;
-  record: { disposition: string; source_types: string[]; record_types: string[]; list_count: number; first_seen_at: string } | null;
+  record: {
+    disposition: string;
+    source_types: string[];
+    record_types: string[];
+    list_count: number;
+    first_seen_at: string;
+  } | null;
   suppressed: boolean;
 };
 
@@ -463,22 +553,44 @@ export function QuickActions({
 }) {
   return (
     <div className="flex items-center gap-1 flex-wrap">
-      <Button asChild size="sm" variant="outline" className="h-7 rounded-full text-xs" disabled={!phone}>
+      <Button
+        asChild
+        size="sm"
+        variant="outline"
+        className="h-7 rounded-full text-xs"
+        disabled={!phone}
+      >
         <a href={phone ? `tel:${phone.replace(/[^0-9+]/g, "")}` : undefined}>
           <Phone className="h-3 w-3 mr-1" /> Call
         </a>
       </Button>
-      <Button asChild size="sm" variant="outline" className="h-7 rounded-full text-xs" disabled={!email}>
+      <Button
+        asChild
+        size="sm"
+        variant="outline"
+        className="h-7 rounded-full text-xs"
+        disabled={!email}
+      >
         <a href={email ? `mailto:${email}` : undefined}>
           <Mail className="h-3 w-3 mr-1" /> Email
         </a>
       </Button>
-      <Button size="sm" variant="outline" className="h-7 rounded-full text-xs" onClick={onAppointment}>
+      <Button
+        size="sm"
+        variant="outline"
+        className="h-7 rounded-full text-xs"
+        onClick={onAppointment}
+      >
         <CalendarPlus className="h-3 w-3 mr-1" /> Appointment
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="sm" variant="ghost" className="h-7 w-7 rounded-full p-0" aria-label="More Actions">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 w-7 rounded-full p-0"
+            aria-label="More Actions"
+          >
             {blacklisting ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
@@ -490,10 +602,18 @@ export function QuickActions({
           <DropdownMenuItem onClick={onTag} disabled={readOnly} className="cursor-pointer text-xs">
             <TagIcon className="h-3.5 w-3.5" /> Tag
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onArchive} disabled={readOnly} className="cursor-pointer text-xs">
+          <DropdownMenuItem
+            onClick={onArchive}
+            disabled={readOnly}
+            className="cursor-pointer text-xs"
+          >
             <Archive className="h-3.5 w-3.5" /> {archived ? "Unarchive" : "Archive"}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onBlacklist} disabled={blacklisting || readOnly} className="cursor-pointer text-xs text-danger focus:text-danger">
+          <DropdownMenuItem
+            onClick={onBlacklist}
+            disabled={blacklisting || readOnly}
+            className="cursor-pointer text-xs text-danger focus:text-danger"
+          >
             <Ban className="h-3.5 w-3.5" /> Blacklist
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -524,7 +644,8 @@ export function LeadProfilePanel({
   const property = useMemo(() => {
     const meta = (lead?.source_meta ?? null) as Record<string, unknown> | null;
     if (!meta) return null;
-    const pick = (k: string) => (typeof meta[k] === "string" || typeof meta[k] === "number" ? String(meta[k]) : null);
+    const pick = (k: string) =>
+      typeof meta[k] === "string" || typeof meta[k] === "number" ? String(meta[k]) : null;
     const fields = {
       estimated_value: pick("estimated_value") ?? pick("est_value"),
       owner_since: pick("owner_since") ?? pick("purchase_year"),
@@ -547,13 +668,17 @@ export function LeadProfilePanel({
             <div className="font-display font-bold truncate">{name}</div>
             <div className="text-xs text-muted-foreground truncate">
               {lead?.business_name && lead.business_name !== name ? lead.business_name : null}
-              {lead?.city ? `${lead.business_name && lead.business_name !== name ? " · " : ""}${lead.city}, ${lead.state ?? ""}` : null}
+              {lead?.city
+                ? `${lead.business_name && lead.business_name !== name ? " · " : ""}${lead.city}, ${lead.state ?? ""}`
+                : null}
             </div>
           </div>
         </div>
         <div className="mt-3 rounded-xl border bg-muted/30 p-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Lead Score</span>
+            <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+              Lead Score
+            </span>
             <Stars score={score} />
           </div>
           <div className="flex items-end gap-2 mt-1">
@@ -566,7 +691,9 @@ export function LeadProfilePanel({
               {thread.badges.slice(0, 1).map((b) => (
                 <ConvoBadgeChip key={b} badge={b} />
               ))}
-              <span className="text-[10px] text-muted-foreground">{SENTIMENT_LABEL[thread.sentiment]}</span>
+              <span className="text-[10px] text-muted-foreground">
+                {SENTIMENT_LABEL[thread.sentiment]}
+              </span>
             </div>
           )}
         </div>
@@ -581,17 +708,23 @@ export function LeadProfilePanel({
           {lead?.email && <Field label="Email">{lead.email}</Field>}
           {lead?.address && <Field label="Address">{lead.address}</Field>}
           {(lead?.city || lead?.zip) && (
-            <Field label="Location">{[lead?.city, lead?.state, lead?.zip].filter(Boolean).join(", ")}</Field>
+            <Field label="Location">
+              {[lead?.city, lead?.state, lead?.zip].filter(Boolean).join(", ")}
+            </Field>
           )}
           {thread && <Field label="Last Contact">{relativeShort(thread.last_at)}</Field>}
           {property && (
             <div className="mt-2 pt-2 border-t">
               <SectionTitle icon={Home} title="Property" />
-              {property.estimated_value && <Field label="Estimated Value">{property.estimated_value}</Field>}
+              {property.estimated_value && (
+                <Field label="Estimated Value">{property.estimated_value}</Field>
+              )}
               {property.owner_since && <Field label="Owner Since">{property.owner_since}</Field>}
               {property.sqft && <Field label="Square Feet">{property.sqft}</Field>}
               {property.beds && <Field label="Beds">{property.beds}</Field>}
-              {property.tax_delinquent && <Field label="Tax Delinquent">{property.tax_delinquent}</Field>}
+              {property.tax_delinquent && (
+                <Field label="Tax Delinquent">{property.tax_delinquent}</Field>
+              )}
               {property.violations && <Field label="Code Violations">{property.violations}</Field>}
             </div>
           )}
@@ -643,7 +776,11 @@ export function LeadProfilePanel({
         <RailSection icon={Sparkles} title="Activity">
           <div className="flex flex-wrap gap-1 mb-3">
             {ctx?.tag && (
-              <Badge variant="outline" className="text-[10px]" style={{ borderColor: ctx.tag.color, color: ctx.tag.color }}>
+              <Badge
+                variant="outline"
+                className="text-[10px]"
+                style={{ borderColor: ctx.tag.color, color: ctx.tag.color }}
+              >
                 {ctx.tag.name}
               </Badge>
             )}
@@ -659,14 +796,14 @@ export function LeadProfilePanel({
           </div>
           <AiTimeline events={events} />
           <div className="mt-3 pt-2 border-t">
-          <SectionTitle icon={Copy} title="Notes" />
-          <textarea
-            value={notes}
-            onChange={(e) => onNotes(e.target.value)}
-            placeholder="Private notes about this lead…"
-            className="w-full min-h-[72px] rounded-lg border bg-background p-2 text-xs resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
-          <p className="text-[10px] text-muted-foreground mt-1">Saved On This Device.</p>
+            <SectionTitle icon={Copy} title="Notes" />
+            <textarea
+              value={notes}
+              onChange={(e) => onNotes(e.target.value)}
+              placeholder="Private notes about this lead…"
+              className="w-full min-h-[72px] rounded-lg border bg-background p-2 text-xs resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">Saved On This Device.</p>
           </div>
         </RailSection>
       </div>
@@ -691,8 +828,15 @@ function RailSection({
     <Collapsible open={open} onOpenChange={setOpen} className="py-1">
       <CollapsibleTrigger className="w-full flex items-center gap-1.5 px-1 py-2 cursor-pointer hover:bg-muted/40 rounded-md">
         <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{title}</span>
-        <ChevronDown className={cn("h-3.5 w-3.5 ml-auto text-muted-foreground transition-transform", open && "rotate-180")} />
+        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          {title}
+        </span>
+        <ChevronDown
+          className={cn(
+            "h-3.5 w-3.5 ml-auto text-muted-foreground transition-transform",
+            open && "rotate-180",
+          )}
+        />
       </CollapsibleTrigger>
       <CollapsibleContent className="px-1 pb-2">{children}</CollapsibleContent>
     </Collapsible>
@@ -703,7 +847,9 @@ function SectionTitle({ icon: Icon, title }: { icon: typeof UserRound; title: st
   return (
     <div className="flex items-center gap-1.5 mb-1.5">
       <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{title}</span>
+      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        {title}
+      </span>
     </div>
   );
 }
@@ -724,5 +870,10 @@ export function AiActivityPill({ label }: { label: string }) {
 }
 
 function Dot({ delay }: { delay: string }) {
-  return <span className="h-1 w-1 rounded-full bg-success animate-bounce" style={{ animationDelay: delay }} />;
+  return (
+    <span
+      className="h-1 w-1 rounded-full bg-success animate-bounce"
+      style={{ animationDelay: delay }}
+    />
+  );
 }
