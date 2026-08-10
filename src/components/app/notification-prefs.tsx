@@ -1,14 +1,35 @@
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ListChecks, MessageSquare, CreditCard, Users, Mail, Bell, Smartphone } from "lucide-react";
+import { ListChecks, MessageSquare, CreditCard, Users, Mail, Bell, Smartphone, Check } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-/** Delivery channels a notification can eventually go out on. Only email is wired today. */
+/**
+ * Delivery channels, described honestly:
+ * - In-app is what actually ships today (the bell and the activity feed), so it
+ *   is always on rather than a toggle that pretends to do nothing.
+ * - Email is stored intent only until a verified sending domain exists.
+ * - SMS is not built.
+ */
 export const CHANNELS = [
-  { key: "email", label: "Email", icon: Mail, live: true },
-  { key: "inApp", label: "In-App", icon: Bell, live: false },
-  { key: "sms", label: "SMS", icon: Smartphone, live: false },
+  {
+    key: "email",
+    label: "Email",
+    icon: Mail,
+    live: false,
+    /** Saved intent: the toggle works, delivery starts when the domain is verified. */
+    pending: true,
+    note: "Email Delivery Switches On Once A Verified Sending Domain Is Connected. Your Choices Are Saved Until Then.",
+  },
+  {
+    key: "inApp",
+    label: "In-App",
+    icon: Bell,
+    live: true,
+    always: true,
+    note: "Always On — The Bell And Activity Feed Show These Events As They Happen.",
+  },
+  { key: "sms", label: "SMS", icon: Smartphone, live: false, note: "SMS Delivery Is Coming Soon." },
 ] as const;
 
 export type ChannelKey = (typeof CHANNELS)[number]["key"];
@@ -155,7 +176,28 @@ export function NotificationPrefs({
                     </div>
                     <div className="flex items-center justify-end gap-6">
                       {CHANNELS.map((c) => {
-                        const disabled = !c.live || group.soon || item.soon;
+                        const always = "always" in c && c.always === true;
+                        const pending = "pending" in c && c.pending === true;
+                        const note = "note" in c ? (c.note as string) : undefined;
+                        const unavailable = group.soon || item.soon;
+                        const disabled = unavailable || (!c.live && !pending);
+                        if (always && !unavailable) {
+                          return (
+                            <Tooltip key={c.key}>
+                              <TooltipTrigger asChild>
+                                <div
+                                  className="flex w-14 justify-center"
+                                  aria-label={`${item.label} via ${c.label} — always on`}
+                                >
+                                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                    <Check className="h-3 w-3" />
+                                  </span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>{note ?? "Always On."}</TooltipContent>
+                            </Tooltip>
+                          );
+                        }
                         const control = (
                           <div className="flex w-14 justify-center">
                             <Switch
@@ -166,16 +208,26 @@ export function NotificationPrefs({
                             />
                           </div>
                         );
-                        if (!disabled) return <div key={c.key}>{control}</div>;
+                        if (!disabled) {
+                          if (!note) return <div key={c.key}>{control}</div>;
+                          return (
+                            <Tooltip key={c.key}>
+                              <TooltipTrigger asChild>
+                                <div>{control}</div>
+                              </TooltipTrigger>
+                              <TooltipContent>{note}</TooltipContent>
+                            </Tooltip>
+                          );
+                        }
                         return (
                           <Tooltip key={c.key}>
                             <TooltipTrigger asChild>
                               <span className="cursor-not-allowed opacity-50">{control}</span>
                             </TooltipTrigger>
                             <TooltipContent>
-                              {group.soon || item.soon
+                              {unavailable
                                 ? "This Notification Is Coming Soon."
-                                : `${c.label} Delivery Is Coming Soon.`}
+                                : (note ?? `${c.label} Delivery Is Coming Soon.`)}
                             </TooltipContent>
                           </Tooltip>
                         );
@@ -189,8 +241,8 @@ export function NotificationPrefs({
         );
       })}
       <p className="text-xs text-muted-foreground">
-        These Settings Control What Gets Sent To You. In-App Badges And The Activity Feed Always Reflect Live Account
-        Events.
+        In-App Alerts Are Always On — The Bell And Activity Feed Reflect Live Account Events. Email Choices Are Saved
+        Now And Start Sending As Soon As A Verified Sending Domain Is Connected.
       </p>
     </div>
   );
