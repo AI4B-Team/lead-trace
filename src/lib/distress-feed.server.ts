@@ -450,6 +450,7 @@ export const PULL_TARGETS: PullTarget[] = [
     recordType: "tax_deed",
     path: "portal",
     portalUrl: "https://hillsborough.realtaxdeed.com",
+    proxied: true,
     pull: pullHillsboroughTaxDeed,
   },
   {
