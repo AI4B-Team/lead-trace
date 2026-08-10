@@ -41,9 +41,11 @@ export const Route = createFileRoute("/distress-feed/guides/$state/$county/$reco
       links: [
         {
           rel: "canonical",
-          href: canonicalUrl(`/distress-feed/guides/${guide.state.toLowerCase()}/${countySlug(guide.county)}/${
-            recordTypeBySlug(guide.record_type)?.slug ?? guide.record_type
-          }`,
+          href: canonicalUrl(
+            `/distress-feed/guides/${guide.state.toLowerCase()}/${countySlug(guide.county)}/${
+              recordTypeBySlug(guide.record_type)?.slug ?? guide.record_type
+            }`,
+          ),
         },
       ],
       scripts: [
