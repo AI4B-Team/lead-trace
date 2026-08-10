@@ -35,8 +35,8 @@ function indexOfSequence(haystack: Uint8Array, needle: Uint8Array, from = 0): nu
   return -1;
 }
 
-function concat(a: Uint8Array, b: Uint8Array): Uint8Array {
-  const out = new Uint8Array(a.length + b.length);
+function concat(a: Uint8Array, b: Uint8Array): Uint8Array<ArrayBuffer> {
+  const out = new Uint8Array(new ArrayBuffer(a.length + b.length));
   out.set(a, 0);
   out.set(b, a.length);
   return out;
@@ -48,12 +48,12 @@ const CRLF2 = encoder.encode("\r\n\r\n");
 async function readHead(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   seed = new Uint8Array(0),
-): Promise<{ head: string; rest: Uint8Array }> {
-  let buf = seed;
+): Promise<{ head: string; rest: Uint8Array<ArrayBuffer> }> {
+  let buf = concat(seed, new Uint8Array(0));
   for (;;) {
     const at = indexOfSequence(buf, CRLF2);
     if (at >= 0) {
-      return { head: decoder.decode(buf.slice(0, at)), rest: buf.slice(at + 4) };
+      return { head: decoder.decode(buf.slice(0, at)), rest: concat(buf.slice(at + 4), new Uint8Array(0)) };
     }
     const { value, done } = await reader.read();
     if (done) throw new Error("proxy closed the connection before headers completed");
@@ -61,8 +61,8 @@ async function readHead(
   }
 }
 
-function parseChunked(body: Uint8Array): Uint8Array {
-  let out = new Uint8Array(0);
+function parseChunked(body: Uint8Array): Uint8Array<ArrayBuffer> {
+  let out = concat(new Uint8Array(0), new Uint8Array(0));
   let i = 0;
   for (;;) {
     const nl = indexOfSequence(body, encoder.encode("\r\n"), i);
@@ -89,7 +89,7 @@ export async function tunnelFetch(
   const proxy = new URL(proxyUrl);
   const port = target.protocol === "https:" ? 443 : 80;
 
-  const { connect } = (await import(/* @vite-ignore */ "cloudflare:sockets")) as {
+  const { connect } = (await import(/* @vite-ignore */ "cloudflare:sockets" as string)) as {
     connect: (a: { hostname: string; port: number }, o?: { secureTransport?: string }) => CfSocket;
   };
 
@@ -134,7 +134,7 @@ export async function tunnelFetch(
 
   const reader = socket.readable.getReader();
   const { head, rest } = await readHead(reader);
-  let body = rest;
+  let body: Uint8Array<ArrayBuffer> = rest;
   for (;;) {
     const { value, done } = await reader.read();
     if (done) break;
@@ -157,5 +157,5 @@ export async function tunnelFetch(
   }
   if (/transfer-encoding:\s*chunked/i.test(head)) body = parseChunked(body);
 
-  return new Response(body, { status, headers: resHeaders });
+  return new Response(body as BodyInit, { status, headers: resHeaders });
 }
