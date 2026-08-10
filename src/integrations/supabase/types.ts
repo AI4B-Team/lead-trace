@@ -1521,11 +1521,13 @@ export type Database = {
       }
       distress_pulls: {
         Row: {
+          bytes_downloaded: number
           county: string
           created_at: string
           error: string | null
           finished_at: string | null
           fips: string
+          http_status: number | null
           id: string
           record_type: string
           records_added: number
@@ -1535,11 +1537,13 @@ export type Database = {
           status: string
         }
         Insert: {
+          bytes_downloaded?: number
           county: string
           created_at?: string
           error?: string | null
           finished_at?: string | null
           fips: string
+          http_status?: number | null
           id?: string
           record_type: string
           records_added?: number
@@ -1549,11 +1553,13 @@ export type Database = {
           status?: string
         }
         Update: {
+          bytes_downloaded?: number
           county?: string
           created_at?: string
           error?: string | null
           finished_at?: string | null
           fips?: string
+          http_status?: number | null
           id?: string
           record_type?: string
           records_added?: number
