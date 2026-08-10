@@ -270,6 +270,9 @@ function LeadsPageInner() {
   };
 
   const stats = data?.stats;
+  // Until the first response lands, show a dash instead of a hard zero —
+  // a loading "0" reads as "you have no leads", which is a lie.
+  const num = (v: number | undefined) => (v === undefined ? "—" : v.toLocaleString());
   const rows = data?.rows ?? [];
   // Data-driven columns: the Leads master merges many list shapes, so its
   // columns follow what's present in the CURRENT filtered view — never one
