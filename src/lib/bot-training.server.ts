@@ -98,7 +98,8 @@ export async function answerFromKnowledge(opts: {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3.6-flash",
+        reasoning: { enabled: false },
         messages: [
           { role: "system", content: `${system}\n\nAPPROVED KNOWLEDGE:\n${opts.knowledge}` },
           { role: "user", content: opts.question },
