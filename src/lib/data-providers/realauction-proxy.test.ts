@@ -55,11 +55,16 @@ describe("fail-safe when the proxy is missing", () => {
 });
 
 describe("egress routing", () => {
+  // Vitest runs on Node, which has no proxy mechanism; pretend to be Bun so the
+  // scoping/User-Agent decisions can be asserted independently of the runtime.
+  const g = globalThis as unknown as { Bun?: unknown };
   beforeEach(() => {
     process.env["PROXY_URL"] = PROXY;
+    g.Bun = {};
   });
   afterEach(() => {
     delete process.env["PROXY_URL"];
+    delete g.Bun;
     vi.restoreAllMocks();
   });
 
