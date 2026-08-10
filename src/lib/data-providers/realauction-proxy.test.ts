@@ -35,6 +35,12 @@ describe("proxy scoping", () => {
 describe("fail-safe when the proxy is missing", () => {
   beforeEach(() => {
     delete process.env["PROXY_URL"];
+    delete process.env["REALAUCTION_RELAY_URL"];
+    delete process.env["REALAUCTION_RELAY_SECRET"];
+    delete process.env["CRON_SECRET"];
+    delete process.env["AGW_URL"];
+    delete process.env["AGW_TOKEN"];
+    delete process.env["LOVABLE_API_KEY"];
   });
 
   it("reports unavailable without PROXY_URL", () => {
@@ -138,5 +144,70 @@ describe("bandwidth cap", () => {
   it("ignores accounting when no sweep budget is open", () => {
     expect(() => recordVendorFetch(10_000, 200)).not.toThrow();
     expect(bytesUsed()).toBe(0);
+  });
+});
+
+describe("relay transport (Workers path)", () => {
+  const RELAY = "https://runner.example.com/fetch";
+  beforeEach(() => {
+    delete process.env["PROXY_URL"];
+    process.env["REALAUCTION_RELAY_URL"] = RELAY;
+    process.env["REALAUCTION_RELAY_SECRET"] = "s3cret";
+  });
+  afterEach(() => {
+    delete process.env["REALAUCTION_RELAY_URL"];
+    delete process.env["REALAUCTION_RELAY_SECRET"];
+    vi.restoreAllMocks();
+  });
+
+  it("is available without a local PROXY_URL — the runner holds it", () => {
+    expect(realauctionProxyStatus()).toEqual({ available: true });
+  });
+
+  it("posts the vendor URL to the runner with the internal secret and never leaks the proxy", async () => {
+    const calls: Array<{ url: string; init: RequestInit | undefined }> = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation((async (
+      input: RequestInfo | URL,
+      init?: RequestInit,
+    ) => {
+      calls.push({ url: String(input), init });
+      return new Response(
+        JSON.stringify({ status: 200, bytes: 9, contentType: "text/html", body: "<html/>" }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }) as typeof fetch);
+
+    const res = await realauctionFetch("https://duval.realtaxdeed.com/index.cfm");
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe("<html/>");
+    const call = calls[0]!;
+    expect(call.url).toBe(RELAY);
+    const headers = call.init?.headers as Record<string, string>;
+    expect(headers["x-internal-secret"]).toBe("s3cret");
+    expect(String(call.init?.body)).toContain("duval.realtaxdeed.com");
+    expect(String(call.init?.body)).not.toContain("iproyal");
+  });
+
+  it("surfaces a runner without a proxy as ProxyUnavailableError", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation((async () =>
+      new Response(JSON.stringify({ error: "proxy_unavailable", reason: "PROXY_URL is not set" }), {
+        status: 503,
+        headers: { "content-type": "application/json" },
+      })) as typeof fetch);
+
+    await expect(
+      realauctionFetch("https://duval.realtaxdeed.com/index.cfm"),
+    ).rejects.toBeInstanceOf(ProxyUnavailableError);
+  });
+
+  it("returns the vendor status verbatim so a block skips the county", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation((async () =>
+      new Response(JSON.stringify({ status: 403, bytes: 0, body: "" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })) as typeof fetch);
+
+    const res = await realauctionFetch("https://duval.realtaxdeed.com/index.cfm");
+    expect(res.status).toBe(403);
   });
 });
