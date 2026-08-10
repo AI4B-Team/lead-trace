@@ -10,6 +10,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Check, Star, Gauge, Shield, Repeat, Users, Phone } from "lucide-react";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/pricing")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/pricing" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/pricing") }],
   }),
   component: Pricing,
 });

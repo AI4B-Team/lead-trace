@@ -13,6 +13,7 @@ import {
   templateFields,
 } from "@/lib/templates";
 import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/templates/$templateId")({
   loader: ({ params }) => {
@@ -35,7 +36,7 @@ export const Route = createFileRoute("/templates/$templateId")({
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary_large_image" },
       ],
-      links: [{ rel: "canonical", href: `/templates/${loaderData.templateId}` }],
+      links: [{ rel: "canonical", href: canonicalUrl(`/templates/${loaderData.templateId}`) }],
     };
   },
   notFoundComponent: TemplateNotFound,

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { getFeedStates } from "@/lib/distress-feed.functions";
 import { formatDate, type FeedStateRow } from "@/lib/distress-feed.shared";
 import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/distress-feed/counties/")({
   loader: () => getFeedStates(),
@@ -22,7 +23,7 @@ export const Route = createFileRoute("/distress-feed/counties/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/distress-feed/counties" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/distress-feed/counties") }],
   }),
   component: CountiesIndex,
   errorComponent: RouteErrorState,

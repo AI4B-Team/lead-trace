@@ -1,3 +1,4 @@
+import { canonicalUrl } from "@/lib/seo";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/marketing-layout";
@@ -40,9 +41,11 @@ export const Route = createFileRoute("/distress-feed/guides/$state/$county/$reco
       links: [
         {
           rel: "canonical",
-          href: `/distress-feed/guides/${guide.state.toLowerCase()}/${countySlug(guide.county)}/${
-            recordTypeBySlug(guide.record_type)?.slug ?? guide.record_type
-          }`,
+          href: canonicalUrl(
+            `/distress-feed/guides/${guide.state.toLowerCase()}/${countySlug(guide.county)}/${
+              recordTypeBySlug(guide.record_type)?.slug ?? guide.record_type
+            }`,
+          ),
         },
       ],
       scripts: [

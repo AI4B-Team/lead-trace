@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { StreetScanPage } from "@/components/marketing/street-scan-page";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/ai-driving-for-dollars")({
   head: () => ({
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/ai-driving-for-dollars")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/street-scan" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/street-scan") }],
   }),
   component: StreetScanPage,
 });

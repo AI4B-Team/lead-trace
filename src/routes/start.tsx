@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/start")({
   validateSearch: z.object({
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/start")({
       },
       { name: "robots", content: "noindex, nofollow" },
     ],
-    links: [{ rel: "canonical", href: "/start" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/start") }],
   }),
   component: StartRedirect,
 });

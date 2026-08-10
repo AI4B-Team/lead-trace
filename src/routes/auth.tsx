@@ -12,6 +12,7 @@ import { Radar, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { safeRedirect } from "@/lib/prompt-handoff";
 import { mfaStepUpRequired } from "@/lib/mfa";
 import { MfaChallenge } from "@/components/auth/mfa-challenge";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: z.object({
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/auth")({
       { property: "og:title", content: "Sign In To LeadTrace" },
       { property: "og:description", content: "Sign in or start free with email and password, or a magic link." },
     ],
-    links: [{ rel: "canonical", href: "/auth" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/auth") }],
   }),
   component: AuthPage,
 });

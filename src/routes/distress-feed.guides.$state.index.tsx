@@ -4,6 +4,7 @@ import { getGuideIndex } from "@/lib/distress-feed.functions";
 import { countySlug, recordTypeById, recordTypeLabel, type FeedGuideRow } from "@/lib/distress-feed.shared";
 import { US_STATES } from "@/lib/us-geo";
 import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/distress-feed/guides/$state/")({
   loader: async ({ params }) => {
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/distress-feed/guides/$state/")({
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary_large_image" },
       ],
-      links: [{ rel: "canonical", href: `/distress-feed/guides/${d.state.toLowerCase()}` }],
+      links: [{ rel: "canonical", href: canonicalUrl(`/distress-feed/guides/${d.state.toLowerCase()}`) }],
     };
   },
   component: StateGuides,

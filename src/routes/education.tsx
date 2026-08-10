@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { IndustryLandingPage } from "@/components/marketing/industry-landing";
 import { getIndustryLanding } from "@/lib/industry-landings";
+import { canonicalUrl } from "@/lib/seo";
 
 const data = getIndustryLanding("education")!;
 
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/education")({
       { property: "og:title", content: "Coaching & Education Leads — LeadTrace" },
       { property: "og:description", content: "Fill your cohort, book discovery calls. Ideal-client lists by trade, ZIP, or life stage." },
     ],
-    links: [{ rel: "canonical", href: "/education" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/education") }],
   }),
   component: () => <IndustryLandingPage data={data} />,
 });

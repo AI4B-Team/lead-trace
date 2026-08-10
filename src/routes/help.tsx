@@ -1,3 +1,4 @@
+import { canonicalUrl } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { MarketingLayout } from "@/components/marketing/marketing-layout";
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/help")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/help" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/help") }],
   }),
   component: Help,
 });

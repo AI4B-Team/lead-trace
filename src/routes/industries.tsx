@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { INDUSTRY_LANDINGS } from "@/lib/industry-landings";
 import { ArrowRight, Check } from "lucide-react";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/industries")({
   head: () => ({
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/industries")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/industries" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/industries") }],
   }),
   component: Industries,
 });

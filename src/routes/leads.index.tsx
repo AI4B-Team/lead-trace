@@ -50,6 +50,7 @@ import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { PipelineFlow } from "@/components/marketing/pipeline-flow";
 import { MiniWorkflow, PillarArrow, PillarCard } from "@/components/marketing/leads-pillars";
 import { CONTENT_UPDATED, LEAD_PAGES, REFERENCE_FUNNEL } from "@/lib/lead-pages";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/leads/")({
   head: () => ({
@@ -68,7 +69,7 @@ export const Route = createFileRoute("/leads/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/leads" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/leads") }],
   }),
   component: LeadsIndex,
 });

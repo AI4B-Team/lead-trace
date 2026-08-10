@@ -1,3 +1,4 @@
+import { canonicalUrl } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, ChevronDown, Check, SlidersHorizontal } from "lucide-react";
@@ -59,7 +60,7 @@ export const Route = createFileRoute("/templates/")({
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
-    links: [{ rel: "canonical", href: "/templates" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/templates") }],
   }),
   component: TemplatesPage,
 });

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { ArrowRight } from "lucide-react";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/tutorials")({
   head: () => ({
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/tutorials")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/tutorials" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/tutorials") }],
   }),
   component: Tutorials,
 });

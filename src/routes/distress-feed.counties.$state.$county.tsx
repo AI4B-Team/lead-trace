@@ -10,6 +10,7 @@ import {
 } from "@/lib/distress-feed.shared";
 import { US_STATES } from "@/lib/us-geo";
 import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/distress-feed/counties/$state/$county")({
   loader: async ({ params }) => {
@@ -38,7 +39,7 @@ export const Route = createFileRoute("/distress-feed/counties/$state/$county")({
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary_large_image" },
       ],
-      links: [{ rel: "canonical", href: url }],
+      links: [{ rel: "canonical", href: canonicalUrl(url) }],
       scripts: [
         {
           type: "application/ld+json",
