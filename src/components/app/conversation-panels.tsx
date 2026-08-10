@@ -217,11 +217,15 @@ export function AiSummary({
   bullets,
   nextStep,
   loading,
+  failed,
+  onRetry,
   onUseNextStep,
 }: {
   bullets: string[];
   nextStep: string | null;
   loading: boolean;
+  failed?: boolean;
+  onRetry?: () => void;
   onUseNextStep?: () => void;
 }) {
   return (
@@ -233,6 +237,15 @@ export function AiSummary({
       </div>
       {loading && !bullets.length ? (
         <p className="text-xs text-muted-foreground">Reading The Conversation…</p>
+      ) : failed && !bullets.length ? (
+        <div className="flex items-center gap-2">
+          <p className="text-xs text-muted-foreground">Summary Unavailable Right Now.</p>
+          {onRetry && (
+            <Button size="sm" variant="ghost" className="h-5 text-[10px] px-1.5" onClick={onRetry}>
+              Try Again
+            </Button>
+          )}
+        </div>
       ) : bullets.length ? (
         <ul className="space-y-0.5">
           {bullets.map((b) => (
