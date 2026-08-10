@@ -56,7 +56,7 @@ export const Route = createFileRoute("/distress-feed/guides/$state/$county/$reco
             "@type": "HowTo",
             name: title,
             description,
-            tool: [{ "@type": "HowToTool", name: guide.portal_url) }],
+            tool: [{ "@type": "HowToTool", name: guide.portal_url }],
             step: guide.steps.map((s: { heading?: string; body: string }, i: number) => ({
               "@type": "HowToStep",
               position: i + 1,
