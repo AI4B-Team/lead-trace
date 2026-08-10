@@ -1,14 +1,33 @@
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ListChecks, MessageSquare, CreditCard, Users, Mail, Bell, Smartphone } from "lucide-react";
+import { ListChecks, MessageSquare, CreditCard, Users, Mail, Bell, Smartphone, Check } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-/** Delivery channels a notification can eventually go out on. Only email is wired today. */
+/**
+ * Delivery channels, described honestly:
+ * - In-app is what actually ships today (the bell and the activity feed), so it
+ *   is always on rather than a toggle that pretends to do nothing.
+ * - Email is stored intent only until a verified sending domain exists.
+ * - SMS is not built.
+ */
 export const CHANNELS = [
-  { key: "email", label: "Email", icon: Mail, live: true },
-  { key: "inApp", label: "In-App", icon: Bell, live: false },
-  { key: "sms", label: "SMS", icon: Smartphone, live: false },
+  {
+    key: "email",
+    label: "Email",
+    icon: Mail,
+    live: false,
+    note: "Email Delivery Switches On Once A Verified Sending Domain Is Connected. Your Choices Are Saved Until Then.",
+  },
+  {
+    key: "inApp",
+    label: "In-App",
+    icon: Bell,
+    live: true,
+    always: true,
+    note: "Always On — The Bell And Activity Feed Show These Events As They Happen.",
+  },
+  { key: "sms", label: "SMS", icon: Smartphone, live: false, note: "SMS Delivery Is Coming Soon." },
 ] as const;
 
 export type ChannelKey = (typeof CHANNELS)[number]["key"];
