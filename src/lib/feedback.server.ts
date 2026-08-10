@@ -21,6 +21,7 @@ export async function improveFeedback(body: string, category: string | null): Pr
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: MODEL,
+        reasoning: { enabled: false },
         messages: [
           { role: "system", content: SYSTEM },
           {
