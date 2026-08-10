@@ -16,3 +16,5 @@ One lead credit = one record fully processed (sourcing, normalize, dedupe, line-
 Skip tracing is included free on Growth and up, always bounded by daily AND monthly fair-use caps to prevent abuse. Never advertise it as unlimited.
 
 Attack lines: flat SMS on every tier, $0 10DLC fees, managed number pools (rotation + health + auto-cooldown + local presence), seats included. Keep the stack-replacement math module (~$437+/mo across four logins vs $197 all-in).
+
+Billing provider decision (deferred, not built yet): Stripe via Lovable's built-in payments — Paddle is ineligible for this product category. When billing is built, metered skip trace must be sold as **prepaid credit packs** (one-time purchases that top up a credit balance drawn down per lookup), NOT a usage-based metered subscription item.
