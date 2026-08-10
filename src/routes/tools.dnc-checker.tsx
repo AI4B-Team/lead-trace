@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ToolShell } from "@/components/marketing/tool-shell";
 import { Badge } from "@/components/ui/badge";
 import { checkDncNumber } from "@/lib/free-tools.functions";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/tools/dnc-checker")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/tools/dnc-checker")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/tools/dnc-checker" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/tools/dnc-checker") }],
   }),
   component: DncChecker,
 });

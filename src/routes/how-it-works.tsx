@@ -4,6 +4,7 @@ import { ArrowDown, ArrowRight, Building2, CheckCircle2, MapPin, Send, ShieldChe
 import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { LivePipeline, SCENARIOS } from "@/components/marketing/live-pipeline";
 import { Button } from "@/components/ui/button";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
@@ -22,7 +23,7 @@ export const Route = createFileRoute("/how-it-works")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/how-it-works" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/how-it-works") }],
   }),
   component: HowItWorks,
 });

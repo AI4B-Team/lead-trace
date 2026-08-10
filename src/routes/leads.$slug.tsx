@@ -2,6 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { LeadLandingPage } from "@/components/marketing/lead-landing-page";
 import { getLeadPage, type LeadPage } from "@/lib/lead-pages";
 import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/leads/$slug")({
   loader: ({ params }) => {
@@ -31,7 +32,7 @@ export const Route = createFileRoute("/leads/$slug")({
         { name: "twitter:card", content: "summary_large_image" },
       ],
       scripts: [{ type: "application/ld+json", children: JSON.stringify(faqSchema) }],
-      links: [{ rel: "canonical", href: `/leads/${page.slug}` }],
+      links: [{ rel: "canonical", href: canonicalUrl(`/leads/${page.slug}`) }],
     };
   },
   component: LeadPageRoute,

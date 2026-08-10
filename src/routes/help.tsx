@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
+import { canonicalUrl } from "@/lib/seo";
   Search, Upload, ShieldCheck, MessageSquare, Phone, CreditCard, Rocket, Landmark, Settings2,
   Star, Play, ArrowRight, Clock, FileSpreadsheet, Users, Webhook, Ban, BadgeCheck, Receipt,
   Gauge, Building2, Reply, Layers,
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/help")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/help" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/help") }],
   }),
   component: Help,
 });

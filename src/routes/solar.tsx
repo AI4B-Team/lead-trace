@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { IndustryLandingPage } from "@/components/marketing/industry-landing";
 import { getIndustryLanding } from "@/lib/industry-landings";
+import { canonicalUrl } from "@/lib/seo";
 
 const data = getIndustryLanding("solar")!;
 
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/solar")({
       { property: "og:title", content: "Solar & Roofing Leads — LeadTrace" },
       { property: "og:description", content: "Homeowner and storm-response lists with roof-age filters. Book inspections from local numbers with reply-stop SMS." },
     ],
-    links: [{ rel: "canonical", href: "/solar" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/solar") }],
   }),
   component: () => <IndustryLandingPage data={data} />,
 });

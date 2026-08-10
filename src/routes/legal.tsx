@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { IndustryLandingPage } from "@/components/marketing/industry-landing";
 import { getIndustryLanding } from "@/lib/industry-landings";
+import { canonicalUrl } from "@/lib/seo";
 
 const data = getIndustryLanding("legal")!;
 
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/legal")({
       { property: "og:title", content: "Legal Services Leads — LeadTrace" },
       { property: "og:description", content: "Probate, foreclosure, and business formation cases. Bar-compliant SMS with automatic litigator scrubbing." },
     ],
-    links: [{ rel: "canonical", href: "/legal" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/legal") }],
   }),
   component: () => <IndustryLandingPage data={data} />,
 });

@@ -5,6 +5,7 @@ import { MarketingNav, MarketingFooter } from "@/components/marketing/marketing-
 import { TemplateCard } from "@/components/marketing/template-card";
 import { TEMPLATES, hasCategory, type TemplateCategory } from "@/lib/templates";
 import {
+import { canonicalUrl } from "@/lib/seo";
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -59,7 +60,7 @@ export const Route = createFileRoute("/templates/")({
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
-    links: [{ rel: "canonical", href: "/templates" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/templates") }],
   }),
   component: TemplatesPage,
 });

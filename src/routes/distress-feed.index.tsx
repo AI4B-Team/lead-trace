@@ -10,6 +10,7 @@ import {
   type FeedPreviewRow, type FeedStateRow,
 } from "@/lib/distress-feed.shared";
 import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/distress-feed/")({
   loader: () => getFeedLanding(),
@@ -31,7 +32,7 @@ export const Route = createFileRoute("/distress-feed/")({
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary_large_image" },
       ],
-      links: [{ rel: "canonical", href: FEED_PATH }],
+      links: [{ rel: "canonical", href: canonicalUrl(FEED_PATH) }],
     };
   },
   component: DistressFeedLanding,

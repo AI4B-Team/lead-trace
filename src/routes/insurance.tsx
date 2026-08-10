@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { IndustryLandingPage } from "@/components/marketing/industry-landing";
 import { getIndustryLanding } from "@/lib/industry-landings";
+import { canonicalUrl } from "@/lib/seo";
 
 const data = getIndustryLanding("insurance")!;
 
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/insurance")({
       { property: "og:title", content: "Insurance Lead Generation — LeadTrace" },
       { property: "og:description", content: "Medicare T65, final expense, commercial P&C, and auto switcher lists — DNC and litigator scrubbed, 10DLC compliant." },
     ],
-    links: [{ rel: "canonical", href: "/insurance" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/insurance") }],
   }),
   component: () => <IndustryLandingPage data={data} />,
 });

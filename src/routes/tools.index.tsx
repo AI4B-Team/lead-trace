@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PhoneCall, ShieldCheck, ArrowRight, Check, Clock } from "lucide-react";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/tools/")({
   head: () => ({
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/tools/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/tools" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/tools") }],
   }),
   component: ToolsHub,
 });

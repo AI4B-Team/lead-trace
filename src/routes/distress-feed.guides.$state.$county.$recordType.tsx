@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { getGuideDetail } from "@/lib/distress-feed.functions";
 import { countyFromSlug, countySlug, recordTypeBySlug, recordTypeLabel } from "@/lib/distress-feed.shared";
 import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/distress-feed/guides/$state/$county/$recordType")({
   loader: async ({ params }) => {
@@ -40,7 +41,7 @@ export const Route = createFileRoute("/distress-feed/guides/$state/$county/$reco
       links: [
         {
           rel: "canonical",
-          href: `/distress-feed/guides/${guide.state.toLowerCase()}/${countySlug(guide.county)}/${
+          href: canonicalUrl(`/distress-feed/guides/${guide.state.toLowerCase()}/${countySlug(guide.county)}/${
             recordTypeBySlug(guide.record_type)?.slug ?? guide.record_type
           }`,
         },
@@ -53,7 +54,7 @@ export const Route = createFileRoute("/distress-feed/guides/$state/$county/$reco
             "@type": "HowTo",
             name: title,
             description,
-            tool: [{ "@type": "HowToTool", name: guide.portal_url }],
+            tool: [{ "@type": "HowToTool", name: guide.portal_url) }],
             step: guide.steps.map((s: { heading?: string; body: string }, i: number) => ({
               "@type": "HowToStep",
               position: i + 1,

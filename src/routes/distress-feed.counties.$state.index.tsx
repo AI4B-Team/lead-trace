@@ -5,6 +5,7 @@ import { getFeedCounties } from "@/lib/distress-feed.functions";
 import { countySlug, formatDate, type FeedCountyRow } from "@/lib/distress-feed.shared";
 import { US_STATES } from "@/lib/us-geo";
 import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/distress-feed/counties/$state/")({
   loader: async ({ params }) => {
@@ -29,7 +30,7 @@ export const Route = createFileRoute("/distress-feed/counties/$state/")({
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary_large_image" },
       ],
-      links: [{ rel: "canonical", href: `/distress-feed/counties/${d.state.toLowerCase()}` }],
+      links: [{ rel: "canonical", href: canonicalUrl(`/distress-feed/counties/${d.state.toLowerCase()}`) }],
       scripts: [
         {
           type: "application/ld+json",

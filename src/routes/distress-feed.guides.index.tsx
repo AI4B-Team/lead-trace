@@ -3,6 +3,7 @@ import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { getGuideIndex } from "@/lib/distress-feed.functions";
 import { countySlug, recordTypeById, recordTypeLabel, type FeedGuideRow } from "@/lib/distress-feed.shared";
 import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/distress-feed/guides/")({
   loader: () => getGuideIndex({ data: {} }),
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/distress-feed/guides/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/distress-feed/guides" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/distress-feed/guides") }],
   }),
   component: GuidesIndex,
   errorComponent: RouteErrorState,

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { ShieldCheck, MessageCircleOff, FileCheck, BadgeCheck, Clock, Ban } from "lucide-react";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/compliance")({
   head: () => ({
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/compliance")({
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
-    links: [{ rel: "canonical", href: "/compliance" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/compliance") }],
   }),
   component: Compliance,
 });

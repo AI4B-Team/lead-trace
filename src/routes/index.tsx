@@ -25,6 +25,7 @@ import { PromptHero } from "@/components/marketing/prompt-hero";
 import { TemplateCard } from "@/components/marketing/template-card";
 import { TEMPLATES, featuredTemplates, getTemplate, type Template } from "@/lib/templates";
 import { IndustryPreview } from "@/components/marketing/industry-preview";
+import { canonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -59,7 +60,7 @@ export const Route = createFileRoute("/")({
         }),
       },
     ],
-    links: [{ rel: "canonical", href: "/" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/") }],
   }),
   validateSearch: (search: Record<string, unknown>): { prompt?: string; template?: string } => ({
     ...(typeof search.prompt === "string" ? { prompt: search.prompt } : {}),
