@@ -562,7 +562,7 @@ function ListCard({
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
         <QualityChip label="Clean" value={`${cleanPct}%`} />
-        <QualityChip label="Traced" value={`${tracedPct}%`} />
+        <QualityChip label="Skip Traced" value={`${tracedPct}%`} />
         <QualityChip label="DNC Removed" value={(rowsIn - clean).toLocaleString()} />
       </div>
     </button>

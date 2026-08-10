@@ -21,7 +21,7 @@ export const Route = createFileRoute("/tutorials")({
 const LESSONS = [
   { minutes: "3 Min", title: "Build Your First List", body: "Pick a niche and counties, set a result cap, and read the credit estimate before you run.", to: "/app/assistant" },
   { minutes: "2 Min", title: "Import Your Own CSV", body: "Map your columns once and let the pipeline dedupe, line-type check, and scrub the rest.", to: "/app/assistant?source=upload" },
-  { minutes: "2 Min", title: "Read The Pipeline Funnel", body: "Found → Deduped → Textable → Scrubbed → Clean, and what each drop protects you from.", to: "/app/reports" },
+  { minutes: "2 Min", title: "Read The Pipeline Funnel", body: "Found → Deduped → Mobile Verified → Skip Traced → Scrubbed → Clean, and what each drop protects you from.", to: "/app/reports" },
   { minutes: "4 Min", title: "Register Your Brand", body: "Carrier registration at no cost, plus the training material your bot is allowed to use.", to: "/app/brands" },
   { minutes: "5 Min", title: "Launch A Compliant Drip", body: "Number pools, quiet hours by recipient timezone, and automatic STOP handling.", to: "/app/campaigns/new" },
   { minutes: "2 Min", title: "Work The Inbox", body: "Replies land in one thread view — hand off from the bot the moment someone's interested.", to: "/app/inbox" },

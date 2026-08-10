@@ -28,7 +28,7 @@ const INTEL_LABEL: Record<string, string> = {
   property_value: "Property Value",
   estimated_equity: "Estimated Equity",
   provider: "Provider",
-  traced_at: "Traced",
+  traced_at: "Skip Traced",
 };
 
 function fmtIntel(key: string, value: string | number | boolean | null): string {

@@ -59,7 +59,7 @@ export type FunnelVariant = "phone" | "creator" | "data" | "scan";
  *
  * Creator-source runs (TikTok/Instagram/YouTube) deliver emails, not phones, so
  * their funnel replaces the verify stage with "Email Found" and never renders
- * "Verified" or "Traced" at all.
+ * "Mobile Verified" or "Skip Traced" at all.
  */
 export function buildFunnel(input: FunnelInput, opts?: { variant?: FunnelVariant }): FunnelStage[] {
   const variant = opts?.variant ?? "phone";
@@ -126,11 +126,11 @@ export function buildFunnel(input: FunnelInput, opts?: { variant?: FunnelVariant
           removalNoun: "No Contact Info",
           annotation: "Contact Email Present",
         })
-      : stage("verified", "Verified", verified, deduped, { annotation: "Carrier Checked" }),
+      : stage("verified", "Mobile Verified", verified, deduped, { annotation: "Carrier Checked" }),
     ...(variant === "creator"
       ? []
       : [
-          stage("skipTraced", "Traced", skipTraced, skipTraced, {
+          stage("skipTraced", "Skip Traced", skipTraced, skipTraced, {
             annotation: traced > 0 ? `${traced.toLocaleString()} Traced` : "Not Needed",
           }),
         ]),
