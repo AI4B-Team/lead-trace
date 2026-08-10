@@ -174,7 +174,27 @@ export function NotificationPrefs({
                     </div>
                     <div className="flex items-center justify-end gap-6">
                       {CHANNELS.map((c) => {
-                        const disabled = !c.live || group.soon || item.soon;
+                        const always = "always" in c && c.always === true;
+                        const note = "note" in c ? (c.note as string) : undefined;
+                        const unavailable = group.soon || item.soon;
+                        const disabled = !c.live || unavailable;
+                        if (always && !unavailable) {
+                          return (
+                            <Tooltip key={c.key}>
+                              <TooltipTrigger asChild>
+                                <div
+                                  className="flex w-14 justify-center"
+                                  aria-label={`${item.label} via ${c.label} — always on`}
+                                >
+                                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                    <Check className="h-3 w-3" />
+                                  </span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>{note ?? "Always On."}</TooltipContent>
+                            </Tooltip>
+                          );
+                        }
                         const control = (
                           <div className="flex w-14 justify-center">
                             <Switch
@@ -192,9 +212,9 @@ export function NotificationPrefs({
                               <span className="cursor-not-allowed opacity-50">{control}</span>
                             </TooltipTrigger>
                             <TooltipContent>
-                              {group.soon || item.soon
+                              {unavailable
                                 ? "This Notification Is Coming Soon."
-                                : `${c.label} Delivery Is Coming Soon.`}
+                                : (note ?? `${c.label} Delivery Is Coming Soon.`)}
                             </TooltipContent>
                           </Tooltip>
                         );
