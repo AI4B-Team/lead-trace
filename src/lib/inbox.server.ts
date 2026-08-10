@@ -4,11 +4,13 @@
  */
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-3.6-flash";
+// Latency matters more than depth here: these are short summaries and 300-char
+// SMS drafts. Flash-Lite with thinking disabled answers in ~1s instead of ~10s.
+const MODEL = "google/gemini-3.1-flash-lite";
 
 type Turn = { role: "user" | "assistant"; content: string };
 
-async function chat(system: string, user: string): Promise<string | null> {
+async function chat(system: string, user: string, maxTokens = 400): Promise<string | null> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) return null;
   try {
@@ -17,6 +19,9 @@ async function chat(system: string, user: string): Promise<string | null> {
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: MODEL,
+        // No chain-of-thought for these tasks — it is pure added latency.
+        reasoning: { enabled: false },
+        max_tokens: maxTokens,
         messages: [
           { role: "system", content: system },
           { role: "user", content: user },
@@ -58,6 +63,7 @@ export async function summarizeConversation(turns: Turn[]): Promise<Conversation
       "Never invent facts that are not in the transcript.",
     ].join("\n"),
     transcript(turns),
+    220,
   );
   if (!out) return null;
   const bullets: string[] = [];
@@ -119,6 +125,7 @@ export async function suggestReplies(opts: {
           "Output only the message text.",
         ].join("\n"),
         context,
+        160,
       );
       return body ? { tone, body: body.replace(/^["']|["']$/g, "").slice(0, 320) } : null;
     }),

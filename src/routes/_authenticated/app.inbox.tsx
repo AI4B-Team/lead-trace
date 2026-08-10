@@ -51,6 +51,7 @@ import { listQuickReplies, createQuickReply, listTags } from "@/lib/tags.functio
 import { LeadTagBar } from "@/components/app/lead-tag-picker";
 import { VoiceMessageItem } from "@/components/app/voice-message-item";
 import { listNumbers } from "@/lib/numbers.functions";
+import { readSummary, writeSummary } from "@/lib/summary-cache";
 import {
   AiActivityPill,
   AiSummary,
@@ -193,7 +194,13 @@ function ConversationsPage() {
   const msgCount = threadQ.data?.messages.length ?? 0;
   const summaryQ = useQuery({
     queryKey: ["thread-summary", workspaceId, selected, msgCount],
-    queryFn: () => runSummary({ data: { workspaceId: workspaceId!, threadKey: selected! } }),
+    queryFn: async () => {
+      const cached = readSummary(selected!, msgCount);
+      if (cached !== undefined) return { summary: cached };
+      const res = await runSummary({ data: { workspaceId: workspaceId!, threadKey: selected! } });
+      if (res?.summary) writeSummary(selected!, msgCount, res.summary);
+      return res;
+    },
     enabled: !!workspaceId && !!selected && msgCount > 0,
     staleTime: 5 * 60_000,
     retry: 1,
