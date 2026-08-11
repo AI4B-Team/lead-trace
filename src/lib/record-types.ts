@@ -114,6 +114,7 @@ const RECORD_TYPE_ALIASES: Record<string, string> = {
   taxdelinquent: "Tax Default / Delinquency",
   taxdelinquency: "Tax Default / Delinquency",
   taxdefault: "Tax Default / Delinquency",
+  tax: "Tax Default / Delinquency",
   taxdeed: "Tax Default / Delinquency",
   vacancy: "Vacancy / Demolition Notice",
   vacant: "Vacancy / Demolition Notice",
