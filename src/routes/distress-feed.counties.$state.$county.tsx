@@ -4,14 +4,28 @@ import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { Button } from "@/components/ui/button";
 import { getCountyPage } from "@/lib/distress-feed.functions";
 import {
-  countyDescription, countySlug, countyFromSlug, countyTitle, formatAmount, formatDate,
-  recordTypeById, recordTypeLabel, RECORD_TYPES,
-  type FeedPreviewRow, type FeedCountyRow, type FeedGuideRow,
+  countyDescription,
+  countySlug,
+  countyFromSlug,
+  countyTitle,
+  formatAmount,
+  formatDate,
+  recordTypeById,
+  recordTypeLabel,
+  RECORD_TYPES,
+  type FeedPreviewRow,
+  type FeedCountyRow,
+  type FeedGuideRow,
 } from "@/lib/distress-feed.shared";
 import { US_STATES } from "@/lib/us-geo";
+import { getPublishedStateTypes } from "@/lib/state-guides.functions";
+import { recordTypeIdForSlug } from "@/lib/state-guides.shared";
 import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
 import { canonicalUrl } from "@/lib/seo";
-import { SurplusRecordCard, type SurplusCardRecord } from "@/components/distress/surplus-record-card";
+import {
+  SurplusRecordCard,
+  type SurplusCardRecord,
+} from "@/components/distress/surplus-record-card";
 import { SurplusComplianceNotice } from "@/components/distress/surplus-compliance-notice";
 
 export const Route = createFileRoute("/distress-feed/counties/$state/$county")({
@@ -21,7 +35,13 @@ export const Route = createFileRoute("/distress-feed/counties/$state/$county")({
       data: { state: params.state.toUpperCase(), county: countyFromSlug(params.county) },
     });
     const state = params.state.toUpperCase();
-    return { ...data, state, stateName: US_STATES.find((s) => s.code === state)?.name ?? state };
+    const { slugs } = await getPublishedStateTypes({ data: { state } });
+    return {
+      ...data,
+      state,
+      stateGuideSlugs: slugs,
+      stateName: US_STATES.find((s) => s.code === state)?.name ?? state,
+    };
   },
   head: ({ loaderData }) => {
     const d = loaderData as
@@ -51,8 +71,18 @@ export const Route = createFileRoute("/distress-feed/counties/$state/$county")({
               "@type": "BreadcrumbList",
               itemListElement: [
                 { "@type": "ListItem", position: 1, name: "Distress Feed", item: "/distress-feed" },
-                { "@type": "ListItem", position: 2, name: "Coverage", item: "/distress-feed/counties" },
-                { "@type": "ListItem", position: 3, name: d.state, item: `/distress-feed/counties/${d.state.toLowerCase()}` },
+                {
+                  "@type": "ListItem",
+                  position: 2,
+                  name: "Coverage",
+                  item: "/distress-feed/counties",
+                },
+                {
+                  "@type": "ListItem",
+                  position: 3,
+                  name: d.state,
+                  item: `/distress-feed/counties/${d.state.toLowerCase()}`,
+                },
                 { "@type": "ListItem", position: 4, name: `${d.countyName} County` },
               ],
             },
@@ -81,7 +111,10 @@ function CountyMissing() {
     <MarketingLayout>
       <div className="mx-auto max-w-3xl px-6 py-20 text-center">
         <h1 className="font-display text-3xl font-bold text-foreground">County Not Found</h1>
-        <Link to="/distress-feed/counties" className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+        <Link
+          to="/distress-feed/counties"
+          className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-primary"
+        >
           Browse covered counties <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
@@ -90,8 +123,19 @@ function CountyMissing() {
 }
 
 function CountyPage() {
-  const { county, countyName, state, stateName, preview, surplus, siblings, guides, configuredTypes } =
-    Route.useLoaderData();
+  const {
+    county,
+    countyName,
+    state,
+    stateName,
+    preview,
+    surplus,
+    siblings,
+    guides,
+    configuredTypes,
+  } = Route.useLoaderData();
+  const stateGuideSlugs =
+    (Route.useLoaderData() as { stateGuideSlugs?: string[] }).stateGuideSlugs ?? [];
   const total = Number(county?.total_records ?? 0);
   const week = Number(county?.new_this_week ?? 0);
   const available = (county?.record_types?.length ? county.record_types : configuredTypes) ?? [];
@@ -101,9 +145,19 @@ function CountyPage() {
     <MarketingLayout>
       <div className="mx-auto max-w-5xl px-6 py-14">
         <nav className="text-sm text-muted-foreground">
-          <Link to="/distress-feed" className="hover:text-primary">Distress Feed</Link> /{" "}
-          <Link to="/distress-feed/counties" className="hover:text-primary">Coverage</Link> /{" "}
-          <Link to="/distress-feed/counties/$state" params={{ state: state.toLowerCase() }} className="hover:text-primary">
+          <Link to="/distress-feed" className="hover:text-primary">
+            Distress Feed
+          </Link>{" "}
+          /{" "}
+          <Link to="/distress-feed/counties" className="hover:text-primary">
+            Coverage
+          </Link>{" "}
+          /{" "}
+          <Link
+            to="/distress-feed/counties/$state"
+            params={{ state: state.toLowerCase() }}
+            className="hover:text-primary"
+          >
             {stateName}
           </Link>{" "}
           / {countyName} County
@@ -122,7 +176,9 @@ function CountyPage() {
           ].map((s) => (
             <div key={s.label} className="rounded-2xl border border-border bg-surface px-5 py-4">
               <div className="font-mono text-xl font-bold text-foreground">{s.value}</div>
-              <div className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">{s.label}</div>
+              <div className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+                {s.label}
+              </div>
             </div>
           ))}
         </div>
@@ -169,8 +225,8 @@ function CountyPage() {
             </table>
           ) : (
             <p className="px-5 py-6 text-sm text-muted-foreground">
-              {countyName} County is queued for coverage. Request it and you will get the first pull the
-              morning it lands.
+              {countyName} County is queued for coverage. Request it and you will get the first pull
+              the morning it lands.
             </p>
           )}
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-surface-muted/50 px-5 py-4">
@@ -195,9 +251,9 @@ function CountyPage() {
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
               Properties that sold at auction for more than was owed. Records marked{" "}
-              <span className="font-semibold text-foreground">Clerk Confirmed</span> carry the county's
-              own figure and the date we read it; the rest are estimated from the published auction
-              result and are not the clerk's official surplus determination.
+              <span className="font-semibold text-foreground">Clerk Confirmed</span> carry the
+              county's own figure and the date we read it; the rest are estimated from the published
+              auction result and are not the clerk's official surplus determination.
             </p>
             <SurplusComplianceNotice state={state} className="mt-4" />
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -225,7 +281,8 @@ function CountyPage() {
                     }}
                     className="text-primary hover:underline"
                   >
-                    {g.title ?? `How to pull ${recordTypeLabel(g.record_type)} records in ${countyName} County`}
+                    {g.title ??
+                      `How to pull ${recordTypeLabel(g.record_type)} records in ${countyName} County`}
                   </Link>
                 </li>
               ))}
@@ -233,9 +290,34 @@ function CountyPage() {
           </section>
         ) : null}
 
+        {stateGuideSlugs.length ? (
+          <section className="mt-12">
+            <h2 className="font-display text-2xl font-bold text-foreground">
+              {stateName} Statewide Guides
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              State law, who holds the records, and coverage across every {stateName} county.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {stateGuideSlugs.map((slug: string) => (
+                <Link
+                  key={slug}
+                  to="/distress-feed/states/$state/$recordType"
+                  params={{ state: state.toLowerCase(), recordType: slug }}
+                  className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-semibold text-primary hover:border-primary"
+                >
+                  {stateName} {recordTypeLabel(recordTypeIdForSlug(slug) ?? slug)}
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         {siblings.length ? (
           <section className="mt-12">
-            <h2 className="font-display text-2xl font-bold text-foreground">Nearby Counties In {stateName}</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground">
+              Nearby Counties In {stateName}
+            </h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {siblings.map((c: FeedCountyRow) => (
                 <Link
