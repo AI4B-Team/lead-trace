@@ -540,6 +540,70 @@ export async function ingestDistressRecords(
   return count ?? deduped.length;
 }
 
+/**
+ * Turn already-fetched auction filings into Surplus Funds records.
+ *
+ * A row with no sold amount produces NOTHING and is counted as
+ * `soldAmountUnavailable`, so a county whose pages never publish sale results
+ * shows up as a data gap instead of a silent zero. Nothing here estimates,
+ * infers or falls back.
+ */
+export async function deriveAndIngestSurplus(
+  supabase: SupabaseClient<Database>,
+  target: { state: string; county: string },
+  filings: RawFiling[],
+  basis: SurplusBasis,
+): Promise<SurplusCounters> {
+  const counters: SurplusCounters = { ...EMPTY_SURPLUS_COUNTERS, auctions: filings.length };
+  const surplusFilings: RawFiling[] = [];
+
+  for (const f of filings) {
+    const raw = (f.raw ?? {}) as Record<string, unknown>;
+    const str = (v: unknown) => (v == null ? null : String(v));
+    const soldTo = str(raw["soldTo"]);
+    const soldAmount = str(raw["soldAmount"]);
+    const { isThirdPartyBidder } = await import("./distress/surplus");
+    if (!isThirdPartyBidder(soldTo)) continue;
+    counters.soldToThirdParty += 1;
+    if (!soldAmount) {
+      counters.soldAmountUnavailable += 1;
+      continue;
+    }
+    const derived = deriveSurplus(
+      {
+        soldAmount,
+        soldTo,
+        soldDate: str(raw["soldDate"]),
+        openingBid: str(raw["openingBid"]),
+        finalJudgmentAmount: str(raw["finalJudgmentAmount"]),
+      },
+      basis,
+    );
+    if (!derived) continue;
+    counters.aboveBaseline += 1;
+    surplusFilings.push({
+      ...f,
+      amount: derived.surplusAmount,
+      auction_date: derived.soldDate ?? f.auction_date ?? null,
+      status: "surplus_estimated",
+      surplus_amount: derived.surplusAmount,
+      surplus_basis: derived.surplusBasis,
+      sold_to: derived.soldTo,
+      estimated: true,
+      raw: { ...raw, derived_from: "realauction_sold_result" },
+    });
+  }
+
+  if (surplusFilings.length) {
+    counters.created = await ingestDistressRecords(
+      supabase,
+      { state: target.state, county: target.county, recordType: "surplus_funds" },
+      surplusFilings,
+    );
+  }
+  return counters;
+}
+
 /** Record types that belong on the case spine (a legal case, not a snapshot). */
 const CASE_RECORD_TYPES = new Set([
   "foreclosure",
