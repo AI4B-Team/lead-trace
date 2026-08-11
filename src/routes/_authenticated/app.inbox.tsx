@@ -130,7 +130,10 @@ const railsKey = (w: string) => `leadtrace:inbox:rails:${w}`;
 
 function initialsOf(row: ThreadRow) {
   const name = row.lead?.full_name || row.lead?.business_name || row.lead?.phone || row.thread_key;
-  const parts = name.replace(/[^A-Za-z0-9 ]/g, " ").trim().split(/\s+/);
+  const parts = name
+    .replace(/[^A-Za-z0-9 ]/g, " ")
+    .trim()
+    .split(/\s+/);
   if (!parts.length) return "?";
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -138,7 +141,12 @@ function initialsOf(row: ThreadRow) {
 
 function displayName(row: ThreadRow | null, ctxName?: string | null) {
   return (
-    ctxName || row?.lead?.full_name || row?.lead?.business_name || row?.lead?.phone || row?.thread_key || "Conversation"
+    ctxName ||
+    row?.lead?.full_name ||
+    row?.lead?.business_name ||
+    row?.lead?.phone ||
+    row?.thread_key ||
+    "Conversation"
   );
 }
 
@@ -772,7 +780,10 @@ function ConversationsPage() {
           ) : (
             <div className="flex min-h-0 flex-1 flex-col">
               <ContextStrip
-                name={displayName(activeThread, threadQ.data?.lead?.full_name || threadQ.data?.lead?.business_name)}
+                name={displayName(
+                  activeThread,
+                  threadQ.data?.lead?.full_name || threadQ.data?.lead?.business_name,
+                )}
                 phone={threadQ.data?.lead?.phone ?? activeThread?.lead?.phone ?? null}
                 facts={facts}
                 state={dotState}
@@ -829,7 +840,11 @@ function ConversationsPage() {
                     No Active Sending Number — Replies Cannot Be Delivered Yet. Drafts Are Still
                     Saved Here.
                   </p>
-                  <Button asChild size="sm" className="h-6 shrink-0 rounded-full px-2.5 text-[10px]">
+                  <Button
+                    asChild
+                    size="sm"
+                    className="h-6 shrink-0 rounded-full px-2.5 text-[10px]"
+                  >
                     <Link to="/app/numbers">Get A Number</Link>
                   </Button>
                 </div>
@@ -843,7 +858,9 @@ function ConversationsPage() {
                 }}
                 onSend={handleSend}
                 sending={sending}
-                disabled={optoutDisplay || sending || !canReply || (numbersKnown && !hasSendingNumber)}
+                disabled={
+                  optoutDisplay || sending || !canReply || (numbersKnown && !hasSendingNumber)
+                }
                 readOnly={!canReply}
                 placeholder={
                   optoutDisplay
@@ -1022,11 +1039,11 @@ function ConversationsPage() {
         )}
       </div>
 
-      <Sheet
-        open={detailsOpen && !!selected && !wide}
-        onOpenChange={(o) => setDetailsOpen(o)}
-      >
-        <SheetContent side="right" className="flex w-[92vw] max-w-[360px] flex-col gap-2 overflow-hidden p-4">
+      <Sheet open={detailsOpen && !!selected && !wide} onOpenChange={(o) => setDetailsOpen(o)}>
+        <SheetContent
+          side="right"
+          className="flex w-[92vw] max-w-[360px] flex-col gap-2 overflow-hidden p-4"
+        >
           <SheetHeader className="p-0">
             <SheetTitle className="text-sm">Lead Details</SheetTitle>
           </SheetHeader>
