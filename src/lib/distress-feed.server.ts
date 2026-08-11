@@ -168,6 +168,11 @@ export type RawFiling = {
   parcel_apn?: string | null;
   source_url?: string | null;
   raw?: Record<string, unknown>;
+  /** Surplus Funds only — computed from auction results, never estimated. */
+  surplus_amount?: number | null;
+  surplus_basis?: string | null;
+  sold_to?: string | null;
+  estimated?: boolean;
 };
 
 export type PullTarget = {
@@ -496,6 +501,10 @@ export async function ingestDistressRecords(
     status: f.status ?? null,
     parcel_apn: f.parcel_apn ?? null,
     source_url: f.source_url ?? null,
+    surplus_amount: f.surplus_amount ?? null,
+    surplus_basis: f.surplus_basis ?? null,
+    sold_to: f.sold_to ?? null,
+    estimated: f.estimated ?? false,
     raw: (f.raw ?? {}) as never,
   }));
 
