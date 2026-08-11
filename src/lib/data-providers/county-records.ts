@@ -16,6 +16,7 @@
 // ---------------------------------------------------------------------------
 
 import type { RawLead } from "./index";
+import { recordTypeId } from "@/lib/record-types";
 
 const UA = "LeadTrace-Scraper/1.0";
 /** Cap per run: keeps jobs fast and predictable on credits. */
