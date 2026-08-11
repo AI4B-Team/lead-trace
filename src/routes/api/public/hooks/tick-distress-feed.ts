@@ -9,7 +9,12 @@ export const Route = createFileRoute("/api/public/hooks/tick-distress-feed")({
         const { runTick } = await import("@/lib/cron-auth.server");
         return runTick(request, "tick-distress-feed", 43200, async () => {
           const { runNightlyPulls } = await import("@/lib/distress-feed.server");
-          return runNightlyPulls();
+          const pulls = await runNightlyPulls();
+          // Confirmations run after the pull so a clerk row can reconcile
+          // against the auction record derived in the same cycle.
+          const { sweepSurplusSources } = await import("@/lib/surplus/confirm.server");
+          const surplus = await sweepSurplusSources();
+          return { ...pulls, surplusConfirmations: surplus.results };
         });
       },
     },

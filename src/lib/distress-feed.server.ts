@@ -116,12 +116,22 @@ export type SurplusPreviewRow = {
   owner_masked: string;
   property_city: string | null;
   property_zip: string | null;
+  /** Clerk-confirmed fields. Null until a confirmation matches this record. */
+  confirmed_amount: number | null;
+  confirmed_as_of: string | null;
+  claim_deadline: string | null;
+  deadline_from_clerk: boolean | null;
+  claim_status: string | null;
+  variance_pct: number | null;
+  confirmation_source_url: string | null;
+  source_status: string | null;
+  source_consecutive_failures: number | null;
 };
 
 /**
- * Masked surplus rows for a county. Amounts are DERIVED from auction results
- * and flagged estimated — the clerk's official surplus determination is a
- * separate, later source.
+ * Masked surplus rows for a county. The auction-derived amount is always
+ * present and flagged estimated; the clerk's confirmed amount rides alongside
+ * it when a confirmation matched, so the two are never conflated.
  */
 export async function surplusPreview(
   state: string,
