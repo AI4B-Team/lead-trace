@@ -90,7 +90,7 @@ function CountyMissing() {
 }
 
 function CountyPage() {
-  const { county, countyName, state, stateName, preview, siblings, guides, configuredTypes } =
+  const { county, countyName, state, stateName, preview, surplus, siblings, guides, configuredTypes } =
     Route.useLoaderData();
   const total = Number(county?.total_records ?? 0);
   const week = Number(county?.new_this_week ?? 0);
