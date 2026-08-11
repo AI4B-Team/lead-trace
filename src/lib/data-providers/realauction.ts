@@ -44,6 +44,13 @@ export const REALAUCTION_DEFAULT_CONFIG: RealauctionFetchConfig = {
     "opening bid": "openingBid",
     "assessed value": "assessedValue",
     "certificate #": "certificateNumber",
+    // Sold-auction labels. Present on completed sale days; unmatched labels are
+    // harmless, and no new selectors or classes are introduced for them — the
+    // sold table renders in the same AD_LBL/AD_DTA pair as everything above.
+    "sold amount": "soldAmount",
+    amount: "soldAmount",
+    "sold to": "soldTo",
+    "sold date": "soldDate",
   },
   emptyDayMarkers: ["No Auctions Scheduled", "There are no auctions scheduled"],
 };
@@ -60,6 +67,11 @@ export type RealauctionRow = {
   propertyZip: string | null;
   openingBid: number | null;
   finalJudgmentAmount: number | null;
+  /** What the property actually sold for. Null means unknown, never zero. */
+  soldAmount: number | null;
+  /** Typically "3rd Party Bidder" or "Plaintiff". */
+  soldTo: string | null;
+  soldDate: string | null;
   sourceUrl: string;
   raw: Record<string, string>;
 };
@@ -190,6 +202,9 @@ export function parseRealauctionPage(
       propertyZip: cityZip?.[3] ?? null,
       openingBid: money(raw["openingBid"]),
       finalJudgmentAmount: money(raw["finalJudgmentAmount"]),
+      soldAmount: money(raw["soldAmount"]),
+      soldTo: raw["soldTo"] ?? null,
+      soldDate: isoDate(raw["soldDate"] ?? null).date,
       sourceUrl,
       raw,
     });
