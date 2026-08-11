@@ -3709,6 +3709,69 @@ export type Database = {
           },
         ]
       }
+      state_guides: {
+        Row: {
+          created_at: string
+          faqs: Json
+          how_pros_use_body: string | null
+          id: string
+          intro: string | null
+          law_claim_window: string | null
+          law_local_terminology: string | null
+          law_notes: string | null
+          law_public_records_statute: string | null
+          law_records_holder: string | null
+          law_sale_type: string | null
+          published: boolean
+          record_type_slug: string
+          state: string
+          steps: Json
+          title: string | null
+          updated_at: string
+          what_is_body: string | null
+        }
+        Insert: {
+          created_at?: string
+          faqs?: Json
+          how_pros_use_body?: string | null
+          id?: string
+          intro?: string | null
+          law_claim_window?: string | null
+          law_local_terminology?: string | null
+          law_notes?: string | null
+          law_public_records_statute?: string | null
+          law_records_holder?: string | null
+          law_sale_type?: string | null
+          published?: boolean
+          record_type_slug: string
+          state: string
+          steps?: Json
+          title?: string | null
+          updated_at?: string
+          what_is_body?: string | null
+        }
+        Update: {
+          created_at?: string
+          faqs?: Json
+          how_pros_use_body?: string | null
+          id?: string
+          intro?: string | null
+          law_claim_window?: string | null
+          law_local_terminology?: string | null
+          law_notes?: string | null
+          law_public_records_statute?: string | null
+          law_records_holder?: string | null
+          law_sale_type?: string | null
+          published?: boolean
+          record_type_slug?: string
+          state?: string
+          steps?: Json
+          title?: string | null
+          updated_at?: string
+          what_is_body?: string | null
+        }
+        Relationships: []
+      }
       suppression: {
         Row: {
           created_at: string
@@ -4672,6 +4735,26 @@ export type Database = {
           new_this_week: number
           state: string
           total_records: number
+        }[]
+      }
+      distress_state_type_counties: {
+        Args: { _record_type: string; _state: string }
+        Returns: {
+          county: string
+          last_pull_at: string
+          latest_filed: string
+          records: number
+        }[]
+      }
+      distress_state_type_stats: {
+        Args: { _record_type: string; _state: string }
+        Returns: {
+          amount_records: number
+          counties_covered: number
+          last_pull_at: string
+          latest_filed: string
+          records: number
+          total_amount: number
         }[]
       }
       distress_surplus_preview: {

@@ -25,6 +25,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/distress-feed", changefreq: "weekly", priority: "0.9" },
           { path: "/distress-feed/counties", changefreq: "weekly", priority: "0.8" },
           { path: "/distress-feed/guides", changefreq: "weekly", priority: "0.8" },
+          { path: "/distress-feed/states", changefreq: "weekly", priority: "0.8" },
           { path: "/compliance", changefreq: "monthly", priority: "0.7" },
           { path: "/leads", changefreq: "weekly", priority: "0.9" },
           { path: "/tools", changefreq: "monthly", priority: "0.8" },
@@ -47,20 +48,39 @@ export const Route = createFileRoute("/sitemap.xml")({
         // Coverage and guide pages are data-driven, so the sitemap regenerates
         // itself whenever coverage or the guide library changes.
         try {
-          const { stateSummaries, countySummaries, listGuides } = await import(
-            "@/lib/distress-feed.server"
-          );
+          const { stateSummaries, countySummaries, listGuides } =
+            await import("@/lib/distress-feed.server");
+          const { listPublishedStateGuides } = await import("@/lib/state-guides.server");
           const { countySlug, recordTypeById } = await import("@/lib/distress-feed.shared");
           const states = await stateSummaries();
           const guides = await listGuides();
+          // Only PUBLISHED state guides are advertised: a draft renders noindex,
+          // so listing it would advertise a page we are telling Google to skip.
+          const stateGuides = await listPublishedStateGuides();
+          const stateGuideStates = new Set(stateGuides.map((g) => g.state.toUpperCase()));
           // Only list guide state hubs that actually have guides, otherwise the
           // state route 404s and the sitemap advertises dead URLs.
           const guideStates = new Set(guides.map((g) => g.state.toUpperCase()));
           for (const s of states) {
             const code = s.state.toLowerCase();
-            entries.push({ path: `/distress-feed/counties/${code}`, changefreq: "weekly", priority: "0.7" });
+            entries.push({
+              path: `/distress-feed/counties/${code}`,
+              changefreq: "weekly",
+              priority: "0.7",
+            });
             if (guideStates.has(s.state.toUpperCase())) {
-              entries.push({ path: `/distress-feed/guides/${code}`, changefreq: "monthly", priority: "0.6" });
+              entries.push({
+                path: `/distress-feed/guides/${code}`,
+                changefreq: "monthly",
+                priority: "0.6",
+              });
+            }
+            if (stateGuideStates.has(s.state.toUpperCase())) {
+              entries.push({
+                path: `/distress-feed/states/${code}`,
+                changefreq: "weekly",
+                priority: "0.8",
+              });
             }
             for (const c of await countySummaries(s.state)) {
               entries.push({
@@ -77,6 +97,13 @@ export const Route = createFileRoute("/sitemap.xml")({
               }`,
               changefreq: "monthly",
               priority: "0.7",
+            });
+          }
+          for (const g of stateGuides) {
+            entries.push({
+              path: `/distress-feed/states/${g.state.toLowerCase()}/${g.record_type_slug}`,
+              changefreq: "weekly",
+              priority: "0.8",
             });
           }
         } catch (err) {

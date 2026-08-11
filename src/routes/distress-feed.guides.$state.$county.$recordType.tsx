@@ -4,7 +4,13 @@ import { ArrowRight, ExternalLink } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { Button } from "@/components/ui/button";
 import { getGuideDetail } from "@/lib/distress-feed.functions";
-import { countyFromSlug, countySlug, recordTypeBySlug, recordTypeLabel } from "@/lib/distress-feed.shared";
+import {
+  countyFromSlug,
+  countySlug,
+  recordTypeById,
+  recordTypeBySlug,
+  recordTypeLabel,
+} from "@/lib/distress-feed.shared";
 import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
 
 export const Route = createFileRoute("/distress-feed/guides/$state/$county/$recordType")({
@@ -22,7 +28,21 @@ export const Route = createFileRoute("/distress-feed/guides/$state/$county/$reco
     return { guide };
   },
   head: ({ loaderData }) => {
-    const guide = (loaderData as { guide?: { county: string; state: string; record_type: string; title: string | null; intro: string | null; portal_url: string; steps: Array<{ heading?: string; body: string }> } } | undefined)?.guide;
+    const guide = (
+      loaderData as
+        | {
+            guide?: {
+              county: string;
+              state: string;
+              record_type: string;
+              title: string | null;
+              intro: string | null;
+              portal_url: string;
+              steps: Array<{ heading?: string; body: string }>;
+            };
+          }
+        | undefined
+    )?.guide;
     if (!guide) return { meta: [{ title: "Unavailable" }, { name: "robots", content: "noindex" }] };
     const label = recordTypeLabel(guide.record_type);
     const title = guide.title ?? `How To Pull ${label} Records In ${guide.county} County`;
@@ -74,7 +94,10 @@ export const Route = createFileRoute("/distress-feed/guides/$state/$county/$reco
     <MarketingLayout>
       <div className="mx-auto max-w-3xl px-6 py-20 text-center">
         <h1 className="font-display text-3xl font-bold text-foreground">Guide Not Found</h1>
-        <Link to="/distress-feed/guides" className="mt-6 inline-block text-sm font-semibold text-primary">
+        <Link
+          to="/distress-feed/guides"
+          className="mt-6 inline-block text-sm font-semibold text-primary"
+        >
           Browse all guides
         </Link>
       </div>
@@ -89,9 +112,19 @@ function GuideDetail() {
     <MarketingLayout>
       <article className="mx-auto max-w-3xl px-6 py-14">
         <nav className="text-sm text-muted-foreground">
-          <Link to="/distress-feed" className="hover:text-primary">Distress Feed</Link> /{" "}
-          <Link to="/distress-feed/guides" className="hover:text-primary">Guides</Link> /{" "}
-          <Link to="/distress-feed/guides/$state" params={{ state: guide.state.toLowerCase() }} className="hover:text-primary">
+          <Link to="/distress-feed" className="hover:text-primary">
+            Distress Feed
+          </Link>{" "}
+          /{" "}
+          <Link to="/distress-feed/guides" className="hover:text-primary">
+            Guides
+          </Link>{" "}
+          /{" "}
+          <Link
+            to="/distress-feed/guides/$state"
+            params={{ state: guide.state.toLowerCase() }}
+            className="hover:text-primary"
+          >
             {guide.state}
           </Link>{" "}
           / {guide.county} County
@@ -118,7 +151,9 @@ function GuideDetail() {
                 {i + 1}
               </span>
               <div>
-                {s.heading ? <h2 className="font-display font-bold text-foreground">{s.heading}</h2> : null}
+                {s.heading ? (
+                  <h2 className="font-display font-bold text-foreground">{s.heading}</h2>
+                ) : null}
                 <p className="mt-1 text-sm text-muted-foreground">{s.body}</p>
               </div>
             </li>
@@ -130,7 +165,10 @@ function GuideDetail() {
             <h2 className="font-display text-2xl font-bold text-foreground">Fields You'll Get</h2>
             <ul className="mt-4 grid gap-2 sm:grid-cols-2">
               {guide.fields.map((f: string) => (
-                <li key={f} className="rounded-xl border border-border bg-surface px-4 py-2 text-sm text-muted-foreground">
+                <li
+                  key={f}
+                  className="rounded-xl border border-border bg-surface px-4 py-2 text-sm text-muted-foreground"
+                >
                   {f}
                 </li>
               ))}
@@ -147,7 +185,8 @@ function GuideDetail() {
         <div className="mt-12 rounded-2xl border border-primary/30 bg-primary/5 p-6">
           <h2 className="font-display text-xl font-bold text-foreground">Skip The Manual Work</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            LeadTrace pulls this every morning — enriched, DNC scrubbed and skip traced, ready to text.
+            LeadTrace pulls this every morning — enriched, DNC scrubbed and skip traced, ready to
+            text.
           </p>
           <Button asChild className="mt-4">
             <Link to="/distress-feed">
@@ -155,6 +194,20 @@ function GuideDetail() {
             </Link>
           </Button>
         </div>
+
+        <Link
+          to="/distress-feed/states/$state/$recordType"
+          params={{
+            state: guide.state.toLowerCase(),
+            recordType:
+              recordTypeById(guide.record_type)?.slug ??
+              recordTypeBySlug(guide.record_type)?.slug ??
+              guide.record_type,
+          }}
+          className="mt-8 block text-sm font-semibold text-primary"
+        >
+          {guide.state} statewide {label.toLowerCase()} guide — law, coverage and every county
+        </Link>
 
         <Link
           to="/distress-feed/counties/$state/$county"
