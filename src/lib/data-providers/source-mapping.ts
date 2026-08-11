@@ -21,26 +21,40 @@ export type FieldMap = {
   amount?: string;
 };
 
-/** Canonical record types we search and store against. */
+/**
+ * Canonical record types we search and store against — SLUGS, matching
+ * public.record_types.slug exactly. Display names live in one place
+ * (record_types, with recordTypeDisplayName() as the accessor); this list used
+ * to carry its own display strings, which drifted in word order from the table
+ * and made every join silently miss.
+ */
 export const DISCOVERY_RECORD_TYPES = [
-  "Code Violation",
-  "Demolition",
-  "Tax Default / Delinquency",
-  "Lis Pendens / Pre-Foreclosure",
-  "Probate",
-  "Eviction",
+  "code_violation",
+  "vacancy",
+  "tax_default",
+  "pre_foreclosure",
+  "probate",
+  "eviction",
+  "surplus_funds",
 ] as const;
 
 export type DiscoveryRecordType = (typeof DISCOVERY_RECORD_TYPES)[number];
 
-/** Keyword sets used to search open-data catalogs, per record type. */
+/** Keyword sets used to search open-data catalogs, keyed by record type slug. */
 export const DISCOVERY_KEYWORDS: Record<DiscoveryRecordType, string[]> = {
-  "Code Violation": ["code violation", "code enforcement", "building violation"],
-  Demolition: ["demolition", "demolition order", "unsafe structure"],
-  "Tax Default / Delinquency": ["tax delinquent", "tax delinquency", "tax lien"],
-  "Lis Pendens / Pre-Foreclosure": ["lis pendens", "foreclosure", "notice of default"],
-  Probate: ["probate", "estate filing"],
-  Eviction: ["eviction", "notice to vacate", "unlawful detainer"],
+  code_violation: ["code violation", "code enforcement", "building violation"],
+  vacancy: ["demolition", "demolition order", "unsafe structure", "vacant property", "vacancy"],
+  tax_default: ["tax delinquent", "tax delinquency", "tax lien"],
+  pre_foreclosure: ["lis pendens", "foreclosure", "notice of default"],
+  probate: ["probate", "estate filing"],
+  eviction: ["eviction", "notice to vacate", "unlawful detainer"],
+  surplus_funds: [
+    "surplus funds",
+    "excess proceeds",
+    "unclaimed surplus",
+    "surplus list",
+    "excess funds",
+  ],
 };
 
 const CANDIDATES: Array<[keyof FieldMap, string[]]> = [

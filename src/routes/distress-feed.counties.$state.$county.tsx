@@ -11,6 +11,8 @@ import {
 import { US_STATES } from "@/lib/us-geo";
 import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
 import { canonicalUrl } from "@/lib/seo";
+import { SurplusRecordCard, type SurplusCardRecord } from "@/components/distress/surplus-record-card";
+import { SurplusComplianceNotice } from "@/components/distress/surplus-compliance-notice";
 
 export const Route = createFileRoute("/distress-feed/counties/$state/$county")({
   loader: async ({ params }) => {
@@ -88,7 +90,7 @@ function CountyMissing() {
 }
 
 function CountyPage() {
-  const { county, countyName, state, stateName, preview, siblings, guides, configuredTypes } =
+  const { county, countyName, state, stateName, preview, surplus, siblings, guides, configuredTypes } =
     Route.useLoaderData();
   const total = Number(county?.total_records ?? 0);
   const week = Number(county?.new_this_week ?? 0);
@@ -185,6 +187,24 @@ function CountyPage() {
             </Button>
           </div>
         </div>
+
+        {surplus.length ? (
+          <section className="mt-12">
+            <h2 className="font-display text-2xl font-bold text-foreground">
+              Surplus Funds — {countyName} County
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              Properties that sold at auction for more than was owed. Amounts are derived from the
+              published auction result, not the clerk's official surplus determination.
+            </p>
+            <SurplusComplianceNotice state={state} className="mt-4" />
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {surplus.map((r: SurplusCardRecord) => (
+                <SurplusRecordCard key={`${r.doc_number}-${r.auction_date ?? ""}`} record={r} />
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {guides.length ? (
           <section className="mt-12">

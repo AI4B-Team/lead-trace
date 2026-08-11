@@ -20,7 +20,8 @@ export type DistressRecordType =
   | "lien"
   | "code_violation"
   | "eviction"
-  | "demolition";
+  | "demolition"
+  | "surplus_funds";
 
 export const RECORD_TYPES: Array<{
   id: DistressRecordType;
@@ -39,6 +40,7 @@ export const RECORD_TYPES: Array<{
   { id: "lien", label: "Recorder Liens", slug: "liens", blurb: "Judgment, mechanic's, HOA and municipal liens recorded against the parcel." },
   { id: "code_violation", label: "Code Violations", slug: "code-violations", blurb: "Open cases on the property. Deferred maintenance with a paper trail and a deadline." },
   { id: "eviction", label: "Evictions", slug: "evictions", blurb: "Landlords at the end of their patience. A tired-landlord signal you cannot buy anywhere else.", requestOnly: true },
+  { id: "surplus_funds", label: "Surplus Funds / Excess Proceeds", slug: "surplus-funds", blurb: "Properties that sold at auction for more than was owed. The former owner is entitled to the difference and usually has no idea." },
   { id: "demolition", label: "Demolition Orders / Notice To Vacate", slug: "demolition-orders", blurb: "Structures ordered demolished or vacated. The most distressed record that exists.", requestOnly: true },
 ];
 

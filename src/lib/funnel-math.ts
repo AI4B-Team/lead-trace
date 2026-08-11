@@ -24,6 +24,9 @@ export type FunnelStageKey =
   | "ownership"
   | "financial"
   | "filtered"
+  | "auctions"
+  | "soldThirdParty"
+  | "aboveBaseline"
   | "clean";
 
 export type FunnelStage = {
@@ -141,6 +144,48 @@ export function buildFunnel(input: FunnelInput, opts?: { variant?: FunnelVariant
     stage("clean", "Clean", clean, scrubbed, { annotation: "Launch Ready", alwaysAnnotate: true }),
   );
   return stages;
+}
+
+/** Bar fill for a stage, proportional to Found with a visible floor. */
+/**
+ * Surplus Funds funnel. Derived from completed auctions, so it narrows the
+ * same way every other pipeline does — auctions fetched, then only third-party
+ * sales, then only sales above the baseline owed, then the records written.
+ * Never a pass-through: a county that exposes no sold amounts lands at zero
+ * with the gap counted, which is the honest answer.
+ */
+export function buildSurplusFunnel(input: {
+  auctions: number;
+  soldToThirdParty: number;
+  aboveBaseline: number;
+  created: number;
+  soldAmountUnavailable: number;
+}): FunnelStage[] {
+  const auctions = n(input.auctions);
+  const thirdParty = Math.min(n(input.soldToThirdParty), auctions);
+  const above = Math.min(n(input.aboveBaseline), thirdParty);
+  const created = Math.min(n(input.created), above);
+  const gap = n(input.soldAmountUnavailable);
+
+  const stage = (key: FunnelStageKey, label: string, remaining: number, prev: number | null, annotation?: string): FunnelStage => {
+    const removed = prev == null ? 0 : Math.max(0, prev - remaining);
+    return {
+      key,
+      label,
+      remaining,
+      removed,
+      delta: removed > 0 ? `${removed.toLocaleString()} Removed` : null,
+      annotation: removed > 0 ? null : (annotation ?? null),
+    };
+  };
+
+  return [
+    stage("auctions", "Auctions Fetched", auctions, null, "Completed Sale Days"),
+    stage("soldThirdParty", "Sold To Third Party", thirdParty, auctions,
+      gap > 0 ? `${gap.toLocaleString()} Sold Amount Unavailable` : "Outside Bidder"),
+    stage("aboveBaseline", "Surplus Above Baseline", above, thirdParty, "Sold Over Amount Owed"),
+    stage("clean", "Records Created", created, above, "Estimated Surplus"),
+  ];
 }
 
 /** Bar fill for a stage, proportional to Found with a visible floor. */

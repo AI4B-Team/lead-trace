@@ -1578,6 +1578,7 @@ export type Database = {
           county: string
           created_at: string
           doc_number: string
+          estimated: boolean
           filed_date: string | null
           fips: string
           id: string
@@ -1595,9 +1596,12 @@ export type Database = {
           pulled_date: string
           raw: Json
           record_type: string
+          sold_to: string | null
           source_url: string | null
           state: string
           status: string | null
+          surplus_amount: number | null
+          surplus_basis: string | null
           updated_at: string
         }
         Insert: {
@@ -1607,6 +1611,7 @@ export type Database = {
           county: string
           created_at?: string
           doc_number: string
+          estimated?: boolean
           filed_date?: string | null
           fips: string
           id?: string
@@ -1624,9 +1629,12 @@ export type Database = {
           pulled_date?: string
           raw?: Json
           record_type: string
+          sold_to?: string | null
           source_url?: string | null
           state: string
           status?: string | null
+          surplus_amount?: number | null
+          surplus_basis?: string | null
           updated_at?: string
         }
         Update: {
@@ -1636,6 +1644,7 @@ export type Database = {
           county?: string
           created_at?: string
           doc_number?: string
+          estimated?: boolean
           filed_date?: string | null
           fips?: string
           id?: string
@@ -1653,9 +1662,12 @@ export type Database = {
           pulled_date?: string
           raw?: Json
           record_type?: string
+          sold_to?: string | null
           source_url?: string | null
           state?: string
           status?: string | null
+          surplus_amount?: number | null
+          surplus_basis?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -4446,6 +4458,20 @@ export type Database = {
           new_this_week: number
           state: string
           total_records: number
+        }[]
+      }
+      distress_surplus_preview: {
+        Args: { _county: string; _limit?: number; _state: string }
+        Returns: {
+          auction_date: string
+          doc_number: string
+          estimated: boolean
+          owner_masked: string
+          property_city: string
+          property_zip: string
+          sold_to: string
+          surplus_amount: number
+          surplus_basis: string
         }[]
       }
       distress_top_counties: {

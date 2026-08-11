@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DISCOVERY_RECORD_TYPES } from "@/lib/data-providers/source-mapping";
+import { recordTypeDisplayName } from "@/lib/record-types";
+import { useReferenceData } from "@/hooks/use-reference-data";
 import {
   discoverDataSources,
   listAgencies,
@@ -60,6 +62,7 @@ function PublicRecordsPage() {
   const sendNow = useServerFn(sendRecordsRequestsNow);
 
   const [recordType, setRecordType] = useState<string>(DISCOVERY_RECORD_TYPES[0]);
+  const reference = useReferenceData();
 
   const sourcesQ = useQuery({ queryKey: ["admin-data-sources"], queryFn: () => fetchSources() });
   const agenciesQ = useQuery({ queryKey: ["admin-agencies"], queryFn: () => fetchAgencies() });
@@ -129,9 +132,9 @@ function PublicRecordsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {DISCOVERY_RECORD_TYPES.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
+                {DISCOVERY_RECORD_TYPES.map((slug) => (
+                  <SelectItem key={slug} value={slug}>
+                    {recordTypeDisplayName(slug, reference.recordTypes)}
                   </SelectItem>
                 ))}
               </SelectContent>

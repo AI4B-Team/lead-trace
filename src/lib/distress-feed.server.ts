@@ -11,6 +11,10 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { countyKey, RECORD_TYPES, type DistressRecordType } from "./distress-feed.shared";
+import {
+  deriveSurplus, surplusEnabledFor, EMPTY_SURPLUS_COUNTERS,
+  type SurplusBasis, type SurplusCounters,
+} from "./distress/surplus";
 
 /** Publishable-key client: public reads only, no session persistence. */
 export function publicClient(): SupabaseClient<Database> {
@@ -102,6 +106,37 @@ export async function topCounties(limit = 20) {
   )) ?? [];
 }
 
+export type SurplusPreviewRow = {
+  doc_number: string;
+  auction_date: string | null;
+  surplus_amount: number | null;
+  surplus_basis: string | null;
+  sold_to: string | null;
+  estimated: boolean;
+  owner_masked: string;
+  property_city: string | null;
+  property_zip: string | null;
+};
+
+/**
+ * Masked surplus rows for a county. Amounts are DERIVED from auction results
+ * and flagged estimated — the clerk's official surplus determination is a
+ * separate, later source.
+ */
+export async function surplusPreview(
+  state: string,
+  county: string,
+  limit = 6,
+): Promise<SurplusPreviewRow[]> {
+  return (
+    (await rpc<SurplusPreviewRow[]>("distress_surplus_preview", {
+      _state: state,
+      _county: county,
+      _limit: limit,
+    })) ?? []
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Guides
 // ---------------------------------------------------------------------------
@@ -168,6 +203,11 @@ export type RawFiling = {
   parcel_apn?: string | null;
   source_url?: string | null;
   raw?: Record<string, unknown>;
+  /** Surplus Funds only — computed from auction results, never estimated. */
+  surplus_amount?: number | null;
+  surplus_basis?: string | null;
+  sold_to?: string | null;
+  estimated?: boolean;
 };
 
 export type PullTarget = {
@@ -496,6 +536,10 @@ export async function ingestDistressRecords(
     status: f.status ?? null,
     parcel_apn: f.parcel_apn ?? null,
     source_url: f.source_url ?? null,
+    surplus_amount: f.surplus_amount ?? null,
+    surplus_basis: f.surplus_basis ?? null,
+    sold_to: f.sold_to ?? null,
+    estimated: f.estimated ?? false,
     raw: (f.raw ?? {}) as never,
   }));
 
@@ -525,6 +569,70 @@ export async function ingestDistressRecords(
   await reconcileFilings(target, fips, filings);
 
   return count ?? deduped.length;
+}
+
+/**
+ * Turn already-fetched auction filings into Surplus Funds records.
+ *
+ * A row with no sold amount produces NOTHING and is counted as
+ * `soldAmountUnavailable`, so a county whose pages never publish sale results
+ * shows up as a data gap instead of a silent zero. Nothing here estimates,
+ * infers or falls back.
+ */
+export async function deriveAndIngestSurplus(
+  supabase: SupabaseClient<Database>,
+  target: { state: string; county: string },
+  filings: RawFiling[],
+  basis: SurplusBasis,
+): Promise<SurplusCounters> {
+  const counters: SurplusCounters = { ...EMPTY_SURPLUS_COUNTERS, auctions: filings.length };
+  const surplusFilings: RawFiling[] = [];
+
+  for (const f of filings) {
+    const raw = (f.raw ?? {}) as Record<string, unknown>;
+    const str = (v: unknown) => (v == null ? null : String(v));
+    const soldTo = str(raw["soldTo"]);
+    const soldAmount = str(raw["soldAmount"]);
+    const { isThirdPartyBidder } = await import("./distress/surplus");
+    if (!isThirdPartyBidder(soldTo)) continue;
+    counters.soldToThirdParty += 1;
+    if (!soldAmount) {
+      counters.soldAmountUnavailable += 1;
+      continue;
+    }
+    const derived = deriveSurplus(
+      {
+        soldAmount,
+        soldTo,
+        soldDate: str(raw["soldDate"]),
+        openingBid: str(raw["openingBid"]),
+        finalJudgmentAmount: str(raw["finalJudgmentAmount"]),
+      },
+      basis,
+    );
+    if (!derived) continue;
+    counters.aboveBaseline += 1;
+    surplusFilings.push({
+      ...f,
+      amount: derived.surplusAmount,
+      auction_date: derived.soldDate ?? f.auction_date ?? null,
+      status: "surplus_estimated",
+      surplus_amount: derived.surplusAmount,
+      surplus_basis: derived.surplusBasis,
+      sold_to: derived.soldTo,
+      estimated: true,
+      raw: { ...raw, derived_from: "realauction_sold_result" },
+    });
+  }
+
+  if (surplusFilings.length) {
+    counters.created = await ingestDistressRecords(
+      supabase,
+      { state: target.state, county: target.county, recordType: "surplus_funds" },
+      surplusFilings,
+    );
+  }
+  return counters;
 }
 
 /** Record types that belong on the case spine (a legal case, not a snapshot). */
@@ -607,6 +715,8 @@ export async function runNightlyPulls(): Promise<{
     skipped?: string;
     bytes?: number;
     httpStatus?: number | null;
+    /** Surplus Funds derivation counters, when this county derives surplus. */
+    surplus?: SurplusCounters;
   }>;
   bytesUsed: number;
 }> {
@@ -620,6 +730,8 @@ export async function runNightlyPulls(): Promise<{
     skipped?: string;
     bytes?: number;
     httpStatus?: number | null;
+    /** Surplus Funds derivation counters, when this county derives surplus. */
+    surplus?: SurplusCounters;
   }> = [];
 
   // Static targets win over dynamic ones for the same county + record type, so
@@ -715,10 +827,17 @@ export async function runNightlyPulls(): Promise<{
     let found = 0;
     let added = 0;
     let failure: string | undefined;
+    let surplus: SurplusCounters | undefined;
     try {
       const filings = await target.pull();
       found = filings.length;
       added = await ingestDistressRecords(supabaseAdmin, target, filings);
+      // Surplus is DERIVED from the same auction rows we just ingested — no
+      // second fetch, no second scraper. Only the four proof counties with
+      // verified 'records' coverage are enabled in this pass.
+      if (target.recordType === "tax_deed" && surplusEnabledFor(target.state, target.county)) {
+        surplus = await deriveAndIngestSurplus(supabaseAdmin, target, filings, "opening_bid");
+      }
     } catch (err) {
       failure = err instanceof Error ? err.message : "Pull failed";
       if (err instanceof proxyMod.BandwidthCapError) {
@@ -753,6 +872,7 @@ export async function runNightlyPulls(): Promise<{
       error: failure,
       bytes,
       httpStatus,
+      surplus,
     });
   }
 

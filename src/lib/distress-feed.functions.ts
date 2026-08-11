@@ -34,10 +34,11 @@ export const getCountyPage = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }) => {
     const s = await import("./distress-feed.server");
-    const [counties, preview, guides] = await Promise.all([
+    const [counties, preview, guides, surplus] = await Promise.all([
       s.countySummaries(data.state),
       s.countyPreview(data.state, data.county, 10),
       s.listGuides(data.state),
+      s.surplusPreview(data.state, data.county, 6).catch(() => []),
     ]);
     const match = counties.find((c) => c.county.toLowerCase() === data.county.toLowerCase()) ?? null;
     return {
@@ -45,6 +46,7 @@ export const getCountyPage = createServerFn({ method: "GET" })
       countyName: match?.county ?? data.county,
       state: data.state.toUpperCase(),
       preview,
+      surplus,
       siblings: counties.filter((c) => c.county.toLowerCase() !== data.county.toLowerCase()).slice(0, 12),
       guides: guides.filter((g) => g.county.toLowerCase() === data.county.toLowerCase()),
       configuredTypes: s.configuredTypes(data.state, match?.county ?? data.county),
