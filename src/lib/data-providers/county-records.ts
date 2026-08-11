@@ -262,11 +262,12 @@ const LIVE_COUNTY_SCRAPERS: Record<string, CountyScraper> = {
   "New York City, NY": scrapeNycNy,
 };
 
-/** Record-type-specific datasets ("County::Record Type" → scraper). Types
- * without a dedicated dataset fall back to the county default above. */
+/** Record-type-specific datasets ("County::record_type_slug" → scraper). Keys
+ * join on the record type SLUG, never a display name. Types without a
+ * dedicated dataset fall back to the county default above. */
 const RECORD_TYPE_SCRAPERS: Record<string, CountyScraper> = {
-  "Philadelphia, PA::Tax Default / Delinquency": scrapePhiladelphiaPaTax,
-  "New York City, NY::Tax Default / Delinquency": scrapeNycNyTax,
+  "Philadelphia, PA::tax_default": scrapePhiladelphiaPaTax,
+  "New York City, NY::tax_default": scrapeNycNyTax,
 };
 
 /** Counties with real live scrapers behind them. */
@@ -279,7 +280,8 @@ export function hasLiveCountyScraper(county: string): boolean {
 }
 
 export async function scrapeCountyRecords(p: CountyRecordParams): Promise<RawLead[]> {
-  const impl = RECORD_TYPE_SCRAPERS[`${p.county}::${p.recordType}`] ?? LIVE_COUNTY_SCRAPERS[p.county];
+  const slug = recordTypeId(p.recordType) ?? p.recordType;
+  const impl = RECORD_TYPE_SCRAPERS[`${p.county}::${slug}`] ?? LIVE_COUNTY_SCRAPERS[p.county];
   if (!impl) throw new Error(`No Live Scraper For County "${p.county}"`);
   return impl({ ...p, limit: Math.min(Math.max(p.limit ?? MAX_RECORDS_PER_RUN, 1), 100) });
 }
