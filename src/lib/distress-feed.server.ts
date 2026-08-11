@@ -106,6 +106,37 @@ export async function topCounties(limit = 20) {
   )) ?? [];
 }
 
+export type SurplusPreviewRow = {
+  doc_number: string;
+  auction_date: string | null;
+  surplus_amount: number | null;
+  surplus_basis: string | null;
+  sold_to: string | null;
+  estimated: boolean;
+  owner_masked: string;
+  property_city: string | null;
+  property_zip: string | null;
+};
+
+/**
+ * Masked surplus rows for a county. Amounts are DERIVED from auction results
+ * and flagged estimated — the clerk's official surplus determination is a
+ * separate, later source.
+ */
+export async function surplusPreview(
+  state: string,
+  county: string,
+  limit = 6,
+): Promise<SurplusPreviewRow[]> {
+  return (
+    (await rpc<SurplusPreviewRow[]>("distress_surplus_preview", {
+      _state: state,
+      _county: county,
+      _limit: limit,
+    })) ?? []
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Guides
 // ---------------------------------------------------------------------------
