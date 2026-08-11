@@ -11,6 +11,10 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { countyKey, RECORD_TYPES, type DistressRecordType } from "./distress-feed.shared";
+import {
+  deriveSurplus, surplusEnabledFor, EMPTY_SURPLUS_COUNTERS,
+  type SurplusBasis, type SurplusCounters,
+} from "./distress/surplus";
 
 /** Publishable-key client: public reads only, no session persistence. */
 export function publicClient(): SupabaseClient<Database> {
@@ -616,6 +620,8 @@ export async function runNightlyPulls(): Promise<{
     skipped?: string;
     bytes?: number;
     httpStatus?: number | null;
+    /** Surplus Funds derivation counters, when this county derives surplus. */
+    surplus?: SurplusCounters;
   }>;
   bytesUsed: number;
 }> {
@@ -629,6 +635,8 @@ export async function runNightlyPulls(): Promise<{
     skipped?: string;
     bytes?: number;
     httpStatus?: number | null;
+    /** Surplus Funds derivation counters, when this county derives surplus. */
+    surplus?: SurplusCounters;
   }> = [];
 
   // Static targets win over dynamic ones for the same county + record type, so
@@ -724,10 +732,17 @@ export async function runNightlyPulls(): Promise<{
     let found = 0;
     let added = 0;
     let failure: string | undefined;
+    let surplus: SurplusCounters | undefined;
     try {
       const filings = await target.pull();
       found = filings.length;
       added = await ingestDistressRecords(supabaseAdmin, target, filings);
+      // Surplus is DERIVED from the same auction rows we just ingested — no
+      // second fetch, no second scraper. Only the four proof counties with
+      // verified 'records' coverage are enabled in this pass.
+      if (target.recordType === "tax_deed" && surplusEnabledFor(target.state, target.county)) {
+        surplus = await deriveAndIngestSurplus(supabaseAdmin, target, filings, "opening_bid");
+      }
     } catch (err) {
       failure = err instanceof Error ? err.message : "Pull failed";
       if (err instanceof proxyMod.BandwidthCapError) {
@@ -762,6 +777,7 @@ export async function runNightlyPulls(): Promise<{
       error: failure,
       bytes,
       httpStatus,
+      surplus,
     });
   }
 
