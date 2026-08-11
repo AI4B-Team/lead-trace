@@ -24,7 +24,7 @@ import { guardedExport } from "@/lib/guarded-export";
 import { brandedFileName } from "@/lib/download-name";
 import { type ExportFormat } from "@/lib/export-file";
 import { enrichLeadRecord } from "@/lib/enrich-lead.functions";
-import { RECORD_TYPE_LABEL } from "@/lib/monitoring.shared";
+import { recordTypeLabelFor } from "@/lib/monitoring.shared";
 import { LeadTagChips } from "@/components/app/lead-tag-picker";
 import { LeadDetailDrawer } from "@/components/app/lead-detail-drawer";
 import { PhoneCell, EmailCell } from "@/components/app/channel-icons";
@@ -341,7 +341,7 @@ function LeadsPageInner() {
         {byRecordType.length > 0 && (
           <span>
             <span className="uppercase tracking-wide">Types</span>{" "}
-            {byRecordType.map(([t, n]) => `${RECORD_TYPE_LABEL[t] ?? t} ${n.toLocaleString()}`).join(" · ")}
+            {byRecordType.map(([t, n]) => `${recordTypeLabelFor(t)} ${n.toLocaleString()}`).join(" · ")}
           </span>
         )}
         {(stats?.multiList ?? 0) > 0 && (

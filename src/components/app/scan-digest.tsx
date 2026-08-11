@@ -9,7 +9,7 @@ import { ArrowUpRight, Loader2, RefreshCw, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import { getScanDigest, markWorkspaceVisited, queueDueScans } from "@/lib/monitoring.functions";
 import { runJob } from "@/lib/pipeline.functions";
-import { CADENCE_LABEL, RECORD_TYPE_LABEL } from "@/lib/monitoring.shared";
+import { CADENCE_LABEL, recordTypeLabelFor } from "@/lib/monitoring.shared";
 
 /**
  * "Since your last visit" digest (spec §15.1). Reports only what the system
@@ -117,7 +117,7 @@ export function ScanDigest({ workspaceId }: { workspaceId: string | null }) {
           <div className="mt-4 flex flex-wrap gap-2">
             {types.map(([t, n]) => (
               <Badge key={t} variant="secondary" className="font-normal">
-                {RECORD_TYPE_LABEL[t] ?? t} · {n.toLocaleString()}
+                {recordTypeLabelFor(t)} · {n.toLocaleString()}
               </Badge>
             ))}
           </div>
