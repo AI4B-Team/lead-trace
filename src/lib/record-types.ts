@@ -18,7 +18,34 @@ export const RECORD_TYPE_OPTIONS: readonly RecordTypeOption[] = [
   { id: "tax_default", label: "Tax Default / Delinquency", category: "real_estate_distress" },
   { id: "vacancy", label: "Vacancy / Demolition Notice", category: "real_estate_distress" },
   { id: "eviction", label: "Eviction", category: "real_estate_distress" },
+  { id: "surplus_funds", label: "Surplus Funds / Excess Proceeds", category: "real_estate_distress" },
 ];
+
+/** Every canonical slug. Slugs are the ONLY join key for record types. */
+export const RECORD_TYPE_SLUGS: readonly string[] = RECORD_TYPE_OPTIONS.map((r) => r.id);
+
+/**
+ * Slug → display name, sourced from the record_types table when rows are
+ * available and falling back to the compiled options above (same slugs, same
+ * names) when they are not — server code and prerender have no query in hand.
+ *
+ * Every user-facing record-type label goes through here. Nothing compares
+ * display names: two lists that agreed on meaning but not word order
+ * ("Pre-Foreclosure / Lis Pendens" vs "Lis Pendens / Pre-Foreclosure") were
+ * string-unequal, which is the bug class this removes.
+ */
+export function recordTypeDisplayName(
+  slug: string | null | undefined,
+  rows?: ReadonlyArray<{ slug: string; name: string }> | null,
+): string {
+  const key = recordTypeId(slug) ?? (slug ?? "").trim().toLowerCase();
+  if (!key) return "";
+  const row = rows?.find((r) => r.slug === key);
+  if (row?.name) return row.name;
+  const option = RECORD_TYPE_OPTIONS.find((r) => r.id === key);
+  if (option) return option.label;
+  return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 /** Labels only, for prompts and legacy call sites that key off the label. */
 export const RECORD_TYPE_LABELS: readonly string[] = RECORD_TYPE_OPTIONS.map((r) => r.label);
@@ -32,16 +59,16 @@ export const REQUEST_RECORD_TYPE = "__request_record_type__";
  * other — otherwise the spec reads as two different jobs.
  */
 const TEMPLATE_BY_RECORD_TYPE: Record<string, string> = {
-  Probate: "probate",
-  "Code Violation": "code",
-  "Pre-Foreclosure / Lis Pendens": "prefc",
-  "Tax Default / Delinquency": "tax",
-  "Vacancy / Demolition Notice": "vacancy",
+  probate: "probate",
+  code_violation: "code",
+  pre_foreclosure: "prefc",
+  tax_default: "tax",
+  vacancy: "vacancy",
 };
 
 export function templateForRecordType(label: string | null | undefined): string | null {
-  const canonical = canonicalRecordType(label);
-  return (canonical && TEMPLATE_BY_RECORD_TYPE[canonical]) || null;
+  const slug = recordTypeId(label);
+  return (slug && TEMPLATE_BY_RECORD_TYPE[slug]) || null;
 }
 
 /**
@@ -76,6 +103,10 @@ const RECORD_TYPE_ALIASES: Record<string, string> = {
   vacant: "Vacancy / Demolition Notice",
   demolition: "Vacancy / Demolition Notice",
   evictions: "Eviction",
+  surplus: "Surplus Funds / Excess Proceeds",
+  surplusfunds: "Surplus Funds / Excess Proceeds",
+  excessproceeds: "Surplus Funds / Excess Proceeds",
+  unclaimedsurplus: "Surplus Funds / Excess Proceeds",
 };
 
 export function canonicalRecordType(raw: string | null | undefined): string | null {
@@ -100,5 +131,6 @@ export function recordTypeId(raw: string | null | undefined): string | null {
 export function recordTypeForTemplate(templateId: string | null | undefined): string | null {
   if (!templateId) return null;
   const hit = Object.entries(TEMPLATE_BY_RECORD_TYPE).find(([, id]) => id === templateId);
+  // Returns the SLUG: coverage lookups join on slug, never on display name.
   return hit ? hit[0] : null;
 }
