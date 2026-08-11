@@ -85,6 +85,22 @@ function key(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
+/**
+ * Slash-joined labels are the same type whichever half is written first:
+ * "Lis Pendens / Pre-Foreclosure" and "Pre-Foreclosure / Lis Pendens" once
+ * string-compared unequal and quietly split the record-type lists in two.
+ * Sorting the halves makes word order irrelevant instead of asking every
+ * caller to spell the label the same way.
+ */
+function orderlessKey(value: string): string {
+  return value
+    .split("/")
+    .map((part) => key(part))
+    .filter(Boolean)
+    .sort()
+    .join("|");
+}
+
 const RECORD_TYPE_ALIASES: Record<string, string> = {
   probates: "Probate",
   probatelead: "Probate",
@@ -115,7 +131,9 @@ export function canonicalRecordType(raw: string | null | undefined): string | nu
   if (!k) return null;
   const hit = RECORD_TYPE_OPTIONS.find((r) => key(r.id) === k || key(r.label) === k);
   if (hit) return hit.label;
-  return RECORD_TYPE_ALIASES[k] ?? null;
+  if (RECORD_TYPE_ALIASES[k]) return RECORD_TYPE_ALIASES[k]!;
+  const ok = orderlessKey(raw);
+  return RECORD_TYPE_OPTIONS.find((r) => orderlessKey(r.label) === ok)?.label ?? null;
 }
 
 /** Database/source_coverage key for any accepted record-type spelling. */
