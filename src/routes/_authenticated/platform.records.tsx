@@ -129,9 +129,9 @@ function PublicRecordsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {DISCOVERY_RECORD_TYPES.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
+                {DISCOVERY_RECORD_TYPES.map((slug) => (
+                  <SelectItem key={slug} value={slug}>
+                    {recordTypeDisplayName(slug, reference.recordTypes)}
                   </SelectItem>
                 ))}
               </SelectContent>
