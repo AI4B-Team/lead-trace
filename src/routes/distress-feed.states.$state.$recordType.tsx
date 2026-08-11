@@ -5,12 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RouteErrorState } from "@/components/route-error";
 import { getStateTypePage } from "@/lib/state-guides.functions";
 import { canonicalUrl } from "@/lib/seo";
-import {
-  countySlug,
-  formatAmount,
-  formatDate,
-  recordTypeBySlug,
-} from "@/lib/distress-feed.shared";
+import { countySlug, formatAmount, formatDate, recordTypeBySlug } from "@/lib/distress-feed.shared";
 import {
   carriesAmount,
   LEGAL_DISCLAIMER,
