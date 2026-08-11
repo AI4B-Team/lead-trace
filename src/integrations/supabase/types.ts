@@ -3782,6 +3782,220 @@ export type Database = {
           },
         ]
       }
+      surplus_confirmations: {
+        Row: {
+          case_number: string | null
+          claim_deadline: string | null
+          claim_status: string
+          claimant_name: string | null
+          confirmed_amount: number | null
+          confirmed_as_of: string
+          county_name: string
+          created_at: string
+          deadline_from_clerk: boolean
+          derived_amount: number | null
+          derived_record_id: string | null
+          id: string
+          match_is_fuzzy: boolean
+          match_method: string | null
+          needs_review: boolean
+          parcel_apn: string | null
+          property_address: string | null
+          raw: Json
+          sale_date: string | null
+          sale_kind: string
+          source_id: string | null
+          source_url: string | null
+          state: string
+          updated_at: string
+          variance_pct: number | null
+          workspace_id: string | null
+        }
+        Insert: {
+          case_number?: string | null
+          claim_deadline?: string | null
+          claim_status?: string
+          claimant_name?: string | null
+          confirmed_amount?: number | null
+          confirmed_as_of: string
+          county_name: string
+          created_at?: string
+          deadline_from_clerk?: boolean
+          derived_amount?: number | null
+          derived_record_id?: string | null
+          id?: string
+          match_is_fuzzy?: boolean
+          match_method?: string | null
+          needs_review?: boolean
+          parcel_apn?: string | null
+          property_address?: string | null
+          raw?: Json
+          sale_date?: string | null
+          sale_kind: string
+          source_id?: string | null
+          source_url?: string | null
+          state: string
+          updated_at?: string
+          variance_pct?: number | null
+          workspace_id?: string | null
+        }
+        Update: {
+          case_number?: string | null
+          claim_deadline?: string | null
+          claim_status?: string
+          claimant_name?: string | null
+          confirmed_amount?: number | null
+          confirmed_as_of?: string
+          county_name?: string
+          created_at?: string
+          deadline_from_clerk?: boolean
+          derived_amount?: number | null
+          derived_record_id?: string | null
+          id?: string
+          match_is_fuzzy?: boolean
+          match_method?: string | null
+          needs_review?: boolean
+          parcel_apn?: string | null
+          property_address?: string | null
+          raw?: Json
+          sale_date?: string | null
+          sale_kind?: string
+          source_id?: string | null
+          source_url?: string | null
+          state?: string
+          updated_at?: string
+          variance_pct?: number | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surplus_confirmations_derived_record_id_fkey"
+            columns: ["derived_record_id"]
+            isOneToOne: false
+            referencedRelation: "distress_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surplus_confirmations_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "surplus_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surplus_confirmations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surplus_sources: {
+        Row: {
+          consecutive_failures: number
+          county_name: string
+          created_at: string
+          fetch_config: Json
+          handler: string
+          id: string
+          last_checked_at: string | null
+          last_success_at: string | null
+          notes: string | null
+          refresh_cadence: string
+          sale_kind: string
+          source_url: string | null
+          state: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          consecutive_failures?: number
+          county_name: string
+          created_at?: string
+          fetch_config?: Json
+          handler: string
+          id?: string
+          last_checked_at?: string | null
+          last_success_at?: string | null
+          notes?: string | null
+          refresh_cadence?: string
+          sale_kind: string
+          source_url?: string | null
+          state: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          consecutive_failures?: number
+          county_name?: string
+          created_at?: string
+          fetch_config?: Json
+          handler?: string
+          id?: string
+          last_checked_at?: string | null
+          last_success_at?: string | null
+          notes?: string | null
+          refresh_cadence?: string
+          sale_kind?: string
+          source_url?: string | null
+          state?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      surplus_statutes: {
+        Row: {
+          claim_window_days: number | null
+          created_at: string
+          fee_cap_pct: number | null
+          id: string
+          notes: string | null
+          requires_finder_license: boolean | null
+          sale_kind: string
+          source_url: string | null
+          state: string
+          statute_citation: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+          window_starts_from: string | null
+        }
+        Insert: {
+          claim_window_days?: number | null
+          created_at?: string
+          fee_cap_pct?: number | null
+          id?: string
+          notes?: string | null
+          requires_finder_license?: boolean | null
+          sale_kind: string
+          source_url?: string | null
+          state: string
+          statute_citation: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          window_starts_from?: string | null
+        }
+        Update: {
+          claim_window_days?: number | null
+          created_at?: string
+          fee_cap_pct?: number | null
+          id?: string
+          notes?: string | null
+          requires_finder_license?: boolean | null
+          sale_kind?: string
+          source_url?: string | null
+          state?: string
+          statute_citation?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          window_starts_from?: string | null
+        }
+        Relationships: []
+      }
       tags: {
         Row: {
           color: string
@@ -4464,14 +4678,23 @@ export type Database = {
         Args: { _county: string; _limit?: number; _state: string }
         Returns: {
           auction_date: string
+          claim_deadline: string
+          claim_status: string
+          confirmation_source_url: string
+          confirmed_amount: number
+          confirmed_as_of: string
+          deadline_from_clerk: boolean
           doc_number: string
           estimated: boolean
           owner_masked: string
           property_city: string
           property_zip: string
           sold_to: string
+          source_consecutive_failures: number
+          source_status: string
           surplus_amount: number
           surplus_basis: string
+          variance_pct: number
         }[]
       }
       distress_top_counties: {
