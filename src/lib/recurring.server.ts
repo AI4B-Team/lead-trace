@@ -263,6 +263,78 @@ export async function runListNow(
 }
 
 /** Find and execute every list whose next run is due. Safe to call often. */
+
+/**
+ * Runs that were killed mid-flight (worker timeout, deploy, crash) never reach
+ * executePipeline's catch, so they sit in an in-flight status forever: the UI
+ * shows them as still working and the operator gets no Retry. Anything with no
+ * progress event for STALL_MINUTES is moved to a real terminal `failed` state
+ * with the stage it died in, which is what unlocks Retry.
+ */
+const IN_FLIGHT_STATUSES = ["queued", "scraping", "enriching", "skiptracing", "scrubbing"];
+const STALL_MINUTES = 30;
+
+export async function reclaimStalledRuns(
+  supabase: AnyClient,
+  opts: { stallMinutes?: number } = {},
+): Promise<{ reclaimed: Array<{ jobId: string; stage: string }> }> {
+  const cutoff = new Date(Date.now() - (opts.stallMinutes ?? STALL_MINUTES) * 60_000).toISOString();
+  const { data: candidates } = await supabase
+    .from("jobs")
+    .select("id, workspace_id, status, name, created_at")
+    .in("status", IN_FLIGHT_STATUSES)
+    .lt("created_at", cutoff)
+    .limit(100);
+
+  const reclaimed: Array<{ jobId: string; stage: string }> = [];
+  for (const job of (candidates ?? []) as Array<{
+    id: string;
+    workspace_id: string;
+    status: string;
+    name: string | null;
+    created_at: string;
+  }>) {
+    // A long-running but healthy run keeps emitting progress events; only a run
+    // that has gone quiet is treated as dead.
+    const { data: lastEvent } = await supabase
+      .from("job_events")
+      .select("created_at")
+      .eq("job_id", job.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const lastProgress = (lastEvent as { created_at: string } | null)?.created_at ?? job.created_at;
+    if (lastProgress > cutoff) continue;
+
+    const message =
+      "Run stopped before it finished — the worker was interrupted. Nothing further was charged. Retry to start it again.";
+    await supabase
+      .from("jobs")
+      .update({
+        status: "failed",
+        error: message,
+        failed_stage: job.status,
+        failed_at: new Date().toISOString(),
+      })
+      .eq("id", job.id);
+    await supabase.from("job_events").insert({
+      job_id: job.id,
+      workspace_id: job.workspace_id,
+      stage: "failed",
+      message: `Run failed during ${job.status}: ${message}`,
+      count: null,
+    });
+    await notify(supabase, job.workspace_id, {
+      kind: "run_failed",
+      title: `Run Interrupted — ${job.name ?? "Your List"}`,
+      body: message,
+      jobId: job.id,
+    });
+    reclaimed.push({ jobId: job.id, stage: job.status });
+  }
+  return { reclaimed };
+}
+
 export async function runDueLists(
   supabase: AnyClient,
   opts: { workspaceId?: string; limit?: number } = {},

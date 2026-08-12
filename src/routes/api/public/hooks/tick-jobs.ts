@@ -9,9 +9,11 @@ export const Route = createFileRoute("/api/public/hooks/tick-jobs")({
         const { runTick } = await import("@/lib/cron-auth.server");
         return runTick(request, "tick-jobs", 300, async () => {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { runDueLists } = await import("@/lib/recurring.server");
+          const { runDueLists, reclaimStalledRuns } = await import("@/lib/recurring.server");
+          // Clear runs killed mid-flight first, so a stuck row can't look busy forever.
+          const { reclaimed } = await reclaimStalledRuns(supabaseAdmin);
           const { ran } = await runDueLists(supabaseAdmin);
-          return { ok: true, ran: ran.length, results: ran };
+          return { ok: true, reclaimed: reclaimed.length, ran: ran.length, results: ran };
         });
       },
     },
