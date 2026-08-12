@@ -62,7 +62,7 @@ function TemplateDetailPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <MarketingNav />
       <main className="flex-1">
-        <div className="mx-auto max-w-[68.75rem] px-6 py-14">
+        <div className="mx-auto w-full max-w-[110rem] px-6 sm:px-10 py-14">
           <Link
             to="/templates"
             className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
@@ -118,7 +118,7 @@ function TemplateDetailPage() {
             </p>
           </section>
 
-          <section className="mt-8 grid gap-6 md:grid-cols-2">
+          <section className="mt-8 grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)]">
             <div className="rounded-2xl border border-border bg-surface p-6">
               <h2 className="font-display text-xl font-bold text-foreground">What You Get</h2>
               <ul className="mt-4 space-y-2">
@@ -151,7 +151,7 @@ function TemplateDetailPage() {
 
           <section className="mt-8 rounded-2xl border border-border bg-surface p-6">
             <h2 className="font-display text-xl font-bold text-foreground">How This Template Runs</h2>
-            <ol className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ol className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               {STEPS.map((s, i) => (
                 <li key={s.title} className="rounded-xl border border-border bg-surface-muted p-4">
                   <span className="font-mono text-xs text-muted-foreground">Step {i + 1}</span>
@@ -167,7 +167,7 @@ function TemplateDetailPage() {
               <h2 className="font-display text-2xl font-bold text-foreground">
                 More {CATEGORY_LABELS[primaryCategory(template)]} Templates
               </h2>
-              <div className="mt-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {related.map((t) => (
                   <TemplateCard key={t.id} template={t} />
                 ))}
