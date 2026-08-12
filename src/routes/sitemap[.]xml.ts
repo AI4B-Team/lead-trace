@@ -106,6 +106,19 @@ export const Route = createFileRoute("/sitemap.xml")({
               priority: "0.8",
             });
           }
+          // Surplus guides publish independently of the record-type guides, and
+          // only published rows are listed — an unpublished one renders noindex.
+          const { publishedSurplusUrls } = await import("@/lib/surplus/public.server");
+          for (const u of await publishedSurplusUrls()) {
+            const code = u.state.toLowerCase();
+            entries.push({
+              path: u.countySlug
+                ? `/distress-feed/states/${code}/surplus-funds/${u.countySlug}`
+                : `/distress-feed/states/${code}/surplus-funds`,
+              changefreq: "weekly",
+              priority: u.countySlug ? "0.7" : "0.8",
+            });
+          }
         } catch (err) {
           console.error("sitemap: distress feed pages skipped:", err);
         }
