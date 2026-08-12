@@ -88,7 +88,7 @@ function StatesIndex() {
 
   const totals = liveStates.reduce(
     (acc, s) => ({
-      states: acc.states + (s.records > 0 ? 1 : 0),
+      states: acc.states + 1,
       counties: acc.counties + s.counties,
       records: acc.records + s.records,
     }),
@@ -152,7 +152,9 @@ function StatesIndex() {
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-sm text-foreground">
-            <span>{totals.states} States</span>
+            <span>
+              {totals.states} {totals.states === 1 ? "State" : "States"}
+            </span>
             <span className="text-muted-foreground">·</span>
             <span>{totals.counties.toLocaleString()} Counties</span>
             <span className="text-muted-foreground">·</span>
