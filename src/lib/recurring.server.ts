@@ -262,8 +262,6 @@ export async function runListNow(
   }
 }
 
-/** Find and execute every list whose next run is due. Safe to call often. */
-
 /**
  * Runs that were killed mid-flight (worker timeout, deploy, crash) never reach
  * executePipeline's catch, so they sit in an in-flight status forever: the UI
