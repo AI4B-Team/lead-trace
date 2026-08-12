@@ -97,7 +97,7 @@ function TemplatesPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <MarketingNav />
       <main className="flex-1">
-        <div className="mx-auto max-w-[77.5rem] px-4 sm:px-6 py-10 sm:py-14">
+        <div className="mx-auto w-full max-w-[110rem] px-4 sm:px-10 py-10 sm:py-14">
           <Link to="/" className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Back To Home
           </Link>
@@ -156,7 +156,7 @@ function TemplatesPage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {items.map((t) => (
               <TemplateCard key={t.id} template={t} />
             ))}
