@@ -38,7 +38,7 @@ export function ConfidenceBadge({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Badge variant="outline" className="border-warning/40 bg-warning/10 text-warning">
+        <Badge variant="outline" className="border-warn/40 bg-warn/10 text-warn">
           Derived
         </Badge>
       </TooltipTrigger>
@@ -77,7 +77,7 @@ export function EscheatCountdown({
     tier === "critical"
       ? "text-destructive font-semibold"
       : tier === "warning"
-        ? "text-warning font-medium"
+        ? "text-warn font-medium"
         : "text-foreground";
 
   return (
