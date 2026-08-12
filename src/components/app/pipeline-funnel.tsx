@@ -106,8 +106,10 @@ export function PipelineFunnel({
               </div>
               <div
                 className={cn(
-                  "mt-1.5 truncate text-center font-semibold",
-                  small ? "text-[9px] uppercase tracking-wider" : "text-xs",
+                  "mt-1.5 text-center font-semibold",
+                  // Marketing/detail sizes wrap onto a second line instead of
+                  // truncating: "Mobile Verified" must never read "Mobile…".
+                  small ? "truncate text-[9px] uppercase tracking-wider" : "text-xs leading-tight",
                   isClean ? "text-primary" : "text-foreground/70",
                 )}
               >
@@ -116,7 +118,7 @@ export function PipelineFunnel({
               {!small && (
                 <div
                   className={cn(
-                    "truncate text-center text-[10px] tabular-nums",
+                    "text-center text-[10px] leading-tight tabular-nums",
                     s.delta ? "font-semibold text-foreground/70" : "text-muted-foreground",
                   )}
                 >
@@ -162,12 +164,14 @@ function StageValue({
 }) {
   const shown = useCountUp(remaining, { enabled: animate, delay: index * 450, duration: 700 });
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 px-1">
       {isClean && <Check className="h-5 w-5 text-primary" strokeWidth={3} />}
       <span
         className={cn(
-          "font-display font-black tabular-nums",
-          isClean ? "text-3xl text-primary" : "text-xl text-foreground/80",
+          // Scales down on narrow cards so a 4-digit count never bleeds past
+          // the card edge the way "1,000" did.
+          "font-display font-black leading-none tabular-nums",
+          isClean ? "text-2xl text-primary lg:text-3xl" : "text-base text-foreground/80 lg:text-xl",
         )}
       >
         {shown.toLocaleString()}
