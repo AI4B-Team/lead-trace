@@ -93,7 +93,9 @@ export function PipelineFunnel({
                     "absolute bottom-0 left-0 right-0 transition-[height] duration-700 ease-out",
                     isClean ? "bg-primary" : "bg-foreground/[0.07]",
                   )}
-                  style={{ height: `${pct}%` }}
+                  // The finish line fills completely so its count reads as
+                  // white-on-red instead of disappearing into the fill line.
+                  style={{ height: isClean ? "100%" : `${pct}%` }}
                 />
                 {!small && (
                   <StageValue
@@ -165,13 +167,15 @@ function StageValue({
   const shown = useCountUp(remaining, { enabled: animate, delay: index * 450, duration: 700 });
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 px-1">
-      {isClean && <Check className="h-5 w-5 text-primary" strokeWidth={3} />}
+      {isClean && <Check className="h-5 w-5 text-primary-foreground" strokeWidth={3} />}
       <span
         className={cn(
           // Scales down on narrow cards so a 4-digit count never bleeds past
           // the card edge the way "1,000" did.
           "font-display font-black leading-none tabular-nums",
-          isClean ? "text-2xl text-primary lg:text-3xl" : "text-base text-foreground/80 lg:text-xl",
+          isClean
+            ? "text-2xl text-primary-foreground lg:text-3xl"
+            : "text-base text-foreground/80 lg:text-xl",
         )}
       >
         {shown.toLocaleString()}
