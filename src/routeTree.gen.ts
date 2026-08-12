@@ -65,6 +65,7 @@ import { Route as AuthenticatedPlatformAccessRouteImport } from './routes/_authe
 import { Route as AuthenticatedAppWorkspaceRouteImport } from './routes/_authenticated/app.workspace'
 import { Route as AuthenticatedAppTemplatesRouteImport } from './routes/_authenticated/app.templates'
 import { Route as AuthenticatedAppTeamRouteImport } from './routes/_authenticated/app.team'
+import { Route as AuthenticatedAppSurplusFundsRouteImport } from './routes/_authenticated/app.surplus-funds'
 import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/app.settings'
 import { Route as AuthenticatedAppReportsRouteImport } from './routes/_authenticated/app.reports'
 import { Route as AuthenticatedAppRegistrationRouteImport } from './routes/_authenticated/app.registration'
@@ -411,6 +412,12 @@ const AuthenticatedAppTeamRoute = AuthenticatedAppTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppSurplusFundsRoute =
+  AuthenticatedAppSurplusFundsRouteImport.update({
+    id: '/surplus-funds',
+    path: '/surplus-funds',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppSettingsRoute =
   AuthenticatedAppSettingsRouteImport.update({
     id: '/settings',
@@ -784,6 +791,7 @@ export interface FileRoutesByFullPath {
   '/app/registration': typeof AuthenticatedAppRegistrationRoute
   '/app/reports': typeof AuthenticatedAppReportsRoute
   '/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/app/surplus-funds': typeof AuthenticatedAppSurplusFundsRoute
   '/app/team': typeof AuthenticatedAppTeamRoute
   '/app/templates': typeof AuthenticatedAppTemplatesRoute
   '/app/workspace': typeof AuthenticatedAppWorkspaceRoute
@@ -894,6 +902,7 @@ export interface FileRoutesByTo {
   '/app/registration': typeof AuthenticatedAppRegistrationRoute
   '/app/reports': typeof AuthenticatedAppReportsRoute
   '/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/app/surplus-funds': typeof AuthenticatedAppSurplusFundsRoute
   '/app/team': typeof AuthenticatedAppTeamRoute
   '/app/templates': typeof AuthenticatedAppTemplatesRoute
   '/app/workspace': typeof AuthenticatedAppWorkspaceRoute
@@ -1008,6 +1017,7 @@ export interface FileRoutesById {
   '/_authenticated/app/registration': typeof AuthenticatedAppRegistrationRoute
   '/_authenticated/app/reports': typeof AuthenticatedAppReportsRoute
   '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/_authenticated/app/surplus-funds': typeof AuthenticatedAppSurplusFundsRoute
   '/_authenticated/app/team': typeof AuthenticatedAppTeamRoute
   '/_authenticated/app/templates': typeof AuthenticatedAppTemplatesRoute
   '/_authenticated/app/workspace': typeof AuthenticatedAppWorkspaceRoute
@@ -1122,6 +1132,7 @@ export interface FileRouteTypes {
     | '/app/registration'
     | '/app/reports'
     | '/app/settings'
+    | '/app/surplus-funds'
     | '/app/team'
     | '/app/templates'
     | '/app/workspace'
@@ -1232,6 +1243,7 @@ export interface FileRouteTypes {
     | '/app/registration'
     | '/app/reports'
     | '/app/settings'
+    | '/app/surplus-funds'
     | '/app/team'
     | '/app/templates'
     | '/app/workspace'
@@ -1345,6 +1357,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/registration'
     | '/_authenticated/app/reports'
     | '/_authenticated/app/settings'
+    | '/_authenticated/app/surplus-funds'
     | '/_authenticated/app/team'
     | '/_authenticated/app/templates'
     | '/_authenticated/app/workspace'
@@ -1864,6 +1877,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppTeamRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/surplus-funds': {
+      id: '/_authenticated/app/surplus-funds'
+      path: '/surplus-funds'
+      fullPath: '/app/surplus-funds'
+      preLoaderRoute: typeof AuthenticatedAppSurplusFundsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/settings': {
       id: '/_authenticated/app/settings'
       path: '/settings'
@@ -2270,6 +2290,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppRegistrationRoute: typeof AuthenticatedAppRegistrationRoute
   AuthenticatedAppReportsRoute: typeof AuthenticatedAppReportsRoute
   AuthenticatedAppSettingsRoute: typeof AuthenticatedAppSettingsRoute
+  AuthenticatedAppSurplusFundsRoute: typeof AuthenticatedAppSurplusFundsRoute
   AuthenticatedAppTeamRoute: typeof AuthenticatedAppTeamRoute
   AuthenticatedAppTemplatesRoute: typeof AuthenticatedAppTemplatesRoute
   AuthenticatedAppWorkspaceRoute: typeof AuthenticatedAppWorkspaceRoute
@@ -2305,6 +2326,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppRegistrationRoute: AuthenticatedAppRegistrationRoute,
   AuthenticatedAppReportsRoute: AuthenticatedAppReportsRoute,
   AuthenticatedAppSettingsRoute: AuthenticatedAppSettingsRoute,
+  AuthenticatedAppSurplusFundsRoute: AuthenticatedAppSurplusFundsRoute,
   AuthenticatedAppTeamRoute: AuthenticatedAppTeamRoute,
   AuthenticatedAppTemplatesRoute: AuthenticatedAppTemplatesRoute,
   AuthenticatedAppWorkspaceRoute: AuthenticatedAppWorkspaceRoute,
