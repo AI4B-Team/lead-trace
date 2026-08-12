@@ -3939,6 +3939,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "surplus_confirmations_derived_record_id_fkey"
+            columns: ["derived_record_id"]
+            isOneToOne: false
+            referencedRelation: "surplus_records_visible"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "surplus_confirmations_source_id_fkey"
             columns: ["source_id"]
             isOneToOne: false
@@ -4010,11 +4017,17 @@ export type Database = {
       }
       surplus_statutes: {
         Row: {
+          assignment_permitted: boolean | null
           claim_window_days: number | null
           created_at: string
+          escheat_days: number | null
+          escheat_destination: string | null
+          escheat_starts_from: string | null
           fee_cap_pct: number | null
           id: string
           notes: string | null
+          published: boolean
+          recovery_permitted: boolean
           requires_finder_license: boolean | null
           sale_kind: string
           source_url: string | null
@@ -4026,11 +4039,17 @@ export type Database = {
           window_starts_from: string | null
         }
         Insert: {
+          assignment_permitted?: boolean | null
           claim_window_days?: number | null
           created_at?: string
+          escheat_days?: number | null
+          escheat_destination?: string | null
+          escheat_starts_from?: string | null
           fee_cap_pct?: number | null
           id?: string
           notes?: string | null
+          published?: boolean
+          recovery_permitted?: boolean
           requires_finder_license?: boolean | null
           sale_kind: string
           source_url?: string | null
@@ -4042,11 +4061,17 @@ export type Database = {
           window_starts_from?: string | null
         }
         Update: {
+          assignment_permitted?: boolean | null
           claim_window_days?: number | null
           created_at?: string
+          escheat_days?: number | null
+          escheat_destination?: string | null
+          escheat_starts_from?: string | null
           fee_cap_pct?: number | null
           id?: string
           notes?: string | null
+          published?: boolean
+          recovery_permitted?: boolean
           requires_finder_license?: boolean | null
           sale_kind?: string
           source_url?: string | null
@@ -4642,7 +4667,53 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      surplus_records_visible: {
+        Row: {
+          assignment_permitted: boolean | null
+          case_number: string | null
+          claim_deadline: string | null
+          confidence: string | null
+          confirmed_at: string | null
+          county_fips: string | null
+          county_name: string | null
+          days_to_escheat: number | null
+          deadline_from_clerk: boolean | null
+          disbursement_status: string | null
+          escheat_date: string | null
+          escheat_destination: string | null
+          fee_cap_citation: string | null
+          fee_cap_percent: number | null
+          first_seen_at: string | null
+          id: string | null
+          judgment_amount: number | null
+          opening_bid: number | null
+          owner_of_record: string | null
+          parcel_id: string | null
+          property_address: string | null
+          property_city: string | null
+          property_zip: string | null
+          recovery_permitted: boolean | null
+          sale_date: string | null
+          sale_type: string | null
+          source_registry: string | null
+          source_url: string | null
+          state_code: string | null
+          surplus_amount: number | null
+          surplus_basis: string | null
+          variance_pct: number | null
+          winning_bid: number | null
+          workspace_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surplus_confirmations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       adapter_demand: {
@@ -4797,6 +4868,8 @@ export type Database = {
         }
         Returns: undefined
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       app_role: "super_admin" | "owner" | "admin" | "member"
