@@ -162,7 +162,7 @@ export function SurplusFilterBar({
           placeholder="All Sale Types"
           options={SALE_TYPES.map((t) => ({ value: t, label: SALE_TYPE_LABELS[t] }))}
           value={filters.saleTypes}
-          onChange={(saleTypes) => onChange({ saleTypes, page: 1 })}
+          onChange={(v) => onChange({ saleTypes: v as SurplusFilters["saleTypes"], page: 1 })}
         />
       </Field>
 
@@ -226,7 +226,7 @@ export function SurplusFilterBar({
           placeholder="Any"
           options={CONFIDENCE_LEVELS.map((c) => ({ value: c, label: CONFIDENCE_LABELS[c] }))}
           value={filters.confidence}
-          onChange={(confidence) => onChange({ confidence, page: 1 })}
+          onChange={(v) => onChange({ confidence: v as SurplusFilters["confidence"], page: 1 })}
         />
       </Field>
 
