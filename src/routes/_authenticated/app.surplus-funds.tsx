@@ -177,8 +177,8 @@ function SurplusFundsFeed() {
                     <TableCell className="font-mono text-xs">{record.case_number ?? "—"}</TableCell>
                     <TableCell className="max-w-xs truncate">
                       {record.property_address ??
-                        [record.property_city, record.property_zip].filter(Boolean).join(", ") ||
-                        "—"}
+                        ([record.property_city, record.property_zip].filter(Boolean).join(", ") ||
+                          "—")}
                     </TableCell>
                     <TableCell>
                       {record.county_name ?? "—"}
