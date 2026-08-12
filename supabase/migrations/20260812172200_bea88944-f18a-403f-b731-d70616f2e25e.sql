@@ -1,0 +1,10 @@
+REVOKE ALL ON FUNCTION public.surplus_public_state_aggregate(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.surplus_public_county_aggregate(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.surplus_public_state_counties(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.surplus_public_nearby_counties(text, int) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.surplus_public_urls() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.surplus_public_state_aggregate(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.surplus_public_county_aggregate(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.surplus_public_state_counties(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.surplus_public_nearby_counties(text, int) TO service_role;
+GRANT EXECUTE ON FUNCTION public.surplus_public_urls() TO service_role;

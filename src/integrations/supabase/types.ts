@@ -3942,6 +3942,13 @@ export type Database = {
             foreignKeyName: "surplus_confirmations_derived_record_id_fkey"
             columns: ["derived_record_id"]
             isOneToOne: false
+            referencedRelation: "surplus_records_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surplus_confirmations_derived_record_id_fkey"
+            columns: ["derived_record_id"]
+            isOneToOne: false
             referencedRelation: "surplus_records_visible"
             referencedColumns: ["id"]
           },
@@ -3960,6 +3967,108 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      surplus_county_pages: {
+        Row: {
+          claim_process_md: string | null
+          clerk_address_line1: string | null
+          clerk_address_line2: string | null
+          clerk_city: string | null
+          clerk_office_name: string | null
+          clerk_phone: string | null
+          clerk_postal_code: string | null
+          county_fips: string
+          county_name: string
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          official_list_url: string | null
+          published: boolean
+          slug: string
+          state: string
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          claim_process_md?: string | null
+          clerk_address_line1?: string | null
+          clerk_address_line2?: string | null
+          clerk_city?: string | null
+          clerk_office_name?: string | null
+          clerk_phone?: string | null
+          clerk_postal_code?: string | null
+          county_fips: string
+          county_name: string
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          official_list_url?: string | null
+          published?: boolean
+          slug: string
+          state: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          claim_process_md?: string | null
+          clerk_address_line1?: string | null
+          clerk_address_line2?: string | null
+          clerk_city?: string | null
+          clerk_office_name?: string | null
+          clerk_phone?: string | null
+          clerk_postal_code?: string | null
+          county_fips?: string
+          county_name?: string
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          official_list_url?: string | null
+          published?: boolean
+          slug?: string
+          state?: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
+      surplus_faqs: {
+        Row: {
+          answer_md: string
+          county_fips: string | null
+          created_at: string
+          id: string
+          published: boolean
+          question: string
+          sort_order: number
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          answer_md: string
+          county_fips?: string | null
+          created_at?: string
+          id?: string
+          published?: boolean
+          question: string
+          sort_order?: number
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          answer_md?: string
+          county_fips?: string | null
+          created_at?: string
+          id?: string
+          published?: boolean
+          question?: string
+          sort_order?: number
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       surplus_sources: {
         Row: {
@@ -4011,6 +4120,48 @@ export type Database = {
           source_url?: string | null
           state?: string
           status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      surplus_state_pages: {
+        Row: {
+          clerk_title: string | null
+          created_at: string
+          last_verified_at: string | null
+          notes: string | null
+          overview_md: string | null
+          owner_record_date: string | null
+          primary_term: string | null
+          published: boolean
+          state: string
+          term_aliases: string[]
+          updated_at: string
+        }
+        Insert: {
+          clerk_title?: string | null
+          created_at?: string
+          last_verified_at?: string | null
+          notes?: string | null
+          overview_md?: string | null
+          owner_record_date?: string | null
+          primary_term?: string | null
+          published?: boolean
+          state: string
+          term_aliases?: string[]
+          updated_at?: string
+        }
+        Update: {
+          clerk_title?: string | null
+          created_at?: string
+          last_verified_at?: string | null
+          notes?: string | null
+          overview_md?: string | null
+          owner_record_date?: string | null
+          primary_term?: string | null
+          published?: boolean
+          state?: string
+          term_aliases?: string[]
           updated_at?: string
         }
         Relationships: []
@@ -4667,6 +4818,23 @@ export type Database = {
       }
     }
     Views: {
+      surplus_records_public: {
+        Row: {
+          confirmed_at: string | null
+          county_fips: string | null
+          county_name: string | null
+          county_slug: string | null
+          escheat_date: string | null
+          first_seen_at: string | null
+          id: string | null
+          sale_date: string | null
+          sale_type: string | null
+          source_url: string | null
+          state_code: string | null
+          surplus_amount: number | null
+        }
+        Relationships: []
+      }
       surplus_records_visible: {
         Row: {
           assignment_permitted: boolean | null
@@ -4867,6 +5035,61 @@ export type Database = {
           _workspace_id: string
         }
         Returns: undefined
+      }
+      surplus_public_county_aggregate: {
+        Args: { p_county_fips: string }
+        Returns: {
+          by_sale_type: Json
+          data_as_of: string
+          max_sale_date: string
+          min_sale_date: string
+          record_count: number
+          total_amount: number
+        }[]
+      }
+      surplus_public_nearby_counties: {
+        Args: { p_county_fips: string; p_limit?: number }
+        Returns: {
+          county_fips: string
+          county_name: string
+          county_slug: string
+          record_count: number
+          state_code: string
+          total_amount: number
+        }[]
+      }
+      surplus_public_state_aggregate: {
+        Args: { p_state: string }
+        Returns: {
+          by_sale_type: Json
+          county_count: number
+          data_as_of: string
+          max_sale_date: string
+          min_sale_date: string
+          record_count: number
+          total_amount: number
+        }[]
+      }
+      surplus_public_state_counties: {
+        Args: { p_state: string }
+        Returns: {
+          clerk_office_name: string
+          county_fips: string
+          county_name: string
+          county_slug: string
+          official_list_url: string
+          record_count: number
+          total_amount: number
+          verified_at: string
+        }[]
+      }
+      surplus_public_urls: {
+        Args: never
+        Returns: {
+          county_slug: string
+          last_modified: string
+          state_code: string
+        }[]
       }
     }
     Enums: {
