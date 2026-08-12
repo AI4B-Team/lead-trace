@@ -333,6 +333,7 @@ export async function reclaimStalledRuns(
   return { reclaimed };
 }
 
+/** Find and execute every list whose next run is due. Safe to call often. */
 export async function runDueLists(
   supabase: AnyClient,
   opts: { workspaceId?: string; limit?: number } = {},
