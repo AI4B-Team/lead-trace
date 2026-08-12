@@ -119,6 +119,8 @@ import { Route as AuthenticatedAppListsListIdRouteImport } from './routes/_authe
 import { Route as AuthenticatedAppJobsSplatRouteImport } from './routes/_authenticated/app.jobs.$'
 import { Route as AuthenticatedAppCampaignsNewRouteImport } from './routes/_authenticated/app.campaigns.new'
 import { Route as AuthenticatedAppCampaignsCampaignIdRouteImport } from './routes/_authenticated/app.campaigns.$campaignId'
+import { Route as DistressFeedStatesStateSurplusFundsIndexRouteImport } from './routes/distress-feed.states.$state.surplus-funds.index'
+import { Route as DistressFeedStatesStateSurplusFundsCountyRouteImport } from './routes/distress-feed.states.$state.surplus-funds.$county'
 import { Route as DistressFeedGuidesStateCountyRecordTypeRouteImport } from './routes/distress-feed.guides.$state.$county.$recordType'
 import { Route as ApiPublicV1JobsJobIdRouteImport } from './routes/api/public/v1/jobs.$jobId'
 
@@ -721,6 +723,18 @@ const AuthenticatedAppCampaignsCampaignIdRoute =
     path: '/campaigns/$campaignId',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const DistressFeedStatesStateSurplusFundsIndexRoute =
+  DistressFeedStatesStateSurplusFundsIndexRouteImport.update({
+    id: '/distress-feed/states/$state/surplus-funds/',
+    path: '/distress-feed/states/$state/surplus-funds/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DistressFeedStatesStateSurplusFundsCountyRoute =
+  DistressFeedStatesStateSurplusFundsCountyRouteImport.update({
+    id: '/distress-feed/states/$state/surplus-funds/$county',
+    path: '/distress-feed/states/$state/surplus-funds/$county',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const DistressFeedGuidesStateCountyRecordTypeRoute =
   DistressFeedGuidesStateCountyRecordTypeRouteImport.update({
     id: '/distress-feed/guides/$state/$county/$recordType',
@@ -845,6 +859,8 @@ export interface FileRoutesByFullPath {
   '/distress-feed/states/$state/': typeof DistressFeedStatesStateIndexRoute
   '/api/public/v1/jobs/$jobId': typeof ApiPublicV1JobsJobIdRoute
   '/distress-feed/guides/$state/$county/$recordType': typeof DistressFeedGuidesStateCountyRecordTypeRoute
+  '/distress-feed/states/$state/surplus-funds/$county': typeof DistressFeedStatesStateSurplusFundsCountyRoute
+  '/distress-feed/states/$state/surplus-funds/': typeof DistressFeedStatesStateSurplusFundsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -956,6 +972,8 @@ export interface FileRoutesByTo {
   '/distress-feed/states/$state': typeof DistressFeedStatesStateIndexRoute
   '/api/public/v1/jobs/$jobId': typeof ApiPublicV1JobsJobIdRoute
   '/distress-feed/guides/$state/$county/$recordType': typeof DistressFeedGuidesStateCountyRecordTypeRoute
+  '/distress-feed/states/$state/surplus-funds/$county': typeof DistressFeedStatesStateSurplusFundsCountyRoute
+  '/distress-feed/states/$state/surplus-funds': typeof DistressFeedStatesStateSurplusFundsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1071,6 +1089,8 @@ export interface FileRoutesById {
   '/distress-feed/states/$state/': typeof DistressFeedStatesStateIndexRoute
   '/api/public/v1/jobs/$jobId': typeof ApiPublicV1JobsJobIdRoute
   '/distress-feed/guides/$state/$county/$recordType': typeof DistressFeedGuidesStateCountyRecordTypeRoute
+  '/distress-feed/states/$state/surplus-funds/$county': typeof DistressFeedStatesStateSurplusFundsCountyRoute
+  '/distress-feed/states/$state/surplus-funds/': typeof DistressFeedStatesStateSurplusFundsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1186,6 +1206,8 @@ export interface FileRouteTypes {
     | '/distress-feed/states/$state/'
     | '/api/public/v1/jobs/$jobId'
     | '/distress-feed/guides/$state/$county/$recordType'
+    | '/distress-feed/states/$state/surplus-funds/$county'
+    | '/distress-feed/states/$state/surplus-funds/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1297,6 +1319,8 @@ export interface FileRouteTypes {
     | '/distress-feed/states/$state'
     | '/api/public/v1/jobs/$jobId'
     | '/distress-feed/guides/$state/$county/$recordType'
+    | '/distress-feed/states/$state/surplus-funds/$county'
+    | '/distress-feed/states/$state/surplus-funds'
   id:
     | '__root__'
     | '/'
@@ -1411,6 +1435,8 @@ export interface FileRouteTypes {
     | '/distress-feed/states/$state/'
     | '/api/public/v1/jobs/$jobId'
     | '/distress-feed/guides/$state/$county/$recordType'
+    | '/distress-feed/states/$state/surplus-funds/$county'
+    | '/distress-feed/states/$state/surplus-funds/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1481,6 +1507,8 @@ export interface RootRouteChildren {
   DistressFeedGuidesStateIndexRoute: typeof DistressFeedGuidesStateIndexRoute
   DistressFeedStatesStateIndexRoute: typeof DistressFeedStatesStateIndexRoute
   DistressFeedGuidesStateCountyRecordTypeRoute: typeof DistressFeedGuidesStateCountyRecordTypeRoute
+  DistressFeedStatesStateSurplusFundsCountyRoute: typeof DistressFeedStatesStateSurplusFundsCountyRoute
+  DistressFeedStatesStateSurplusFundsIndexRoute: typeof DistressFeedStatesStateSurplusFundsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -2255,6 +2283,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppCampaignsCampaignIdRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/distress-feed/states/$state/surplus-funds/': {
+      id: '/distress-feed/states/$state/surplus-funds/'
+      path: '/distress-feed/states/$state/surplus-funds'
+      fullPath: '/distress-feed/states/$state/surplus-funds/'
+      preLoaderRoute: typeof DistressFeedStatesStateSurplusFundsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/distress-feed/states/$state/surplus-funds/$county': {
+      id: '/distress-feed/states/$state/surplus-funds/$county'
+      path: '/distress-feed/states/$state/surplus-funds/$county'
+      fullPath: '/distress-feed/states/$state/surplus-funds/$county'
+      preLoaderRoute: typeof DistressFeedStatesStateSurplusFundsCountyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/distress-feed/guides/$state/$county/$recordType': {
       id: '/distress-feed/guides/$state/$county/$recordType'
       path: '/distress-feed/guides/$state/$county/$recordType'
@@ -2483,6 +2525,10 @@ const rootRouteChildren: RootRouteChildren = {
   DistressFeedStatesStateIndexRoute: DistressFeedStatesStateIndexRoute,
   DistressFeedGuidesStateCountyRecordTypeRoute:
     DistressFeedGuidesStateCountyRecordTypeRoute,
+  DistressFeedStatesStateSurplusFundsCountyRoute:
+    DistressFeedStatesStateSurplusFundsCountyRoute,
+  DistressFeedStatesStateSurplusFundsIndexRoute:
+    DistressFeedStatesStateSurplusFundsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
