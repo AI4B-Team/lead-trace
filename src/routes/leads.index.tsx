@@ -99,27 +99,33 @@ type NicheEntry = {
   icon: React.ComponentType<{ className?: string }>;
   category: "business" | "property";
   display?: string;
+  /** Small label chip shown on the card. */
+  tag?: string;
+  /** One-line card description. */
+  desc?: string;
+  /** Filter groups this niche belongs to. */
+  groups?: string[];
 };
 
 const NICHE_ORDER: NicheEntry[] = [
-  { slug: "roofing-contractors", icon: HardHat, category: "business", display: "Roofing Contractors" },
-  { slug: "hvac-companies", icon: Flame, category: "business", display: "HVAC Companies" },
-  { slug: "plumbers", icon: Droplet, category: "business", display: "Plumbers" },
-  { slug: "electricians", icon: Zap, category: "business", display: "Electricians" },
-  { slug: "landscaping", icon: Leaf, category: "business", display: "Landscapers" },
-  { slug: "pressure-washing", icon: Droplets, category: "business", display: "Pressure Washing" },
-  { slug: "tree-service", icon: TreePine, category: "business", display: "Tree Service" },
-  { slug: "pest-control", icon: Bug, category: "business", display: "Pest Control" },
-  { slug: "cleaning-services", icon: Sparkles, category: "business", display: "Cleaning Service" },
-  { slug: "dental-offices", icon: Smile, category: "business", display: "Dental Offices" },
-  { slug: "med-spas", icon: HeartPulse, category: "business", display: "Med Spas" },
-  { slug: "auto-repair-shops", icon: Wrench, category: "business", display: "Auto Repair" },
-  { slug: "probate-filings", icon: Scale, category: "property", display: "Probate Filings" },
-  { slug: "tax-delinquencies", icon: Receipt, category: "property", display: "Tax Delinquencies" },
-  { slug: "code-violations", icon: FileText, category: "property", display: "Code Violations" },
-  { slug: "vacant-properties", icon: Home, category: "property", display: "Vacant Properties" },
-  { slug: "absentee-owners", icon: MapPin, category: "property", display: "Absentee Owners" },
-  { slug: "pre-foreclosures", icon: Gavel, category: "property", display: "Pre-Foreclosures" },
+  { slug: "roofing-contractors", icon: HardHat, category: "business", display: "Roofing Contractors", tag: "Business", desc: "Find local roofing companies ready for your services.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "hvac-companies", icon: Flame, category: "business", display: "HVAC Companies", tag: "Business", desc: "Target heating & cooling companies in your market.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "plumbers", icon: Droplet, category: "business", display: "Plumbers", tag: "Business", desc: "Connect with plumbing businesses needing more work.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "electricians", icon: Zap, category: "business", display: "Electricians", tag: "Business", desc: "Reach electrical contractors and service pros.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "landscaping", icon: Leaf, category: "business", display: "Landscapers", tag: "Business", desc: "Find landscaping & lawn care businesses.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "pressure-washing", icon: Droplets, category: "business", display: "Pressure Washing", tag: "Business", desc: "Target pressure washing businesses in your area.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "tree-service", icon: TreePine, category: "business", display: "Tree Service", tag: "Business", desc: "Connect with tree removal & arborist companies.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "pest-control", icon: Bug, category: "business", display: "Pest Control", tag: "Business", desc: "Find pest control companies needing new customers.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "cleaning-services", icon: Sparkles, category: "business", display: "Cleaning Service", tag: "Business", desc: "Target cleaning companies & janitorial services.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "dental-offices", icon: Smile, category: "business", display: "Dental Offices", tag: "Business", desc: "Find dental practices & orthodontic offices.", groups: ["Businesses", "Healthcare"] },
+  { slug: "med-spas", icon: HeartPulse, category: "business", display: "Med Spas", tag: "Business", desc: "Connect with med spas & aesthetic clinics.", groups: ["Businesses", "Healthcare"] },
+  { slug: "auto-repair-shops", icon: Wrench, category: "business", display: "Auto Repair", tag: "Business", desc: "Find auto repair shops and service centers.", groups: ["Businesses", "Local Services"] },
+  { slug: "probate-filings", icon: Scale, category: "property", display: "Probate Filings", tag: "Public Record", desc: "Find new probate filings and estate opportunities.", groups: ["Public Records", "Property Owners", "Real Estate"] },
+  { slug: "tax-delinquencies", icon: Receipt, category: "property", display: "Tax Delinquencies", tag: "Property", desc: "Locate property tax delinquencies & motivated sellers.", groups: ["Public Records", "Property Owners", "Real Estate"] },
+  { slug: "code-violations", icon: FileText, category: "property", display: "Code Violations", tag: "Public Record", desc: "Find property code violations and compliance issues.", groups: ["Public Records", "Property Owners", "Real Estate"] },
+  { slug: "vacant-properties", icon: Home, category: "property", display: "Vacant Properties", tag: "Property", desc: "Discover vacant & abandoned properties.", groups: ["Property Owners", "Real Estate"] },
+  { slug: "absentee-owners", icon: MapPin, category: "property", display: "Absentee Owners", tag: "Property", desc: "Find absentee & out-of-state property owners.", groups: ["Property Owners", "Real Estate"] },
+  { slug: "pre-foreclosures", icon: Gavel, category: "property", display: "Pre-Foreclosures", tag: "Property", desc: "Find pre-foreclosure properties & motivated sellers.", groups: ["Public Records", "Property Owners", "Real Estate"] },
 ];
 
 /** Level 1 — proprietary LeadTrace intelligence products. */
