@@ -43,7 +43,15 @@ const DESCRIPTION =
   "Explore live distress-property coverage by state, county and record type — probate, tax liens, code violations, vacant properties and more, updated nightly.";
 
 export const Route = createFileRoute("/distress-feed/states/")({
-  loader: async () => getStatesIndex(),
+  // A transient RPC/network failure on client navigation must not blank the page:
+  // SSR data is nice-to-have here, so degrade to an empty coverage set instead.
+  loader: async () => {
+    try {
+      return await getStatesIndex();
+    } catch {
+      return { states: [], guides: [] };
+    }
+  },
   head: () => ({
     meta: [
       { title: TITLE },
@@ -84,8 +92,11 @@ export const Route = createFileRoute("/distress-feed/states/")({
 });
 
 function StatesIndex() {
-  const data = Route.useLoaderData() as { states: FeedStateRow[]; guides: StateGuideRow[] };
-  const { states, guides } = data;
+  const data = Route.useLoaderData() as
+    | { states: FeedStateRow[]; guides: StateGuideRow[] }
+    | undefined;
+  const states = data?.states ?? [];
+  const guides = data?.guides ?? [];
   const covered = new Map<string, FeedStateRow>(states.map((s) => [s.state.toUpperCase(), s]));
   const guidesByState = new Map<string, StateGuideRow[]>();
   for (const g of guides as StateGuideRow[]) {
