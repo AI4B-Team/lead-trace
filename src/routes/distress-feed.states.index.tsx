@@ -92,8 +92,11 @@ export const Route = createFileRoute("/distress-feed/states/")({
 });
 
 function StatesIndex() {
-  const data = Route.useLoaderData() as { states: FeedStateRow[]; guides: StateGuideRow[] };
-  const { states, guides } = data;
+  const data = Route.useLoaderData() as
+    | { states: FeedStateRow[]; guides: StateGuideRow[] }
+    | undefined;
+  const states = data?.states ?? [];
+  const guides = data?.guides ?? [];
   const covered = new Map<string, FeedStateRow>(states.map((s) => [s.state.toUpperCase(), s]));
   const guidesByState = new Map<string, StateGuideRow[]>();
   for (const g of guides as StateGuideRow[]) {
