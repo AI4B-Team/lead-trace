@@ -49,11 +49,11 @@ export function UsCoverageMap({ states }: { states: MapState[] }) {
   const active = hovered ? byCode.get(hovered) : null;
 
   return (
-    <div className="grid gap-8 rounded-3xl border border-border bg-surface p-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:p-8">
+    <div className="grid items-stretch gap-6 overflow-hidden rounded-3xl border border-border bg-surface p-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,0.85fr)] lg:gap-8 lg:p-7">
       <div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
           {GRID.map((row, i) => (
-            <div key={i} className="flex gap-1">
+            <div key={i} className="flex gap-1.5">
               {row.map((code, j) => {
                 if (!code) return <div key={j} className="aspect-square flex-1" />;
                 const st = byCode.get(code);
@@ -64,10 +64,10 @@ export function UsCoverageMap({ states }: { states: MapState[] }) {
                 const tile = (
                   <span
                     className={cn(
-                      "flex aspect-square w-full items-center justify-center rounded-[6px] border font-mono text-[10px] font-semibold transition-transform sm:text-[11px]",
+                      "flex aspect-square w-full items-center justify-center rounded-lg border font-mono text-[11px] font-bold transition-transform sm:text-[13px]",
                       TONE[status],
                       status !== "later" && "hover:scale-110",
-                      hovered === code && "ring-2 ring-primary/50",
+                      hovered === code && "ring-2 ring-primary/50 scale-105",
                     )}
                   >
                     {code}
@@ -100,7 +100,7 @@ export function UsCoverageMap({ states }: { states: MapState[] }) {
           ))}
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+        <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-2">
             <span className="h-3 w-3 rounded-[3px] bg-primary" /> Live
           </span>
@@ -113,7 +113,7 @@ export function UsCoverageMap({ states }: { states: MapState[] }) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border bg-background p-6">
+      <div className="flex flex-col justify-center rounded-2xl bg-surface-muted p-6 lg:rounded-none lg:border-l lg:border-border lg:bg-transparent lg:pl-8">
         {active ? (
           <>
             <div className="flex items-center gap-2">
