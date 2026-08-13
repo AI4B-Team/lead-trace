@@ -2,10 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   BadgeCheck,
+  Check,
   CircleDollarSign,
   Gavel,
   Landmark,
-  MapPin,
+  Layers,
   Search,
   ShieldCheck,
   Timer,
@@ -67,6 +68,25 @@ export const Route = createFileRoute("/surplus-funds/")({
 });
 
 function SurplusFundsHub() {
+  return <SurplusFundsHubBody />;
+}
+
+/** Coverage status pill: red when a county has confirmed records, outlined while it is being added. */
+function StatusPill({ live }: { live: boolean }) {
+  return (
+    <span
+      className={
+        live
+          ? "shrink-0 rounded-full bg-primary px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-primary-foreground"
+          : "shrink-0 rounded-full border border-primary/40 bg-primary/5 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-primary"
+      }
+    >
+      {live ? "Live" : "Expanding"}
+    </span>
+  );
+}
+
+function SurplusFundsHubBody() {
   const states = Route.useLoaderData()?.states ?? [];
   const live = states.filter((s) => s.recordCount > 0);
   const totals = live.reduce(
@@ -76,6 +96,17 @@ function SurplusFundsHub() {
       counties: acc.counties + s.countiesWithRecords,
     }),
     { records: 0, amount: 0, counties: 0 },
+  );
+  // Coverage metrics come straight from the published aggregates — no invented
+  // counts, and a genuine zero renders the verification state instead.
+  const markets = states.filter((s) => s.counties.length > 0);
+  const liveCounties = states.reduce(
+    (n, s) => n + s.counties.filter((c) => c.recordCount > 0).length,
+    0,
+  );
+  const expandingCounties = states.reduce(
+    (n, s) => n + s.counties.filter((c) => c.recordCount === 0).length,
+    0,
   );
 
   return (
@@ -187,94 +218,218 @@ function SurplusFundsHub() {
           </div>
         </section>
 
-        {/* Live coverage */}
-        <section className="mt-16">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h2 className="font-display text-3xl font-bold text-foreground">Where It's Live</h2>
-              <p className="mt-1 text-base text-muted-foreground">
-                States with a verified statute, verified clerk offices and confirmed balances.
+        {/* Coverage module */}
+        <section className="mt-16 overflow-hidden rounded-3xl border border-border bg-surface">
+          <div className="grid lg:grid-cols-[1fr_1.1fr]">
+            {/* Left — headline + honest status metrics */}
+            <div className="border-b border-border p-8 lg:border-b-0 lg:border-r">
+              <h2 className="font-display text-3xl font-bold text-foreground">
+                Surplus Funds Coverage
+              </h2>
+              <p className="mt-2 max-w-md text-base text-muted-foreground">
+                See where verified surplus records are currently available — and where coverage is
+                expanding next.
               </p>
+              <p className="mt-4 max-w-md text-sm text-muted-foreground">
+                We add coverage county by county as official surplus and unclaimed-funds sources are
+                verified.
+              </p>
+              <div className="mt-7 grid gap-4 sm:grid-cols-3">
+                {[
+                  {
+                    label: "Live",
+                    value: liveCounties.toLocaleString(),
+                    note: "Counties with verified sources",
+                  },
+                  {
+                    label: "Expanding",
+                    value: expandingCounties.toLocaleString(),
+                    note: "Counties being added",
+                  },
+                  {
+                    label: "Records",
+                    value: totals.records.toLocaleString(),
+                    note: "Verified surplus records",
+                  },
+                ].map((m) => (
+                  <div key={m.label} className="rounded-2xl border border-border bg-background p-4">
+                    <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+                      {m.label}
+                    </p>
+                    <p className="mt-2 font-display text-3xl font-black tabular-nums leading-none text-foreground">
+                      {m.value}
+                    </p>
+                    <p className="mt-2 text-xs leading-snug text-muted-foreground">{m.note}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <Link
-              to="/surplus-funds/states"
-              className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-            >
-              Full coverage map <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
 
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {states.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No state guide is published yet. Coverage is added county by county after a
-                researcher verifies the clerk's list.
-              </p>
-            ) : null}
-            {states.map((s) => (
-              <Link
-                key={s.state}
-                to="/surplus-funds/$state"
-                params={{ state: s.state.toLowerCase() }}
-                className="flex flex-col rounded-3xl border border-border bg-surface p-7 transition-colors hover:border-primary"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-display text-2xl font-bold text-foreground">
-                    {stateName(s.state)}
-                  </h3>
-                  <span
-                    className={
-                      s.recordCount > 0
-                        ? "rounded-full bg-primary px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-primary-foreground"
-                        : "rounded-full border border-primary/30 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-primary"
-                    }
-                  >
-                    {s.recordCount > 0 ? "Live" : "Expanding"}
+            {/* Right — real markets, or an honest verification state */}
+            <div className="flex flex-col p-8">
+              {markets.length === 0 ? (
+                <div className="flex flex-1 flex-col items-start justify-center">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <ShieldCheck className="h-5 w-5" />
                   </span>
+                  <p className="mt-4 font-display text-2xl font-bold text-foreground">
+                    Coverage is being verified.
+                  </p>
+                  <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                    We only publish a market after its official source has been confirmed.
+                  </p>
+                  <Link
+                    to="/distress-feed/counties"
+                    className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                  >
+                    Request Your County <ArrowRight className="h-4 w-4" />
+                  </Link>
                 </div>
-                <p className="mt-5 font-display text-4xl font-black tabular-nums leading-none text-foreground">
-                  {s.recordCount > 0 ? usd0.format(s.totalAmount) : "—"}
-                </p>
-                <p className="mt-1.5 font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                  Confirmed Unclaimed
-                </p>
-                <p className="mt-4 flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5" />
-                  {s.countyPages.toLocaleString()} county{s.countyPages === 1 ? "" : " pages"} ·{" "}
-                  {s.recordCount.toLocaleString()} records
-                </p>
-                <span className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-                  View Surplus Funds <ArrowRight className="h-4 w-4" />
-                </span>
-              </Link>
-            ))}
+              ) : (
+                <div className="flex flex-1 flex-col">
+                  <div className="space-y-6">
+                    {markets.map((m) => (
+                      <div key={m.state}>
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-foreground">
+                            {stateName(m.state)}
+                          </p>
+                          <Link
+                            to="/surplus-funds/$state"
+                            params={{ state: m.state.toLowerCase() }}
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                          >
+                            {m.recordCount > 0 ? usd0.format(m.totalAmount) : "—"}
+                            <ArrowRight className="h-3 w-3" />
+                          </Link>
+                        </div>
+                        <ul className="mt-3 divide-y divide-border overflow-hidden rounded-2xl border border-border">
+                          {m.counties.map((c) => (
+                            <li
+                              key={c.slug}
+                              className="flex items-center justify-between gap-3 bg-background px-4 py-2.5"
+                            >
+                              <span className="truncate text-sm font-medium text-foreground">
+                                {c.name} County
+                              </span>
+                              <StatusPill live={c.recordCount > 0} />
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-6 flex justify-end">
+                    <Link
+                      to="/surplus-funds/states"
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+                    >
+                      View Full Coverage <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </section>
 
-        {/* Cross-links */}
+        {/* Two ways to find surplus */}
         <section className="mt-16">
           <h2 className="font-display text-3xl font-bold text-foreground">
-            Surplus Funds Sit Inside The Distress Feed Too
+            Two Ways To Find Surplus Opportunities
           </h2>
           <p className="mt-2 max-w-3xl text-base text-muted-foreground">
-            Surplus is one record type in the wider feed. Ask for every distress signal in a county
-            and surplus comes with it; select Surplus Funds and you get overages only.
+            Search surplus funds on their own — or find them alongside other signs of property
+            distress.
           </p>
-          <div className="mt-6 flex flex-wrap gap-2">
-            {[
-              { to: "/distress-feed" as const, label: "Distress Feed" },
-              { to: "/distress-feed/states" as const, label: "Distress Coverage By State" },
-              { to: "/distress-feed/counties" as const, label: "Counties" },
-              { to: "/templates" as const, label: "All Lead Templates" },
-            ].map((l) => (
+
+          <div className="mt-6 grid items-stretch gap-5 lg:grid-cols-[1fr_auto_1fr]">
+            {/* Focused */}
+            <div className="flex flex-col rounded-3xl border border-primary/40 bg-primary/5 p-7">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                <CircleDollarSign className="h-5 w-5" />
+              </span>
+              <p className="mt-4 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
+                Focused Search
+              </p>
+              <h3 className="mt-1.5 font-display text-2xl font-bold text-foreground">
+                Surplus Funds
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Search only properties and owners tied to potential surplus proceeds.
+              </p>
+              <ul className="mt-5 space-y-2.5">
+                {[
+                  "Surplus-focused records",
+                  "Filter by county and sale date",
+                  "Confirmed vs. estimated amounts",
+                  "Contact enrichment when available",
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm text-foreground">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> {f}
+                  </li>
+                ))}
+              </ul>
               <Link
-                key={l.to}
-                to={l.to}
-                className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground hover:border-primary hover:text-primary"
+                to="/app/surplus-funds"
+                className="mt-6 inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90"
               >
-                {l.label}
+                <Search className="h-4 w-4" /> Search Surplus Funds
               </Link>
-            ))}
+            </div>
+
+            {/* Connector */}
+            <div className="hidden flex-col items-center justify-center gap-2 lg:flex">
+              <span className="h-16 w-px bg-border" />
+              <span className="whitespace-nowrap rounded-full border border-border bg-background px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                Also Included In
+              </span>
+              <span className="h-16 w-px bg-border" />
+            </div>
+
+            {/* Broader */}
+            <div className="flex flex-col rounded-3xl border border-border bg-surface p-7">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Layers className="h-5 w-5" />
+              </span>
+              <p className="mt-4 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                Broader Search
+              </p>
+              <h3 className="mt-1.5 font-display text-2xl font-bold text-foreground">
+                Distress Feed
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Find surplus funds alongside the other distress signals that can reveal
+                motivated-property opportunities.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                {[
+                  "Probate",
+                  "Tax Defaults",
+                  "Pre-Foreclosures",
+                  "Code Violations",
+                  "Vacant Properties",
+                  "Surplus Funds",
+                ].map((p) => (
+                  <span
+                    key={p}
+                    className={
+                      p === "Surplus Funds"
+                        ? "rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+                        : "rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-muted-foreground"
+                    }
+                  >
+                    {p}
+                  </span>
+                ))}
+              </div>
+              <Link
+                to="/distress-feed"
+                className="mt-auto inline-flex w-fit items-center gap-2 pt-6 text-sm font-semibold text-primary hover:underline"
+              >
+                Explore Distress Feed <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </section>
 
