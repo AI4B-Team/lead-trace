@@ -791,10 +791,26 @@ export const CATEGORY_LABELS: Record<TemplateCategory, string> = {
   upload: "Upload",
 };
 
-/** Curated starter set, ordered by `featuredOrder`. */
+/**
+ * Curated starter set for the homepage carousel and assistant grid, in exact
+ * page order (6 per page). Page 1-3 lead with the real-estate/records core;
+ * page 4 shows what else the system can do outside real estate.
+ */
+export const FEATURED_IDS = [
+  // Page 1 — the core engine
+  "distress-feed", "street-scan", "gmaps", "contact-details", "zillow", "upload",
+  // Page 2 — public records
+  "probate", "tax", "prefc", "absentee", "linkedin", "surplus-funds",
+  // Page 3 — business + social
+  "yelp", "instagram", "indeed", "shopify", "realtor", "gserp",
+  // Page 4 — beyond real estate
+  "yellowpages", "bbb", "crunchbase", "tripadvisor", "reddit", "trustpilot",
+] as const;
+
+/** Curated starter set, ordered by `FEATURED_IDS`. */
 export function featuredTemplates(): Template[] {
-  return TEMPLATES.filter((t) => t.featured).sort(
-    (a, b) => (a.featuredOrder ?? 99) - (b.featuredOrder ?? 99),
+  return FEATURED_IDS.map((id) => TEMPLATES.find((t) => t.id === id)).filter(
+    (t): t is Template => Boolean(t),
   );
 }
 
