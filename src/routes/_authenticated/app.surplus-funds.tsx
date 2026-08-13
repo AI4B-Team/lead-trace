@@ -37,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/app/surplus-funds")({
       {
         name: "description",
         content:
-          "Excess proceeds held after tax deed and foreclosure sales, sorted by how little time is left to claim them.",
+          "Excess proceeds held by county clerks after tax deed and foreclosure sales. Sort by claim deadline or newest sale.",
       },
       { property: "og:title", content: "Surplus Funds — LeadTrace" },
       {
@@ -102,7 +102,7 @@ function SurplusFundsFeed() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <PageHeader
             title="Surplus Funds"
-            description="Excess proceeds held after tax deed and foreclosure sales, sorted by how little time is left to claim them."
+            description="Excess proceeds held by county clerks after tax deed and foreclosure sales. Sort by claim deadline or newest sale."
           />
           <Button
             variant="outline"
@@ -190,13 +190,30 @@ function SurplusFundsFeed() {
                         setSelected(record);
                       }
                     }}
-                    className="cursor-pointer focus-visible:bg-surface-muted focus-visible:outline-none"
+                    className="cursor-pointer focus-visible:bg-surface-muted focus-visible:outline-none [&_td]:py-2"
                   >
                     <TableCell className="font-mono text-xs">{record.case_number ?? "—"}</TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      {record.property_address ??
-                        ([record.property_city, record.property_zip].filter(Boolean).join(", ") ||
-                          "—")}
+                    <TableCell className="max-w-[12rem]">
+                      {record.property_address ? (
+                        <span className="block truncate">{record.property_address}</span>
+                      ) : [record.property_city, record.property_zip]
+                          .filter(Boolean)
+                          .join(", ") ? (
+                        <span className="block truncate">
+                          {[record.property_city, record.property_zip]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </span>
+                      ) : (
+                        <span className="text-xs italic text-muted-foreground">
+                          Not in clerk list
+                        </span>
+                      )}
+                      {record.parcel_id ? (
+                        <span className="block font-mono text-[10px] text-muted-foreground">
+                          {record.parcel_id}
+                        </span>
+                      ) : null}
                     </TableCell>
                     <TableCell>
                       {record.county_name ?? "—"}
@@ -204,10 +221,16 @@ function SurplusFundsFeed() {
                         {record.state_code}
                       </span>
                     </TableCell>
-                    <TableCell className="max-w-[12rem] truncate">
-                      {record.owner_of_record ?? "—"}
+                    <TableCell className="max-w-[12rem]">
+                      {record.owner_of_record ? (
+                        <span className="block truncate">{record.owner_of_record}</span>
+                      ) : (
+                        <span className="text-xs italic text-muted-foreground">
+                          Not in clerk list
+                        </span>
+                      )}
                     </TableCell>
-                    <TableCell className="text-right font-medium tabular-nums">
+                    <TableCell className="text-right font-semibold tabular-nums">
                       {currency.format(record.surplus_amount)}
                     </TableCell>
                     <TableCell>{SALE_TYPE_LABELS[record.sale_type] ?? record.sale_type}</TableCell>
@@ -219,6 +242,7 @@ function SurplusFundsFeed() {
                         days={record.days_to_escheat}
                         escheatDate={record.escheat_date}
                         destination={record.escheat_destination}
+                        disbursementStatus={record.disbursement_status}
                       />
                     </TableCell>
                     <TableCell>
