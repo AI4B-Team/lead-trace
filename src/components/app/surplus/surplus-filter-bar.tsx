@@ -134,7 +134,8 @@ export function SurplusFilterBar({
   }
 
   return (
-    <div className="flex flex-wrap items-end gap-3 border-b border-border py-4">
+    <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4 shadow-sm">
+
       <Field label="State">
         <MultiPick
           className="w-36"
