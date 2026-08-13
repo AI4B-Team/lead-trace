@@ -316,9 +316,8 @@ function LeadsIndexBody() {
             How Every List Gets Prepared
           </h2>
           <PipelineFlow stages={REFERENCE_FUNNEL} className="mt-8" />
-          <p className="mx-auto mt-8 max-w-3xl text-sm text-muted-foreground">
-            The {REFERENCE_FUNNEL.clean} delivered records are the ones you text — then launch an SMS
-            campaign and replies start coming in.
+          <p className="mx-auto mt-8 max-w-none whitespace-nowrap text-sm text-muted-foreground">
+            The {REFERENCE_FUNNEL.clean} delivered records are the ones you text — then launch an SMS campaign and replies start coming in.
           </p>
           <p className="mx-auto mt-2 max-w-3xl text-sm text-muted-foreground">
             The {removed} removed records are why you don't get complaints or demand letters.
