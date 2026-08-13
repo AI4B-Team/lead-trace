@@ -252,6 +252,14 @@ function DistressFeedLanding() {
                   ) : null}
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">{t.blurb}</p>
+                {t.id === "surplus_funds" ? (
+                  <Link
+                    to="/surplus-funds"
+                    className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+                  >
+                    Explore the Surplus Funds feed →
+                  </Link>
+                ) : null}
               </div>
               );
             })}
