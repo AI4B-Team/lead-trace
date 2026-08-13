@@ -1,6 +1,20 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, ChevronDown, Search } from "lucide-react";
+import {
+  ArrowRight,
+  Building2,
+  ChevronDown,
+  ClipboardList,
+  DoorClosed,
+  FileWarning,
+  Gavel,
+  Landmark,
+  Receipt,
+  RefreshCw,
+  Scale,
+  Search,
+  Wallet,
+} from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { UsCoverageMap, type MapState } from "@/components/marketing/us-coverage-map";
 import { RouteErrorState } from "@/components/route-error";
@@ -10,6 +24,20 @@ import { canonicalUrl } from "@/lib/seo";
 import { formatDate, recordTypeLabel, type FeedStateRow } from "@/lib/distress-feed.shared";
 import { recordTypeIdForSlug, type StateGuideRow } from "@/lib/state-guides.shared";
 import { US_STATES } from "@/lib/us-geo";
+
+const TYPE_META: Record<string, { icon: typeof Gavel; sub: string }> = {
+  probate: { icon: Gavel, sub: "Court & estate filings" },
+  "pre-foreclosure": { icon: Scale, sub: "Lender filings & lis pendens" },
+  "tax-deed": { icon: Landmark, sub: "Tax deed sales & auctions" },
+  "tax-liens": { icon: Receipt, sub: "Delinquent tax records" },
+  "tax-delinquent": { icon: Receipt, sub: "Owners behind on taxes" },
+  "vacant-properties": { icon: DoorClosed, sub: "Vacancy & distress signals" },
+  liens: { icon: ClipboardList, sub: "Recorded liens & judgments" },
+  "code-violations": { icon: FileWarning, sub: "Municipal violations" },
+  evictions: { icon: Building2, sub: "Tired-landlord signals" },
+  "surplus-funds": { icon: Wallet, sub: "Excess auction proceeds" },
+  "demolition-orders": { icon: FileWarning, sub: "Demolition & vacate orders" },
+};
 
 const TITLE = "Distress Records By State — Live Coverage Map";
 const DESCRIPTION =
