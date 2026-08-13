@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -96,9 +97,14 @@ function SurplusFundsFeed() {
   const pageSize = filters.pageSize;
   const lastPage = Math.max(1, Math.ceil(total / pageSize));
 
+  // Summary strip — built from the currently loaded page. Only the page is
+  // available client-side, so the amount total is explicitly scoped to it.
+  const pageSurplusTotal = records.reduce((sum, r) => sum + (r.surplus_amount ?? 0), 0);
+  const clerkConfirmedCount = records.filter((r) => r.confidence === "clerk_confirmed").length;
+
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="space-y-4">
+      <div className="mx-auto w-full max-w-[92rem] space-y-5 px-1">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <PageHeader
             title="Surplus Funds"
@@ -106,6 +112,7 @@ function SurplusFundsFeed() {
           />
           <Button
             variant="outline"
+            className="h-9 shrink-0 rounded-lg"
             onClick={() => exportCsv.mutate()}
             disabled={exportCsv.isPending || total === 0}
           >
@@ -125,43 +132,75 @@ function SurplusFundsFeed() {
           isFiltered={isFiltered}
         />
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-sm tabular-nums text-muted-foreground">
-            {query.isLoading ? "Loading…" : `${total.toLocaleString()} Records`}
-          </div>
-          <div className="flex items-center gap-2">
+        {/* Summary strip */}
+        <div className="flex flex-wrap items-center gap-3">
+          <SummaryChip label="Total Records" value={query.isLoading ? "—" : total.toLocaleString()} />
+          <SummaryChip
+            label="Total Surplus (this page)"
+            value={query.isLoading ? "—" : currency.format(pageSurplusTotal)}
+          />
+          <SummaryChip
+            label="Clerk Confirmed (this page)"
+            value={query.isLoading ? "—" : clerkConfirmedCount.toLocaleString()}
+            accent
+          />
+          <div className="ml-auto flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Sort</span>
-            <div className="inline-flex rounded-md border border-border p-0.5">
-              {SORT_OPTIONS.map((option) => (
-                <Button
-                  key={option.value}
-                  type="button"
-                  size="sm"
-                  variant={filters.sort === option.value ? "secondary" : "ghost"}
-                  className="h-7 px-3 text-xs"
-                  aria-pressed={filters.sort === option.value}
-                  onClick={() => setFilters({ sort: option.value, page: 1 })}
-                >
-                  {option.label}
-                </Button>
-              ))}
+            <div className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5">
+              {SORT_OPTIONS.map((option) => {
+                const active = filters.sort === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setFilters({ sort: option.value, page: 1 })}
+                    className={
+                      "h-7 rounded-md px-3 text-xs font-medium transition-colors " +
+                      (active
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground")
+                    }
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        <div className="rounded-md border border-border">
+        <Card className="overflow-hidden p-0 shadow-sm">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="w-32">Case</TableHead>
-                <TableHead>Property</TableHead>
-                <TableHead className="w-40">County</TableHead>
-                <TableHead className="w-48">Owner Of Record</TableHead>
-                <TableHead className="w-32 text-right">Surplus</TableHead>
-                <TableHead className="w-44">Sale Type</TableHead>
-                <TableHead className="w-28">Sale Date</TableHead>
-                <TableHead className="w-28">Escheat</TableHead>
-                <TableHead className="w-36">Confidence</TableHead>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Case
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Property
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  County
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Owner Of Record
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Surplus
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Sale Type
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Sale Date
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Escheat
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Confidence
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -178,7 +217,7 @@ function SurplusFundsFeed() {
                   </TableCell>
                 </TableRow>
               ) : (
-                records.map((record) => (
+                records.map((record, idx) => (
                   <TableRow
                     key={record.id}
                     tabIndex={0}
@@ -190,9 +229,14 @@ function SurplusFundsFeed() {
                         setSelected(record);
                       }
                     }}
-                    className="cursor-pointer focus-visible:bg-surface-muted focus-visible:outline-none [&_td]:py-2"
+                    className={
+                      "cursor-pointer focus-visible:bg-surface-muted focus-visible:outline-none [&_td]:py-2 hover:bg-muted/40 " +
+                      (idx % 2 === 1 ? "bg-muted/20" : "")
+                    }
                   >
-                    <TableCell className="font-mono text-xs">{record.case_number ?? "—"}</TableCell>
+                    <TableCell className="font-mono text-[11px] text-muted-foreground">
+                      {record.case_number ?? "—"}
+                    </TableCell>
                     <TableCell className="max-w-[12rem]">
                       {record.property_address ? (
                         <span className="block truncate">{record.property_address}</span>
@@ -200,9 +244,7 @@ function SurplusFundsFeed() {
                           .filter(Boolean)
                           .join(", ") ? (
                         <span className="block truncate">
-                          {[record.property_city, record.property_zip]
-                            .filter(Boolean)
-                            .join(", ")}
+                          {[record.property_city, record.property_zip].filter(Boolean).join(", ")}
                         </span>
                       ) : (
                         <span className="text-xs italic text-muted-foreground">
@@ -215,7 +257,7 @@ function SurplusFundsFeed() {
                         </span>
                       ) : null}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="font-medium">
                       {record.county_name ?? "—"}
                       <span className="ml-1 text-xs text-muted-foreground">
                         {record.state_code}
@@ -230,11 +272,13 @@ function SurplusFundsFeed() {
                         </span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right font-semibold tabular-nums">
+                    <TableCell className="text-right text-[15px] font-bold tabular-nums text-foreground">
                       {currency.format(record.surplus_amount)}
                     </TableCell>
-                    <TableCell>{SALE_TYPE_LABELS[record.sale_type] ?? record.sale_type}</TableCell>
-                    <TableCell className="tabular-nums">
+                    <TableCell className="text-muted-foreground">
+                      {SALE_TYPE_LABELS[record.sale_type] ?? record.sale_type}
+                    </TableCell>
+                    <TableCell className="tabular-nums text-muted-foreground">
                       {formatFeedDate(record.sale_date)}
                     </TableCell>
                     <TableCell>
@@ -256,7 +300,7 @@ function SurplusFundsFeed() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </Card>
 
         {total > pageSize ? (
           <nav aria-label="Pagination" className="flex items-center justify-between text-sm">
@@ -287,6 +331,31 @@ function SurplusFundsFeed() {
         <SurplusDetailPanel record={selected} onOpenChange={(open) => !open && setSelected(null)} />
       </div>
     </TooltipProvider>
+  );
+}
+
+function SummaryChip({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
+  return (
+    <div
+      className={
+        "flex items-center gap-2 rounded-lg border px-3 py-1.5 " +
+        (accent ? "border-success/30 bg-success/5" : "border-border bg-muted/30")
+      }
+    >
+      <Sparkles className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
+      <div className="flex items-baseline gap-2">
+        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className="text-sm font-semibold tabular-nums text-foreground">{value}</span>
+      </div>
+    </div>
   );
 }
 
