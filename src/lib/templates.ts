@@ -800,7 +800,7 @@ export const FEATURED_IDS = [
   // Page 1 — the core engine
   "distress-feed", "street-scan", "gmaps", "contact-details", "zillow", "upload",
   // Page 2 — public records
-  "probate", "tax", "prefc", "absentee", "linkedin", "surplus-funds",
+  "probate", "tax", "prefc", "absentee", "surplus-funds", "linkedin",
   // Page 3 — business + social
   "yelp", "instagram", "indeed", "shopify", "realtor", "gserp",
   // Page 4 — beyond real estate
