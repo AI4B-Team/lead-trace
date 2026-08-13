@@ -164,7 +164,10 @@ function CountyPage() {
         </nav>
 
         <h1 className="mt-4 font-display text-4xl font-bold leading-tight text-foreground">
-          {countyName} County, {state} — Probate, Foreclosure & Tax Deed Leads
+          <span className="block">
+            {countyName} County, {state}
+          </span>
+          <span className="block">Probate, Foreclosure &amp; Tax Deed Leads</span>
         </h1>
 
         <div className="mt-8 grid gap-3 sm:grid-cols-4">
