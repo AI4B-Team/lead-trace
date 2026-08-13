@@ -182,7 +182,7 @@ function StatesIndex() {
           <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-primary">
             Distress Data Coverage
           </p>
-          <h1 className="mt-3 max-w-5xl font-display text-5xl font-bold leading-[1.05] text-foreground lg:text-7xl">
+          <h1 className="mt-3 whitespace-nowrap font-display text-5xl font-bold leading-[1.05] text-foreground lg:text-7xl">
             Distress Records Across The U.S.
           </h1>
           <p className="mt-6 max-w-3xl text-xl text-muted-foreground lg:text-2xl">
