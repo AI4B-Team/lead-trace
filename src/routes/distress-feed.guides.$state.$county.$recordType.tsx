@@ -131,7 +131,10 @@ function GuideDetail() {
         </nav>
 
         <h1 className="mt-4 font-display text-4xl font-bold leading-tight text-foreground">
-          {guide.title ?? `How to Pull ${label} Records in ${guide.county} County`}
+          <span className="block">
+            {guide.county} County, {guide.state}
+          </span>
+          <span className="block">{guide.title ?? `How to Pull ${label} Records`}</span>
         </h1>
         {guide.intro ? <p className="mt-5 text-lg text-muted-foreground">{guide.intro}</p> : null}
 
