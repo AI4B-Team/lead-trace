@@ -117,7 +117,7 @@ function SurplusFundsHubBody() {
           <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-primary">
             Surplus Funds Data
           </p>
-          <h1 className="mt-3 font-display text-5xl font-bold leading-[1.05] text-foreground lg:text-7xl">
+          <h1 className="mt-3 whitespace-nowrap font-display text-5xl font-bold leading-[1.05] text-foreground lg:text-7xl">
             Find Unclaimed Surplus Funds Before Everyone Else.
           </h1>
           <p className="mt-6 whitespace-nowrap text-base text-muted-foreground sm:text-lg lg:text-xl">
