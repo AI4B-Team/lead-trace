@@ -19,16 +19,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useWorkspaceId } from "@/hooks/use-workspace";
 import { exportSurplusRecords, listSurplusRecords } from "@/lib/surplus/feed.functions";
 import { surplusFiltersSchema, type SurplusFilters } from "@/lib/surplus/feed.schema";
-import {
-  ConfidenceBadge,
-  EscheatCountdown,
-} from "@/components/app/surplus/indicators";
+import { ConfidenceBadge, EscheatCountdown } from "@/components/app/surplus/indicators";
 import { SurplusFilterBar } from "@/components/app/surplus/surplus-filter-bar";
 import { SurplusDetailPanel } from "@/components/app/surplus/surplus-detail-panel";
 import {
   currency,
   formatFeedDate,
   SALE_TYPE_LABELS,
+  SORT_OPTIONS,
   type SurplusFeedRecord,
 } from "@/lib/surplus/feed.shared";
 
@@ -127,8 +125,28 @@ function SurplusFundsFeed() {
           isFiltered={isFiltered}
         />
 
-        <div className="text-sm tabular-nums text-muted-foreground">
-          {query.isLoading ? "Loading…" : `${total.toLocaleString()} Records`}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="text-sm tabular-nums text-muted-foreground">
+            {query.isLoading ? "Loading…" : `${total.toLocaleString()} Records`}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Sort</span>
+            <div className="inline-flex rounded-md border border-border p-0.5">
+              {SORT_OPTIONS.map((option) => (
+                <Button
+                  key={option.value}
+                  type="button"
+                  size="sm"
+                  variant={filters.sort === option.value ? "secondary" : "ghost"}
+                  className="h-7 px-3 text-xs"
+                  aria-pressed={filters.sort === option.value}
+                  onClick={() => setFilters({ sort: option.value, page: 1 })}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="rounded-md border border-border">
@@ -182,7 +200,9 @@ function SurplusFundsFeed() {
                     </TableCell>
                     <TableCell>
                       {record.county_name ?? "—"}
-                      <span className="ml-1 text-xs text-muted-foreground">{record.state_code}</span>
+                      <span className="ml-1 text-xs text-muted-foreground">
+                        {record.state_code}
+                      </span>
                     </TableCell>
                     <TableCell className="max-w-[12rem] truncate">
                       {record.owner_of_record ?? "—"}
@@ -191,7 +211,9 @@ function SurplusFundsFeed() {
                       {currency.format(record.surplus_amount)}
                     </TableCell>
                     <TableCell>{SALE_TYPE_LABELS[record.sale_type] ?? record.sale_type}</TableCell>
-                    <TableCell className="tabular-nums">{formatFeedDate(record.sale_date)}</TableCell>
+                    <TableCell className="tabular-nums">
+                      {formatFeedDate(record.sale_date)}
+                    </TableCell>
                     <TableCell>
                       <EscheatCountdown
                         days={record.days_to_escheat}
@@ -238,10 +260,7 @@ function SurplusFundsFeed() {
           </nav>
         ) : null}
 
-        <SurplusDetailPanel
-          record={selected}
-          onOpenChange={(open) => !open && setSelected(null)}
-        />
+        <SurplusDetailPanel record={selected} onOpenChange={(open) => !open && setSelected(null)} />
       </div>
     </TooltipProvider>
   );

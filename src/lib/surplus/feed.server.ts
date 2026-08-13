@@ -71,14 +71,32 @@ function buildQuery(db: any, f: SurplusFilters, select: string, count = false) {
   return q;
 }
 
+/**
+ * Apply the requested sort. `urgency` (default) leads with the soonest escheat
+ * deadline — the recovery desk's view of what is about to be lost. `newest`
+ * leads with the most recent sale date, for scanning what just landed. Both
+ * tie-break on surplus amount so the bigger money sits higher within a tier.
+ */
+function applySort<
+  T extends { order: (col: string, opts: { ascending: boolean; nullsFirst: boolean }) => T },
+>(q: T, sort: SurplusFilters["sort"]): T {
+  if (sort === "newest") {
+    return q
+      .order("sale_date", { ascending: false, nullsFirst: false })
+      .order("surplus_amount", { ascending: false, nullsFirst: false });
+  }
+  return q
+    .order("days_to_escheat", { ascending: true, nullsFirst: false })
+    .order("surplus_amount", { ascending: false, nullsFirst: false });
+}
+
 export async function listRecords(f: SurplusFilters) {
   const db = await admin();
   const from = (f.page - 1) * f.pageSize;
-  const { data, error, count } = await buildQuery(db, f, "*", true)
-    // Urgency is the product: soonest deadline first, unknown deadlines last.
-    .order("days_to_escheat", { ascending: true, nullsFirst: false })
-    .order("surplus_amount", { ascending: false })
-    .range(from, from + f.pageSize - 1);
+  const { data, error, count } = await applySort(buildQuery(db, f, "*", true), f.sort).range(
+    from,
+    from + f.pageSize - 1,
+  );
   if (error) throw new Error(`Could not load surplus records: ${error.message}`);
   return {
     records: (data ?? []) as unknown as SurplusFeedRecord[],
@@ -130,9 +148,7 @@ export async function listCounties(states: string[]) {
 
 export async function exportRecords(f: SurplusFilters) {
   const db = await admin();
-  const { data, error } = await buildQuery(db, f, "*")
-    .order("days_to_escheat", { ascending: true, nullsFirst: false })
-    .limit(EXPORT_ROW_CAP);
+  const { data, error } = await applySort(buildQuery(db, f, "*"), f.sort).limit(EXPORT_ROW_CAP);
   if (error) throw new Error(`Export failed: ${error.message}`);
 
   const rows = (data ?? []) as Record<string, unknown>[];

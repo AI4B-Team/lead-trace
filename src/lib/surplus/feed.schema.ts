@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CONFIDENCE_LEVELS, ESCHEAT_BUCKETS, SALE_TYPES } from "./feed.shared";
+import { CONFIDENCE_LEVELS, ESCHEAT_BUCKETS, SALE_TYPES, SORT_OPTIONS } from "./feed.shared";
 
 export const surplusFiltersSchema = z.object({
   workspaceId: z.string().uuid().nullable().default(null),
@@ -14,6 +14,7 @@ export const surplusFiltersSchema = z.object({
     .array(z.enum(ESCHEAT_BUCKETS.map((b) => b.value) as [string, ...string[]]))
     .default([]),
   confidence: z.array(z.enum(CONFIDENCE_LEVELS)).default([]),
+  sort: z.enum(SORT_OPTIONS.map((s) => s.value) as [string, ...string[]]).default("urgency"),
   page: z.number().int().min(1).default(1),
   pageSize: z.number().int().min(25).max(200).default(50),
 });

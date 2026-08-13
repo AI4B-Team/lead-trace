@@ -46,6 +46,19 @@ export const ESCHEAT_BUCKETS = [
 
 export type EscheatBucket = (typeof ESCHEAT_BUCKETS)[number]["value"];
 
+/**
+ * Feed sort order. `urgency` (default) is the recovery-desk view — soonest
+ * escheat deadline first, so money about to be lost surfaces at the top.
+ * `newest` is the freshness view — most recent sale date first, for anyone
+ * scanning what just landed.
+ */
+export const SORT_OPTIONS = [
+  { value: "urgency", label: "Closest deadline" },
+  { value: "newest", label: "Newest sale date" },
+] as const;
+
+export type SortOrder = (typeof SORT_OPTIONS)[number]["value"];
+
 export interface SurplusFeedRecord {
   id: string;
   workspace_id: string | null;
