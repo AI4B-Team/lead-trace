@@ -2,10 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   BadgeCheck,
+  Check,
   CircleDollarSign,
   Gavel,
   Landmark,
-  MapPin,
+  Layers,
   Search,
   ShieldCheck,
   Timer,
@@ -76,6 +77,17 @@ function SurplusFundsHub() {
       counties: acc.counties + s.countiesWithRecords,
     }),
     { records: 0, amount: 0, counties: 0 },
+  );
+  // Coverage metrics come straight from the published aggregates — no invented
+  // counts, and a genuine zero renders the verification state instead.
+  const markets = states.filter((s) => s.counties.length > 0);
+  const liveCounties = states.reduce(
+    (n, s) => n + s.counties.filter((c) => c.recordCount > 0).length,
+    0,
+  );
+  const expandingCounties = states.reduce(
+    (n, s) => n + s.counties.filter((c) => c.recordCount === 0).length,
+    0,
   );
 
   return (
