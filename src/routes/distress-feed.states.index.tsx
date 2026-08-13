@@ -114,15 +114,17 @@ function StatesIndex() {
     [states, guides],
   );
 
-  const totals = liveStates.reduce(
+  const activeStates = liveStates.filter((s) => s.records > 0);
+  const expandingStates = liveStates.filter((s) => s.records === 0);
+  const totals = activeStates.reduce(
     (acc, s) => ({
-      states: acc.states + 1,
       counties: acc.counties + s.counties,
       records: acc.records + s.records,
     }),
-    { states: 0, counties: 0, records: 0 },
+    { counties: 0, records: 0 },
   );
   const recordTypeCount = new Set(guides.map((g) => g.record_type_slug)).size;
+  const featured = activeStates[0];
 
   const mapStates: MapState[] = liveStates.map((s) => ({
     code: s.code,
@@ -137,7 +139,8 @@ function StatesIndex() {
   const matchesQuery = (name: string, code: string) =>
     !q || name.toLowerCase().includes(q) || code.toLowerCase() === q;
 
-  const shownLive = liveStates.filter((s) => matchesQuery(s.name, s.code));
+  const shownActive = activeStates.filter((s) => matchesQuery(s.name, s.code));
+  const shownExpanding = expandingStates.filter((s) => matchesQuery(s.name, s.code));
 
   const otherStates = US_STATES.filter(
     (s) => s.code.length === 2 && !covered.has(s.code) && matchesQuery(s.name, s.code),
@@ -156,7 +159,7 @@ function StatesIndex() {
 
   return (
     <MarketingLayout>
-      <div className="mx-auto w-full max-w-[80rem] px-6 py-14">
+      <div className="mx-auto w-full max-w-[92rem] px-6 py-14 lg:px-10">
         <nav className="text-sm text-muted-foreground">
           <Link to="/distress-feed" className="hover:text-primary">
             Distress Feed
@@ -169,26 +172,30 @@ function StatesIndex() {
           <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-primary">
             Distress Data Coverage
           </p>
-          <h1 className="mt-3 max-w-3xl font-display text-4xl font-bold leading-tight text-foreground lg:text-5xl">
+          <h1 className="mt-3 max-w-5xl font-display text-5xl font-bold leading-[1.05] text-foreground lg:text-7xl">
             Distress Records Across The U.S.
           </h1>
-          <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
+          <p className="mt-6 max-w-3xl text-xl text-muted-foreground lg:text-2xl">
             Explore live distress-property coverage by state, county and record type.
           </p>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          <p className="mt-3 max-w-2xl text-base text-muted-foreground">
             See what's available, when it was last updated, and where LeadTrace is expanding next.
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-sm text-foreground">
+          <div className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-sm text-foreground">
             <span>
-              {totals.states} {totals.states === 1 ? "State" : "States"}
+              {activeStates.length} Live {activeStates.length === 1 ? "State" : "States"}
             </span>
             <span className="text-muted-foreground">·</span>
-            <span>{totals.counties.toLocaleString()} Counties</span>
+            <span>{totals.counties.toLocaleString()} Live Counties</span>
             <span className="text-muted-foreground">·</span>
             <span>{totals.records.toLocaleString()} Records</span>
-            <span className="text-muted-foreground">·</span>
-            <span>{recordTypeCount} Record Types</span>
+            {expandingStates.length ? (
+              <>
+                <span className="text-muted-foreground">·</span>
+                <span>{expandingStates.length} States Expanding</span>
+              </>
+            ) : null}
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
