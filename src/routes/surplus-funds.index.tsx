@@ -120,9 +120,8 @@ function SurplusFundsHubBody() {
           <h1 className="mt-3 font-display text-5xl font-bold leading-[1.05] text-foreground lg:text-7xl">
             Find Unclaimed Surplus Funds Before Everyone Else.
           </h1>
-          <p className="mt-6 max-w-3xl text-xl text-muted-foreground lg:text-2xl">
-            Track excess proceeds created after foreclosure and tax-sale auctions, organized by
-            state, county and claim opportunity.
+          <p className="mt-6 whitespace-nowrap text-base text-muted-foreground sm:text-lg lg:text-xl">
+            Track excess proceeds created after foreclosure and tax-sale auctions, organized by state, county and claim opportunity.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
