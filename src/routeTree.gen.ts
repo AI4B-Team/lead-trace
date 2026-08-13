@@ -58,6 +58,7 @@ import { Route as DistressFeedGuidesIndexRouteImport } from './routes/distress-f
 import { Route as DistressFeedCountiesIndexRouteImport } from './routes/distress-feed.counties.index'
 import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform.index'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as SurplusFundsStateCountyRouteImport } from './routes/surplus-funds.$state.$county'
 import { Route as AuthenticatedPlatformWorkspacesRouteImport } from './routes/_authenticated/platform.workspaces'
 import { Route as AuthenticatedPlatformStateGuidesRouteImport } from './routes/_authenticated/platform.state-guides'
 import { Route as AuthenticatedPlatformSourcesRouteImport } from './routes/_authenticated/platform.sources'
@@ -372,6 +373,11 @@ const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const SurplusFundsStateCountyRoute = SurplusFundsStateCountyRouteImport.update({
+  id: '/surplus-funds/$state/$county',
+  path: '/surplus-funds/$state/$county',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPlatformWorkspacesRoute =
   AuthenticatedPlatformWorkspacesRouteImport.update({
@@ -836,6 +842,7 @@ export interface FileRoutesByFullPath {
   '/platform/sources': typeof AuthenticatedPlatformSourcesRoute
   '/platform/state-guides': typeof AuthenticatedPlatformStateGuidesRoute
   '/platform/workspaces': typeof AuthenticatedPlatformWorkspacesRoute
+  '/surplus-funds/$state/$county': typeof SurplusFundsStateCountyRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/platform/': typeof AuthenticatedPlatformIndexRoute
   '/distress-feed/counties/': typeof DistressFeedCountiesIndexRoute
@@ -952,6 +959,7 @@ export interface FileRoutesByTo {
   '/platform/sources': typeof AuthenticatedPlatformSourcesRoute
   '/platform/state-guides': typeof AuthenticatedPlatformStateGuidesRoute
   '/platform/workspaces': typeof AuthenticatedPlatformWorkspacesRoute
+  '/surplus-funds/$state/$county': typeof SurplusFundsStateCountyRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/platform': typeof AuthenticatedPlatformIndexRoute
   '/distress-feed/counties': typeof DistressFeedCountiesIndexRoute
@@ -1072,6 +1080,7 @@ export interface FileRoutesById {
   '/_authenticated/platform/sources': typeof AuthenticatedPlatformSourcesRoute
   '/_authenticated/platform/state-guides': typeof AuthenticatedPlatformStateGuidesRoute
   '/_authenticated/platform/workspaces': typeof AuthenticatedPlatformWorkspacesRoute
+  '/surplus-funds/$state/$county': typeof SurplusFundsStateCountyRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/platform/': typeof AuthenticatedPlatformIndexRoute
   '/distress-feed/counties/': typeof DistressFeedCountiesIndexRoute
@@ -1192,6 +1201,7 @@ export interface FileRouteTypes {
     | '/platform/sources'
     | '/platform/state-guides'
     | '/platform/workspaces'
+    | '/surplus-funds/$state/$county'
     | '/app/'
     | '/platform/'
     | '/distress-feed/counties/'
@@ -1308,6 +1318,7 @@ export interface FileRouteTypes {
     | '/platform/sources'
     | '/platform/state-guides'
     | '/platform/workspaces'
+    | '/surplus-funds/$state/$county'
     | '/app'
     | '/platform'
     | '/distress-feed/counties'
@@ -1427,6 +1438,7 @@ export interface FileRouteTypes {
     | '/_authenticated/platform/sources'
     | '/_authenticated/platform/state-guides'
     | '/_authenticated/platform/workspaces'
+    | '/surplus-funds/$state/$county'
     | '/_authenticated/app/'
     | '/_authenticated/platform/'
     | '/distress-feed/counties/'
@@ -1516,6 +1528,7 @@ export interface RootRouteChildren {
   SurplusFundsIndexRoute: typeof SurplusFundsIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
+  SurplusFundsStateCountyRoute: typeof SurplusFundsStateCountyRoute
   DistressFeedCountiesIndexRoute: typeof DistressFeedCountiesIndexRoute
   DistressFeedGuidesIndexRoute: typeof DistressFeedGuidesIndexRoute
   DistressFeedStatesIndexRoute: typeof DistressFeedStatesIndexRoute
@@ -1894,6 +1907,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/surplus-funds/$state/$county': {
+      id: '/surplus-funds/$state/$county'
+      path: '/surplus-funds/$state/$county'
+      fullPath: '/surplus-funds/$state/$county'
+      preLoaderRoute: typeof SurplusFundsStateCountyRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/platform/workspaces': {
       id: '/_authenticated/platform/workspaces'
@@ -2553,6 +2573,7 @@ const rootRouteChildren: RootRouteChildren = {
   SurplusFundsIndexRoute: SurplusFundsIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
+  SurplusFundsStateCountyRoute: SurplusFundsStateCountyRoute,
   DistressFeedCountiesIndexRoute: DistressFeedCountiesIndexRoute,
   DistressFeedGuidesIndexRoute: DistressFeedGuidesIndexRoute,
   DistressFeedStatesIndexRoute: DistressFeedStatesIndexRoute,

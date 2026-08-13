@@ -4,7 +4,7 @@ import {
   Car, Utensils, Stethoscope, Wrench, Camera, Music, Plane, Store,
   Mail, Rocket, BadgeCheck, Network,
   DollarSign, BookOpen, Trophy, Film, Code, MessageSquare, Hotel, Bed,
-  ScanEye,
+  ScanEye, CircleDollarSign,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -561,6 +561,37 @@ export const TEMPLATES: Template[] = [
   },
   {
     id: "code",
+    shortTitle: "Code Violations",
+    shortSubtitle: "Distressed Owners",
+    title: "Code Violations",
+    subtitle: "Distressed Properties With Open Violations.",
+    categories: ["records", "realestate"],
+    prompt: "Find all code violation properties in Pinellas County FL and skip trace the owners",
+    icon: FileWarning,
+    tint: "bg-rose-500/10 text-rose-600",
+    placeholderHint: "e.g. Code violations in Pinellas County, FL from the last 60 days",
+    credit_cost_per_lead: 0,
+  },
+  {
+    // Surplus funds are one record type inside the Distress Feed; this preset
+    // returns overages only. The dedicated public hub lives at /surplus-funds.
+    id: "surplus-funds",
+    featured: true,
+    featuredOrder: 10,
+    shortTitle: "Surplus Funds",
+    shortSubtitle: "Auction Overages",
+    title: "Surplus Funds",
+    subtitle: "Auction Overages & Unclaimed Proceeds.",
+    categories: ["records", "realestate"],
+    prompt:
+      "Show me surplus funds and excess proceeds from tax deed and foreclosure sales in Hillsborough County FL",
+    icon: CircleDollarSign,
+    tint: "bg-emerald-500/10 text-emerald-700",
+    placeholderHint: "e.g. Surplus funds over $10,000 in Hillsborough County, FL",
+    credit_cost_per_lead: 0,
+  },
+  {
+    id: "code-legacy-placeholder",
     shortTitle: "Code Violations",
     shortSubtitle: "Distressed Owners",
     title: "Code Violations",
