@@ -761,7 +761,7 @@ function LeadsIndexBody() {
           <h2 className="font-display text-2xl md:text-3xl font-black text-foreground">
             Ready To Build Your First List?
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground">
+          <p className="mx-auto mt-3 max-w-none whitespace-nowrap text-sm text-muted-foreground">
             Generate a new list, upload your own data, or launch outreach — all from one platform.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
