@@ -68,6 +68,25 @@ export const Route = createFileRoute("/surplus-funds/")({
 });
 
 function SurplusFundsHub() {
+  return <SurplusFundsHubBody />;
+}
+
+/** Coverage status pill: red when a county has confirmed records, outlined while it is being added. */
+function StatusPill({ live }: { live: boolean }) {
+  return (
+    <span
+      className={
+        live
+          ? "shrink-0 rounded-full bg-primary px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-primary-foreground"
+          : "shrink-0 rounded-full border border-primary/40 bg-primary/5 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-primary"
+      }
+    >
+      {live ? "Live" : "Expanding"}
+    </span>
+  );
+}
+
+function SurplusFundsHubBody() {
   const states = Route.useLoaderData()?.states ?? [];
   const live = states.filter((s) => s.recordCount > 0);
   const totals = live.reduce(
