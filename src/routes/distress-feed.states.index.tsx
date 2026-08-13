@@ -225,6 +225,12 @@ function StatesIndex() {
             >
               Browse Counties <ArrowRight className="h-4 w-4" />
             </Link>
+            <Link
+              to="/surplus-funds"
+              className="inline-flex items-center gap-1 rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground hover:border-primary hover:text-primary"
+            >
+              Surplus Funds <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </section>
 
