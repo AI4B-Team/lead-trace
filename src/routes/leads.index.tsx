@@ -79,8 +79,9 @@ export const Route = createFileRoute("/leads/")({
 });
 
 const NICHE_FACTS = [
-  { icon: Globe, label: "Nationwide" },
+  { icon: Globe, label: "Nationwide Coverage" },
   { icon: Smartphone, label: "Mobile Verified" },
+  { icon: ShieldCheck, label: "Clean & Compliant" },
   { icon: Zap, label: "Built On Demand" },
 ];
 
