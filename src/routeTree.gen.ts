@@ -41,15 +41,18 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
 import { Route as TemplatesIndexRouteImport } from './routes/templates.index'
+import { Route as SurplusFundsIndexRouteImport } from './routes/surplus-funds.index'
 import { Route as LeadsIndexRouteImport } from './routes/leads.index'
 import { Route as DistressFeedIndexRouteImport } from './routes/distress-feed.index'
 import { Route as ToolsLineTypeCheckerRouteImport } from './routes/tools.line-type-checker'
 import { Route as ToolsDncCheckerRouteImport } from './routes/tools.dnc-checker'
 import { Route as TemplatesTemplateIdRouteImport } from './routes/templates.$templateId'
+import { Route as SurplusFundsStatesRouteImport } from './routes/surplus-funds.states'
 import { Route as LeadsSlugRouteImport } from './routes/leads.$slug'
 import { Route as AuthHubRouteImport } from './routes/auth.hub'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as SurplusFundsStateIndexRouteImport } from './routes/surplus-funds.$state.index'
 import { Route as DistressFeedStatesIndexRouteImport } from './routes/distress-feed.states.index'
 import { Route as DistressFeedGuidesIndexRouteImport } from './routes/distress-feed.guides.index'
 import { Route as DistressFeedCountiesIndexRouteImport } from './routes/distress-feed.counties.index'
@@ -283,6 +286,11 @@ const TemplatesIndexRoute = TemplatesIndexRouteImport.update({
   path: '/templates/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SurplusFundsIndexRoute = SurplusFundsIndexRouteImport.update({
+  id: '/surplus-funds/',
+  path: '/surplus-funds/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LeadsIndexRoute = LeadsIndexRouteImport.update({
   id: '/leads/',
   path: '/leads/',
@@ -308,6 +316,11 @@ const TemplatesTemplateIdRoute = TemplatesTemplateIdRouteImport.update({
   path: '/templates/$templateId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SurplusFundsStatesRoute = SurplusFundsStatesRouteImport.update({
+  id: '/surplus-funds/states',
+  path: '/surplus-funds/states',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LeadsSlugRoute = LeadsSlugRouteImport.update({
   id: '/leads/$slug',
   path: '/leads/$slug',
@@ -327,6 +340,11 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const SurplusFundsStateIndexRoute = SurplusFundsStateIndexRouteImport.update({
+  id: '/surplus-funds/$state/',
+  path: '/surplus-funds/$state/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DistressFeedStatesIndexRoute = DistressFeedStatesIndexRouteImport.update({
   id: '/distress-feed/states/',
@@ -781,11 +799,13 @@ export interface FileRoutesByFullPath {
   '/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/auth/hub': typeof AuthHubRoute
   '/leads/$slug': typeof LeadsSlugRoute
+  '/surplus-funds/states': typeof SurplusFundsStatesRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/tools/dnc-checker': typeof ToolsDncCheckerRoute
   '/tools/line-type-checker': typeof ToolsLineTypeCheckerRoute
   '/distress-feed/': typeof DistressFeedIndexRoute
   '/leads/': typeof LeadsIndexRoute
+  '/surplus-funds/': typeof SurplusFundsIndexRoute
   '/templates/': typeof TemplatesIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/app/account': typeof AuthenticatedAppAccountRoute
@@ -821,6 +841,7 @@ export interface FileRoutesByFullPath {
   '/distress-feed/counties/': typeof DistressFeedCountiesIndexRoute
   '/distress-feed/guides/': typeof DistressFeedGuidesIndexRoute
   '/distress-feed/states/': typeof DistressFeedStatesIndexRoute
+  '/surplus-funds/$state/': typeof SurplusFundsStateIndexRoute
   '/app/campaigns/$campaignId': typeof AuthenticatedAppCampaignsCampaignIdRoute
   '/app/campaigns/new': typeof AuthenticatedAppCampaignsNewRoute
   '/app/jobs/$': typeof AuthenticatedAppJobsSplatRoute
@@ -894,11 +915,13 @@ export interface FileRoutesByTo {
   '/tutorials': typeof TutorialsRoute
   '/auth/hub': typeof AuthHubRoute
   '/leads/$slug': typeof LeadsSlugRoute
+  '/surplus-funds/states': typeof SurplusFundsStatesRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/tools/dnc-checker': typeof ToolsDncCheckerRoute
   '/tools/line-type-checker': typeof ToolsLineTypeCheckerRoute
   '/distress-feed': typeof DistressFeedIndexRoute
   '/leads': typeof LeadsIndexRoute
+  '/surplus-funds': typeof SurplusFundsIndexRoute
   '/templates': typeof TemplatesIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/app/account': typeof AuthenticatedAppAccountRoute
@@ -934,6 +957,7 @@ export interface FileRoutesByTo {
   '/distress-feed/counties': typeof DistressFeedCountiesIndexRoute
   '/distress-feed/guides': typeof DistressFeedGuidesIndexRoute
   '/distress-feed/states': typeof DistressFeedStatesIndexRoute
+  '/surplus-funds/$state': typeof SurplusFundsStateIndexRoute
   '/app/campaigns/$campaignId': typeof AuthenticatedAppCampaignsCampaignIdRoute
   '/app/campaigns/new': typeof AuthenticatedAppCampaignsNewRoute
   '/app/jobs/$': typeof AuthenticatedAppJobsSplatRoute
@@ -1011,11 +1035,13 @@ export interface FileRoutesById {
   '/_authenticated/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/auth/hub': typeof AuthHubRoute
   '/leads/$slug': typeof LeadsSlugRoute
+  '/surplus-funds/states': typeof SurplusFundsStatesRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/tools/dnc-checker': typeof ToolsDncCheckerRoute
   '/tools/line-type-checker': typeof ToolsLineTypeCheckerRoute
   '/distress-feed/': typeof DistressFeedIndexRoute
   '/leads/': typeof LeadsIndexRoute
+  '/surplus-funds/': typeof SurplusFundsIndexRoute
   '/templates/': typeof TemplatesIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/_authenticated/app/account': typeof AuthenticatedAppAccountRoute
@@ -1051,6 +1077,7 @@ export interface FileRoutesById {
   '/distress-feed/counties/': typeof DistressFeedCountiesIndexRoute
   '/distress-feed/guides/': typeof DistressFeedGuidesIndexRoute
   '/distress-feed/states/': typeof DistressFeedStatesIndexRoute
+  '/surplus-funds/$state/': typeof SurplusFundsStateIndexRoute
   '/_authenticated/app/campaigns/$campaignId': typeof AuthenticatedAppCampaignsCampaignIdRoute
   '/_authenticated/app/campaigns/new': typeof AuthenticatedAppCampaignsNewRoute
   '/_authenticated/app/jobs/$': typeof AuthenticatedAppJobsSplatRoute
@@ -1128,11 +1155,13 @@ export interface FileRouteTypes {
     | '/platform'
     | '/auth/hub'
     | '/leads/$slug'
+    | '/surplus-funds/states'
     | '/templates/$templateId'
     | '/tools/dnc-checker'
     | '/tools/line-type-checker'
     | '/distress-feed/'
     | '/leads/'
+    | '/surplus-funds/'
     | '/templates/'
     | '/tools/'
     | '/app/account'
@@ -1168,6 +1197,7 @@ export interface FileRouteTypes {
     | '/distress-feed/counties/'
     | '/distress-feed/guides/'
     | '/distress-feed/states/'
+    | '/surplus-funds/$state/'
     | '/app/campaigns/$campaignId'
     | '/app/campaigns/new'
     | '/app/jobs/$'
@@ -1241,11 +1271,13 @@ export interface FileRouteTypes {
     | '/tutorials'
     | '/auth/hub'
     | '/leads/$slug'
+    | '/surplus-funds/states'
     | '/templates/$templateId'
     | '/tools/dnc-checker'
     | '/tools/line-type-checker'
     | '/distress-feed'
     | '/leads'
+    | '/surplus-funds'
     | '/templates'
     | '/tools'
     | '/app/account'
@@ -1281,6 +1313,7 @@ export interface FileRouteTypes {
     | '/distress-feed/counties'
     | '/distress-feed/guides'
     | '/distress-feed/states'
+    | '/surplus-funds/$state'
     | '/app/campaigns/$campaignId'
     | '/app/campaigns/new'
     | '/app/jobs/$'
@@ -1357,11 +1390,13 @@ export interface FileRouteTypes {
     | '/_authenticated/platform'
     | '/auth/hub'
     | '/leads/$slug'
+    | '/surplus-funds/states'
     | '/templates/$templateId'
     | '/tools/dnc-checker'
     | '/tools/line-type-checker'
     | '/distress-feed/'
     | '/leads/'
+    | '/surplus-funds/'
     | '/templates/'
     | '/tools/'
     | '/_authenticated/app/account'
@@ -1397,6 +1432,7 @@ export interface FileRouteTypes {
     | '/distress-feed/counties/'
     | '/distress-feed/guides/'
     | '/distress-feed/states/'
+    | '/surplus-funds/$state/'
     | '/_authenticated/app/campaigns/$campaignId'
     | '/_authenticated/app/campaigns/new'
     | '/_authenticated/app/jobs/$'
@@ -1471,16 +1507,19 @@ export interface RootRouteChildren {
   StreetScanRoute: typeof StreetScanRoute
   TutorialsRoute: typeof TutorialsRoute
   LeadsSlugRoute: typeof LeadsSlugRoute
+  SurplusFundsStatesRoute: typeof SurplusFundsStatesRoute
   TemplatesTemplateIdRoute: typeof TemplatesTemplateIdRoute
   ToolsDncCheckerRoute: typeof ToolsDncCheckerRoute
   ToolsLineTypeCheckerRoute: typeof ToolsLineTypeCheckerRoute
   DistressFeedIndexRoute: typeof DistressFeedIndexRoute
   LeadsIndexRoute: typeof LeadsIndexRoute
+  SurplusFundsIndexRoute: typeof SurplusFundsIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
   DistressFeedCountiesIndexRoute: typeof DistressFeedCountiesIndexRoute
   DistressFeedGuidesIndexRoute: typeof DistressFeedGuidesIndexRoute
   DistressFeedStatesIndexRoute: typeof DistressFeedStatesIndexRoute
+  SurplusFundsStateIndexRoute: typeof SurplusFundsStateIndexRoute
   ApiPublicHooksRecordsInboundRoute: typeof ApiPublicHooksRecordsInboundRoute
   ApiPublicHooksTelnyxCallRoute: typeof ApiPublicHooksTelnyxCallRoute
   ApiPublicHooksTelnyxDlrRoute: typeof ApiPublicHooksTelnyxDlrRoute
@@ -1737,6 +1776,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplatesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/surplus-funds/': {
+      id: '/surplus-funds/'
+      path: '/surplus-funds'
+      fullPath: '/surplus-funds/'
+      preLoaderRoute: typeof SurplusFundsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/leads/': {
       id: '/leads/'
       path: '/leads'
@@ -1772,6 +1818,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplatesTemplateIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/surplus-funds/states': {
+      id: '/surplus-funds/states'
+      path: '/surplus-funds/states'
+      fullPath: '/surplus-funds/states'
+      preLoaderRoute: typeof SurplusFundsStatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/leads/$slug': {
       id: '/leads/$slug'
       path: '/leads/$slug'
@@ -1799,6 +1852,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app'
       preLoaderRoute: typeof AuthenticatedAppRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/surplus-funds/$state/': {
+      id: '/surplus-funds/$state/'
+      path: '/surplus-funds/$state'
+      fullPath: '/surplus-funds/$state/'
+      preLoaderRoute: typeof SurplusFundsStateIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/distress-feed/states/': {
       id: '/distress-feed/states/'
@@ -2484,16 +2544,19 @@ const rootRouteChildren: RootRouteChildren = {
   StreetScanRoute: StreetScanRoute,
   TutorialsRoute: TutorialsRoute,
   LeadsSlugRoute: LeadsSlugRoute,
+  SurplusFundsStatesRoute: SurplusFundsStatesRoute,
   TemplatesTemplateIdRoute: TemplatesTemplateIdRoute,
   ToolsDncCheckerRoute: ToolsDncCheckerRoute,
   ToolsLineTypeCheckerRoute: ToolsLineTypeCheckerRoute,
   DistressFeedIndexRoute: DistressFeedIndexRoute,
   LeadsIndexRoute: LeadsIndexRoute,
+  SurplusFundsIndexRoute: SurplusFundsIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
   DistressFeedCountiesIndexRoute: DistressFeedCountiesIndexRoute,
   DistressFeedGuidesIndexRoute: DistressFeedGuidesIndexRoute,
   DistressFeedStatesIndexRoute: DistressFeedStatesIndexRoute,
+  SurplusFundsStateIndexRoute: SurplusFundsStateIndexRoute,
   ApiPublicHooksRecordsInboundRoute: ApiPublicHooksRecordsInboundRoute,
   ApiPublicHooksTelnyxCallRoute: ApiPublicHooksTelnyxCallRoute,
   ApiPublicHooksTelnyxDlrRoute: ApiPublicHooksTelnyxDlrRoute,

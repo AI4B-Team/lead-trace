@@ -28,6 +28,12 @@ export const getSurplusStatePage = createServerFn({ method: "GET" })
     return { state, rules, aggregate, counties, faqs };
   });
 
+/** Coverage roll-up powering the dedicated Surplus Funds hub and states page. */
+export const getSurplusCoverage = createServerFn({ method: "GET" }).handler(async () => {
+  const s = await import("./public.server");
+  return { states: await s.surplusCoverage() };
+});
+
 export const getSurplusCountyPage = createServerFn({ method: "GET" })
   .inputValidator((input) => countySchema.parse(input))
   .handler(async ({ data }) => {
