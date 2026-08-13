@@ -254,6 +254,8 @@ export type SurplusStateCoverage = {
   totalAmount: number;
   countyPages: number;
   countiesWithRecords: number;
+  /** Published counties for this state, live ones first. */
+  counties: { name: string; slug: string; recordCount: number }[];
   dataAsOf: string | null;
   lastVerifiedAt: string | null;
 };
@@ -281,6 +283,9 @@ export async function surplusCoverage(): Promise<SurplusStateCoverage[]> {
         totalAmount: aggregate.total_amount,
         countyPages: counties.length,
         countiesWithRecords: counties.filter((c) => c.record_count > 0).length,
+        counties: [...counties]
+          .sort((a, b) => b.record_count - a.record_count || a.county_name.localeCompare(b.county_name))
+          .map((c) => ({ name: c.county_name, slug: c.county_slug, recordCount: c.record_count })),
         dataAsOf: aggregate.data_as_of,
         lastVerifiedAt: rules.last_verified_at,
       } satisfies SurplusStateCoverage;
