@@ -37,6 +37,7 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
 
 const NAV_LINKS = [
   { to: "/leads", label: "Lead Lists" },
+  { to: "/surplus-funds", label: "Surplus Funds" },
   { to: "/how-it-works", label: "How It Works" },
   { to: "/tools", label: "Free Tools" },
   { to: "/pricing", label: "Pricing" },

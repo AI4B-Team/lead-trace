@@ -246,3 +246,47 @@ export async function publishedSurplusUrls() {
     lastModified: (r["last_modified"] as string | null) ?? null,
   }));
 }
+
+export type SurplusStateCoverage = {
+  state: string;
+  primaryTerm: string;
+  recordCount: number;
+  totalAmount: number;
+  countyPages: number;
+  countiesWithRecords: number;
+  dataAsOf: string | null;
+  lastVerifiedAt: string | null;
+};
+
+/**
+ * Coverage roll-up for the dedicated Surplus Funds hub. Derived from the same
+ * published-state gate and clerk-confirmed aggregates as the guide pages, so
+ * the hub can never advertise coverage a state page would not honour.
+ */
+export async function surplusCoverage(): Promise<SurplusStateCoverage[]> {
+  const urls = await publishedSurplusUrls();
+  const states = [...new Set(urls.map((u) => u.state.toUpperCase()))];
+  const rows = await Promise.all(
+    states.map(async (state) => {
+      const [rules, aggregate, counties] = await Promise.all([
+        getStateRules(state),
+        stateAggregate(state),
+        stateCounties(state),
+      ]);
+      if (!rules) return null;
+      return {
+        state,
+        primaryTerm: rules.primary_term,
+        recordCount: aggregate.record_count,
+        totalAmount: aggregate.total_amount,
+        countyPages: counties.length,
+        countiesWithRecords: counties.filter((c) => c.record_count > 0).length,
+        dataAsOf: aggregate.data_as_of,
+        lastVerifiedAt: rules.last_verified_at,
+      } satisfies SurplusStateCoverage;
+    }),
+  );
+  return rows
+    .filter((r): r is SurplusStateCoverage => r !== null)
+    .sort((a, b) => b.recordCount - a.recordCount || a.state.localeCompare(b.state));
+}

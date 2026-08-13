@@ -26,6 +26,8 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/distress-feed/counties", changefreq: "weekly", priority: "0.8" },
           { path: "/distress-feed/guides", changefreq: "weekly", priority: "0.8" },
           { path: "/distress-feed/states", changefreq: "weekly", priority: "0.8" },
+          { path: "/surplus-funds", changefreq: "weekly", priority: "0.9" },
+          { path: "/surplus-funds/states", changefreq: "weekly", priority: "0.8" },
           { path: "/compliance", changefreq: "monthly", priority: "0.7" },
           { path: "/leads", changefreq: "weekly", priority: "0.9" },
           { path: "/tools", changefreq: "monthly", priority: "0.8" },
