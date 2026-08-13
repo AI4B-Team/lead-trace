@@ -181,11 +181,8 @@ const POPULAR_SLUGS = [
   "code-violations",
 ];
 
-const POPULAR_TEMPLATES: NicheEntry[] = POPULAR_SLUGS.map(
-  (s) => NICHE_ORDER.find((n) => n.slug === s)!,
-).filter(Boolean);
-
-const BUSINESS_NICHES = NICHE_ORDER.filter((n) => n.category === "business").slice(0, 8);
+/** Cards surfaced first in the directory grid. */
+const PRIORITY = new Set(POPULAR_SLUGS);
 
 /** Level 3 — external sources, official brand marks only, deliberately compact. */
 const DATA_SOURCES: { id: string; label: string; sub: string }[] = [
