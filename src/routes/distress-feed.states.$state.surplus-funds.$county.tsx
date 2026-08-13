@@ -154,7 +154,10 @@ function CountySurplusPage() {
         />
 
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          {scope} Surplus Funds and Excess Proceeds
+          <span className="block">
+            {scope}, {state}
+          </span>
+          <span className="block">Surplus Funds and Excess Proceeds</span>
         </h1>
         <p className="mt-3 text-muted-foreground">
           Part of the{" "}
