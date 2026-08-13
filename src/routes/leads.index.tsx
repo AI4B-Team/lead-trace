@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import {
   ArrowRight,
   Building2,
   Bug,
   Car,
   Check,
+  ChevronRight,
   CircleDollarSign,
   CircleCheck,
   Clock,
@@ -94,6 +96,18 @@ const NICHE_CATEGORIES = [
   "Healthcare",
   "Home Services",
 ];
+
+/** Chip icons for the filter bar, keyed by filter label. */
+const GROUP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  "All Sources": Database,
+  Businesses: Building2,
+  "Property Owners": Home,
+  "Public Records": Landmark,
+  "Real Estate": MapPin,
+  "Local Services": Settings,
+  Healthcare: Stethoscope,
+  "Home Services": Wrench,
+};
 
 type NicheEntry = {
   slug: string;
