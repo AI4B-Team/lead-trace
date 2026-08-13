@@ -67,12 +67,7 @@ export const Route = createFileRoute("/surplus-funds/")({
 });
 
 function SurplusFundsHub() {
-  const data = Route.useLoaderData() as { states: Array<Record<string, never>> } | undefined;
-  const states = (Route.useLoaderData()?.states ?? []) as NonNullable<
-    Awaited<ReturnType<typeof getSurplusCoverage>>
-  >["states"];
-  void data;
-
+  const states = Route.useLoaderData()?.states ?? [];
   const live = states.filter((s) => s.recordCount > 0);
   const totals = live.reduce(
     (acc, s) => ({
