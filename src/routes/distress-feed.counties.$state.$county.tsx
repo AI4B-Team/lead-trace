@@ -45,11 +45,19 @@ export const Route = createFileRoute("/distress-feed/counties/$state/$county")({
   },
   head: ({ loaderData }) => {
     const d = loaderData as
-      | { countyName: string; state: string; county: { total_records: number } | null }
+      | {
+          countyName: string;
+          state: string;
+          county: { total_records: number } | null;
+          surplus?: unknown[];
+        }
       | undefined;
     if (!d) return { meta: [{ title: "Unavailable" }, { name: "robots", content: "noindex" }] };
     const total = Number(d.county?.total_records ?? 0);
-    const title = countyTitle(d.countyName, d.state);
+    const hasSurplus = (d.surplus?.length ?? 0) > 0;
+    const title = hasSurplus
+      ? `${d.countyName} County, ${d.state.toUpperCase()} — Distress & Surplus Funds Leads`
+      : countyTitle(d.countyName, d.state);
     const description = countyDescription(d.countyName, d.state, total);
     const url = `/distress-feed/counties/${d.state.toLowerCase()}/${countySlug(d.countyName)}`;
     return {
@@ -138,7 +146,13 @@ function CountyPage() {
     (Route.useLoaderData() as { stateGuideSlugs?: string[] }).stateGuideSlugs ?? [];
   const total = Number(county?.total_records ?? 0);
   const week = Number(county?.new_this_week ?? 0);
-  const available = (county?.record_types?.length ? county.record_types : configuredTypes) ?? [];
+  const baseTypes = (county?.record_types?.length ? county.record_types : configuredTypes) ?? [];
+  const hasSurplus = surplus.length > 0;
+  // Surplus records live in their own table, so they can exist without showing
+  // up in the feed's record_types list.
+  const available: string[] = hasSurplus && !baseTypes.includes("surplus_funds")
+    ? [...baseTypes, "surplus_funds"]
+    : baseTypes;
   const remaining = Math.max(total - preview.length, 0);
 
   return (
@@ -167,7 +181,9 @@ function CountyPage() {
           <span className="block">
             {countyName} County, {state}
           </span>
-          <span className="block">Probate, Foreclosure &amp; Tax Deed Leads</span>
+          <span className="block">
+            {hasSurplus ? "Distress & Surplus Leads" : "Probate, Foreclosure & Tax Deed Leads"}
+          </span>
         </h1>
 
         <div className="mt-8 grid gap-3 sm:grid-cols-4">
