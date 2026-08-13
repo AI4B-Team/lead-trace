@@ -8,6 +8,15 @@ import {
   FileSearch,
   MapPin,
   Check,
+  Wallet,
+  Gavel,
+  Scale,
+  Landmark,
+  Receipt,
+  DoorClosed,
+  ClipboardList,
+  FileWarning,
+  Building2,
 } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { Button } from "@/components/ui/button";
@@ -26,6 +35,21 @@ import {
 import { RouteErrorState, RouteNotFoundState } from "@/components/route-error";
 import { canonicalUrl } from "@/lib/seo";
 
+/** One Lucide icon per record type so every feed card reads the same way. */
+const TYPE_ICONS: Record<string, typeof Wallet> = {
+  probate: Gavel,
+  pre_foreclosure: Scale,
+  tax_deed: Landmark,
+  tax_lien: Receipt,
+  tax_delinquent: Receipt,
+  vacancy: DoorClosed,
+  lien: ClipboardList,
+  code_violation: FileWarning,
+  eviction: Building2,
+  surplus_funds: Wallet,
+  demolition: FileWarning,
+};
+
 export const Route = createFileRoute("/distress-feed/")({
   loader: () => getFeedLanding(),
   head: ({ loaderData }) => {
@@ -40,7 +64,7 @@ export const Route = createFileRoute("/distress-feed/")({
         { title: "Distress Feed — Probate & Foreclosure Leads" },
         {
           name: "description",
-          content: `${volume} across ${totals?.counties ?? 0} counties. Probate, pre-foreclosure, tax deed, liens and evictions — scrubbed, skip traced, ready to text.`,
+          content: `${volume} across ${totals?.counties ?? 0} counties. Probate, pre-foreclosure, tax deed, liens, surplus funds and evictions — scrubbed, skip traced, ready to text.`,
         },
         {
           property: "og:title",
@@ -212,10 +236,15 @@ function DistressFeedLanding() {
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="font-display text-3xl font-bold text-foreground">What's In The Feed</h2>
           <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {RECORD_TYPES.map((t) => (
+            {RECORD_TYPES.map((t) => {
+              const Icon = TYPE_ICONS[t.id] ?? Database;
+              return (
               <div key={t.id} className="rounded-2xl border border-border bg-surface p-5">
                 <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-display font-bold text-foreground">{t.label}</h3>
+                  <h3 className="flex items-center gap-2 font-display font-bold text-foreground">
+                    <Icon className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+                    {t.label}
+                  </h3>
                   {t.requestOnly ? (
                     <span className="shrink-0 rounded-full border border-primary/30 bg-primary/5 px-2 py-0.5 text-[0.625rem] font-semibold text-primary">
                       Records Request
@@ -224,7 +253,8 @@ function DistressFeedLanding() {
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">{t.blurb}</p>
               </div>
-            ))}
+              );
+            })}
           </div>
           <p className="mt-6 max-w-3xl text-sm text-muted-foreground">
             Evictions and demolition orders are not published on any portal. We obtain them through
