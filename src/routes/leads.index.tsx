@@ -676,7 +676,7 @@ function FindCustomersSection() {
 
   return (
     <section className="border-y border-border bg-surface py-16 md:py-20">
-      <div className="mx-auto max-w-[90rem] px-6">
+      <div className="mx-auto w-full max-w-none px-6 xl:px-10">
         {/* Header */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -684,7 +684,7 @@ function FindCustomersSection() {
               Leads To Deals — On Autopilot <Sparkles className="h-3.5 w-3.5" />
             </div>
             <h2 className="mt-3 font-display text-4xl font-black leading-[1.05] text-foreground md:text-5xl">
-              Find Your <span className="text-primary">Next</span> Customers
+              Find Your Next Customers
             </h2>
             <p className="mt-3 text-base text-muted-foreground">
               Choose a lead source below to build a targeted list in minutes.
@@ -746,7 +746,7 @@ function FindCustomersSection() {
         {/* Filter bar */}
         <div className="mt-10 rounded-3xl border border-border bg-background p-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
               {(["All Sources", ...NICHE_CATEGORIES] as string[]).map((c) => {
                 const active = group === c;
                 const Icon = GROUP_ICONS[c] ?? Database;
