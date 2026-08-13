@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { Download, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import {
