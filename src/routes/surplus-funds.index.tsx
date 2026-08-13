@@ -163,9 +163,8 @@ function SurplusFundsHub() {
           <h2 className="font-display text-3xl font-bold text-foreground">
             Confirmed Is Never Mixed With Estimated
           </h2>
-          <p className="mt-2 max-w-3xl text-base text-muted-foreground">
-            Every surplus record carries its confidence on the card. We never present arithmetic as
-            a clerk balance.
+          <p className="mt-2 max-w-none whitespace-nowrap text-base text-muted-foreground">
+            Every surplus record carries its confidence on the card. We never present arithmetic as a clerk balance.
           </p>
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
             <div className="rounded-2xl border border-primary/30 bg-background p-6">
