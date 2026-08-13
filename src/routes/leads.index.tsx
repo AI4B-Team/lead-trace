@@ -436,23 +436,21 @@ function LeadsIndexBody() {
         </div>
       </section>
 
-      {/* Niches */}
-      <section className="border-y border-border bg-surface py-14">
+      {/* Find Your Next Customers — three tiers: LeadTrace feeds, templates, sources */}
+      <section className="border-y border-border bg-surface py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="font-display text-2xl md:text-3xl font-black text-foreground">
+              <h2 className="font-display text-3xl md:text-4xl font-black text-foreground">
                 Find Your Next Customers
               </h2>
-              <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-muted-foreground">
+              <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-muted-foreground">
                 {NICHE_CATEGORIES.map((c, i) => (
                   <span key={c} className="inline-flex items-center gap-2">
                     <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[0.625rem] uppercase tracking-wide text-primary">
                       {c}
                     </span>
-                    {i < NICHE_CATEGORIES.length - 1 && (
-                      <span className="text-border">•</span>
-                    )}
+                    {i < NICHE_CATEGORIES.length - 1 && <span className="text-border">•</span>}
                   </span>
                 ))}
               </div>
@@ -466,37 +464,133 @@ function LeadsIndexBody() {
               ))}
             </div>
           </div>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-            {NICHE_ORDER.map((n) => {
-              const page = niches.find((p) => p.slug === n.slug);
-              const Icon = n.icon;
-              const label = n.display ?? page?.nicheLabel ?? page?.title ?? n.slug;
-              return (
+
+          {/* Level 1 — LeadTrace proprietary feeds */}
+          <div className="mt-12">
+            <div className="text-[0.625rem] font-bold uppercase tracking-[0.18em] text-primary">
+              Featured Lead Feeds
+            </div>
+            <div className="mt-5 grid gap-5 md:grid-cols-3">
+              {FEATURED_FEEDS.map((f) => (
+                <Link
+                  key={f.to}
+                  to={f.to}
+                  className="group relative flex flex-col rounded-3xl border border-border bg-gradient-to-b from-primary/[0.06] to-transparent p-7 shadow-sm transition-all hover:border-primary hover:shadow-md"
+                >
+                  {f.isNew && (
+                    <span className="absolute right-5 top-5 rounded-full bg-primary px-2.5 py-0.5 text-[0.5625rem] font-bold uppercase tracking-[0.12em] text-primary-foreground">
+                      New
+                    </span>
+                  )}
+                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary">
+                    <f.icon className="h-5 w-5" />
+                  </span>
+                  <span className="mt-6 font-display text-xl font-black text-foreground">{f.title}</span>
+                  <span className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.body}</span>
+                  {f.recordTypes && (
+                    <span className="mt-5 flex flex-wrap gap-1.5">
+                      {f.recordTypes.map((r) => (
+                        <span
+                          key={r}
+                          className="rounded-full border border-border bg-background px-2 py-0.5 text-[0.625rem] font-semibold text-muted-foreground"
+                        >
+                          {r}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                  <span className="mt-7 inline-flex items-center gap-1 text-sm font-bold text-primary">
+                    {f.cta} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Level 2 — individual LeadTrace lead feeds */}
+          <div className="mt-16">
+            <div className="flex items-end justify-between gap-4">
+              <div className="text-[0.625rem] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                Popular Templates
+              </div>
+              <Link
+                to="/templates"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-primary"
+              >
+                View All Templates <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+              {POPULAR_TEMPLATES.map((n) => {
+                const page = niches.find((p) => p.slug === n.slug);
+                const Icon = n.icon;
+                const label = n.display ?? page?.nicheLabel ?? page?.title ?? n.slug;
+                return (
+                  <Link
+                    key={n.slug}
+                    to="/leads/$slug"
+                    params={{ slug: n.slug }}
+                    className="group flex items-center gap-4 rounded-2xl border border-border bg-background p-5 transition-colors hover:border-primary"
+                  >
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                      <Icon className="h-4.5 w-4.5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-display text-base font-black text-foreground">
+                        {label}
+                      </span>
+                      <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-primary">
+                        View Leads <ArrowRight className="h-3 w-3" />
+                      </span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+            <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-2 text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">Also Popular:</span>
+              {BUSINESS_NICHES.map((n) => (
                 <Link
                   key={n.slug}
                   to="/leads/$slug"
                   params={{ slug: n.slug }}
-                  className="group flex items-center gap-3 rounded-2xl border border-border bg-background p-4 transition-colors hover:border-primary"
+                  className="rounded-full border border-border bg-background px-3 py-1 font-medium transition-colors hover:border-primary hover:text-foreground"
                 >
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="inline-flex items-center gap-2">
-                      <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[0.5625rem] font-bold tracking-wide text-primary">
-                        {n.category.charAt(0).toUpperCase() + n.category.slice(1)}
-                      </span>
-                    </span>
-                    <span className="mt-0.5 block truncate font-display text-base font-black text-foreground">
-                      {label}
-                    </span>
-                    <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-semibold text-primary">
-                      View Leads <ArrowRight className="h-3 w-3" />
-                    </span>
-                  </span>
+                  {n.display}
                 </Link>
-              );
-            })}
+              ))}
+            </div>
+          </div>
+
+          {/* Level 3 — external data sources available inside the product */}
+          <div className="mt-16 rounded-3xl border border-border bg-background p-7">
+            <div className="text-[0.625rem] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+              Data Sources
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              External sources LeadTrace pulls from — every record still runs the same pipeline.
+            </p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {DATA_SOURCES.map((s) => {
+                const t = getTemplate(s.id);
+                if (!t) return null;
+                return (
+                  <Link
+                    key={s.id}
+                    to="/templates/$templateId"
+                    params={{ templateId: s.id }}
+                    className="group flex items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 transition-colors hover:border-primary"
+                  >
+                    <TemplateLogo template={t} className="h-9 w-9" imgClassName="h-5 w-5" iconClassName="h-4 w-4" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-bold text-foreground">{s.label}</span>
+                      <span className="block truncate text-[0.6875rem] text-muted-foreground">{s.sub}</span>
+                    </span>
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
