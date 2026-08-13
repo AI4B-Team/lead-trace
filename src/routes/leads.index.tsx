@@ -736,6 +736,50 @@ function FindCustomersSection() {
           </div>
         </div>
 
+        {/* Featured LeadTrace feeds — flat banner strips under the filter bar */}
+        <div className="mt-6 space-y-4">
+          {FEATURED_FEEDS.map((f) => (
+            <div
+              key={f.to}
+              className="flex flex-col gap-5 rounded-[1.75rem] border border-primary/30 bg-primary/[0.04] px-6 py-5 md:flex-row md:items-center md:justify-between"
+            >
+              <div className="flex items-center gap-4">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                  <f.icon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  {f.isNew && (
+                    <span className="mb-1 inline-block rounded-full border border-primary bg-background px-2 py-0.5 text-[0.5625rem] font-bold uppercase tracking-[0.12em] text-primary">
+                      New
+                    </span>
+                  )}
+                  <div className="font-display text-lg font-black text-foreground">{f.title}</div>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{f.body}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-6">
+                {f.recordTypes && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {f.recordTypes.map((r) => (
+                      <span
+                        key={r}
+                        className="rounded-full border border-border bg-background px-2 py-0.5 text-[0.625rem] font-semibold text-muted-foreground"
+                      >
+                        {r}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <Button asChild className="rounded-full">
+                  <Link to={f.to}>
+                    {f.cta} <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* Directory grid */}
         {visible.length === 0 ? (
           <p className="mt-10 text-sm text-muted-foreground">
@@ -788,50 +832,6 @@ function FindCustomersSection() {
             })}
           </div>
         )}
-
-        {/* Featured LeadTrace feeds — flat banner strips under the directory */}
-        <div className="mt-4 space-y-4">
-          {FEATURED_FEEDS.map((f) => (
-            <div
-              key={f.to}
-              className="flex flex-col gap-5 rounded-[1.75rem] border border-primary/30 bg-primary/[0.04] px-6 py-5 md:flex-row md:items-center md:justify-between"
-            >
-              <div className="flex items-center gap-4">
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
-                  <f.icon className="h-5 w-5" />
-                </span>
-                <div className="min-w-0">
-                  {f.isNew && (
-                    <span className="mb-1 inline-block rounded-full border border-primary bg-background px-2 py-0.5 text-[0.5625rem] font-bold uppercase tracking-[0.12em] text-primary">
-                      New
-                    </span>
-                  )}
-                  <div className="font-display text-lg font-black text-foreground">{f.title}</div>
-                  <p className="mt-0.5 text-sm text-muted-foreground">{f.body}</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-6">
-                {f.recordTypes && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {f.recordTypes.map((r) => (
-                      <span
-                        key={r}
-                        className="rounded-full border border-border bg-background px-2 py-0.5 text-[0.625rem] font-semibold text-muted-foreground"
-                      >
-                        {r}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <Button asChild className="rounded-full">
-                  <Link to={f.to}>
-                    {f.cta} <ArrowRight className="ml-1 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
 
         {/* External data sources */}
         <div className="mt-10 rounded-3xl border border-border bg-background p-6">
