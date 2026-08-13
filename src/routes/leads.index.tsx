@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import {
   ArrowRight,
   Building2,
   Bug,
   Car,
   Check,
+  ChevronRight,
   CircleDollarSign,
   CircleCheck,
   Clock,
@@ -79,8 +81,9 @@ export const Route = createFileRoute("/leads/")({
 });
 
 const NICHE_FACTS = [
-  { icon: Globe, label: "Nationwide" },
+  { icon: Globe, label: "Nationwide Coverage" },
   { icon: Smartphone, label: "Mobile Verified" },
+  { icon: ShieldCheck, label: "Clean & Compliant" },
   { icon: Zap, label: "Built On Demand" },
 ];
 
@@ -94,32 +97,50 @@ const NICHE_CATEGORIES = [
   "Home Services",
 ];
 
+/** Chip icons for the filter bar, keyed by filter label. */
+const GROUP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  "All Sources": Database,
+  Businesses: Building2,
+  "Property Owners": Home,
+  "Public Records": Landmark,
+  "Real Estate": MapPin,
+  "Local Services": Settings,
+  Healthcare: Stethoscope,
+  "Home Services": Wrench,
+};
+
 type NicheEntry = {
   slug: string;
   icon: React.ComponentType<{ className?: string }>;
   category: "business" | "property";
   display?: string;
+  /** Small label chip shown on the card. */
+  tag?: string;
+  /** One-line card description. */
+  desc?: string;
+  /** Filter groups this niche belongs to. */
+  groups?: string[];
 };
 
 const NICHE_ORDER: NicheEntry[] = [
-  { slug: "roofing-contractors", icon: HardHat, category: "business", display: "Roofing Contractors" },
-  { slug: "hvac-companies", icon: Flame, category: "business", display: "HVAC Companies" },
-  { slug: "plumbers", icon: Droplet, category: "business", display: "Plumbers" },
-  { slug: "electricians", icon: Zap, category: "business", display: "Electricians" },
-  { slug: "landscaping", icon: Leaf, category: "business", display: "Landscapers" },
-  { slug: "pressure-washing", icon: Droplets, category: "business", display: "Pressure Washing" },
-  { slug: "tree-service", icon: TreePine, category: "business", display: "Tree Service" },
-  { slug: "pest-control", icon: Bug, category: "business", display: "Pest Control" },
-  { slug: "cleaning-services", icon: Sparkles, category: "business", display: "Cleaning Service" },
-  { slug: "dental-offices", icon: Smile, category: "business", display: "Dental Offices" },
-  { slug: "med-spas", icon: HeartPulse, category: "business", display: "Med Spas" },
-  { slug: "auto-repair-shops", icon: Wrench, category: "business", display: "Auto Repair" },
-  { slug: "probate-filings", icon: Scale, category: "property", display: "Probate Filings" },
-  { slug: "tax-delinquencies", icon: Receipt, category: "property", display: "Tax Delinquencies" },
-  { slug: "code-violations", icon: FileText, category: "property", display: "Code Violations" },
-  { slug: "vacant-properties", icon: Home, category: "property", display: "Vacant Properties" },
-  { slug: "absentee-owners", icon: MapPin, category: "property", display: "Absentee Owners" },
-  { slug: "pre-foreclosures", icon: Gavel, category: "property", display: "Pre-Foreclosures" },
+  { slug: "roofing-contractors", icon: HardHat, category: "business", display: "Roofing Contractors", tag: "Business", desc: "Find local roofing companies ready for your services.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "hvac-companies", icon: Flame, category: "business", display: "HVAC Companies", tag: "Business", desc: "Target heating & cooling companies in your market.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "plumbers", icon: Droplet, category: "business", display: "Plumbers", tag: "Business", desc: "Connect with plumbing businesses needing more work.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "electricians", icon: Zap, category: "business", display: "Electricians", tag: "Business", desc: "Reach electrical contractors and service pros.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "landscaping", icon: Leaf, category: "business", display: "Landscapers", tag: "Business", desc: "Find landscaping & lawn care businesses.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "pressure-washing", icon: Droplets, category: "business", display: "Pressure Washing", tag: "Business", desc: "Target pressure washing businesses in your area.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "tree-service", icon: TreePine, category: "business", display: "Tree Service", tag: "Business", desc: "Connect with tree removal & arborist companies.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "pest-control", icon: Bug, category: "business", display: "Pest Control", tag: "Business", desc: "Find pest control companies needing new customers.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "cleaning-services", icon: Sparkles, category: "business", display: "Cleaning Service", tag: "Business", desc: "Target cleaning companies & janitorial services.", groups: ["Businesses", "Local Services", "Home Services"] },
+  { slug: "dental-offices", icon: Smile, category: "business", display: "Dental Offices", tag: "Business", desc: "Find dental practices & orthodontic offices.", groups: ["Businesses", "Healthcare"] },
+  { slug: "med-spas", icon: HeartPulse, category: "business", display: "Med Spas", tag: "Business", desc: "Connect with med spas & aesthetic clinics.", groups: ["Businesses", "Healthcare"] },
+  { slug: "auto-repair-shops", icon: Wrench, category: "business", display: "Auto Repair", tag: "Business", desc: "Find auto repair shops and service centers.", groups: ["Businesses", "Local Services"] },
+  { slug: "probate-filings", icon: Scale, category: "property", display: "Probate Filings", tag: "Public Record", desc: "Find new probate filings and estate opportunities.", groups: ["Public Records", "Property Owners", "Real Estate"] },
+  { slug: "tax-delinquencies", icon: Receipt, category: "property", display: "Tax Delinquencies", tag: "Property", desc: "Locate property tax delinquencies & motivated sellers.", groups: ["Public Records", "Property Owners", "Real Estate"] },
+  { slug: "code-violations", icon: FileText, category: "property", display: "Code Violations", tag: "Public Record", desc: "Find property code violations and compliance issues.", groups: ["Public Records", "Property Owners", "Real Estate"] },
+  { slug: "vacant-properties", icon: Home, category: "property", display: "Vacant Properties", tag: "Property", desc: "Discover vacant & abandoned properties.", groups: ["Property Owners", "Real Estate"] },
+  { slug: "absentee-owners", icon: MapPin, category: "property", display: "Absentee Owners", tag: "Property", desc: "Find absentee & out-of-state property owners.", groups: ["Property Owners", "Real Estate"] },
+  { slug: "pre-foreclosures", icon: Gavel, category: "property", display: "Pre-Foreclosures", tag: "Property", desc: "Find pre-foreclosure properties & motivated sellers.", groups: ["Public Records", "Property Owners", "Real Estate"] },
 ];
 
 /** Level 1 — proprietary LeadTrace intelligence products. */
@@ -174,11 +195,8 @@ const POPULAR_SLUGS = [
   "code-violations",
 ];
 
-const POPULAR_TEMPLATES: NicheEntry[] = POPULAR_SLUGS.map(
-  (s) => NICHE_ORDER.find((n) => n.slug === s)!,
-).filter(Boolean);
-
-const BUSINESS_NICHES = NICHE_ORDER.filter((n) => n.category === "business").slice(0, 8);
+/** Cards surfaced first in the directory grid. */
+const PRIORITY = new Set(POPULAR_SLUGS);
 
 /** Level 3 — external sources, official brand marks only, deliberately compact. */
 const DATA_SOURCES: { id: string; label: string; sub: string }[] = [
@@ -512,164 +530,8 @@ function LeadsIndexBody() {
         </div>
       </section>
 
-      {/* Find Your Next Customers — three tiers: LeadTrace feeds, templates, sources */}
-      <section className="border-y border-border bg-surface py-16 md:py-20">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="font-display text-3xl md:text-4xl font-black text-foreground">
-                Find Your Next Customers
-              </h2>
-              <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-muted-foreground">
-                {NICHE_CATEGORIES.map((c, i) => (
-                  <span key={c} className="inline-flex items-center gap-2">
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[0.625rem] uppercase tracking-wide text-primary">
-                      {c}
-                    </span>
-                    {i < NICHE_CATEGORIES.length - 1 && <span className="text-border">•</span>}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground">Every List:</span>
-              {NICHE_FACTS.map((f) => (
-                <span key={f.label} className="inline-flex items-center gap-1.5">
-                  <f.icon className="h-4 w-4 shrink-0 text-primary" /> {f.label}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Level 1 — LeadTrace proprietary feeds */}
-          <div className="mt-12">
-            <div className="text-[0.625rem] font-bold uppercase tracking-[0.18em] text-primary">
-              Featured Lead Feeds
-            </div>
-            <div className="mt-5 grid gap-5 md:grid-cols-3">
-              {FEATURED_FEEDS.map((f) => (
-                <Link
-                  key={f.to}
-                  to={f.to}
-                  className="group relative flex flex-col rounded-3xl border border-border bg-gradient-to-b from-primary/[0.06] to-transparent p-7 shadow-sm transition-all hover:border-primary hover:shadow-md"
-                >
-                  {f.isNew && (
-                    <span className="absolute right-5 top-5 rounded-full bg-primary px-2.5 py-0.5 text-[0.5625rem] font-bold uppercase tracking-[0.12em] text-primary-foreground">
-                      New
-                    </span>
-                  )}
-                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary">
-                    <f.icon className="h-5 w-5" />
-                  </span>
-                  <span className="mt-6 font-display text-xl font-black text-foreground">{f.title}</span>
-                  <span className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.body}</span>
-                  {f.recordTypes && (
-                    <span className="mt-5 flex flex-wrap gap-1.5">
-                      {f.recordTypes.map((r) => (
-                        <span
-                          key={r}
-                          className="rounded-full border border-border bg-background px-2 py-0.5 text-[0.625rem] font-semibold text-muted-foreground"
-                        >
-                          {r}
-                        </span>
-                      ))}
-                    </span>
-                  )}
-                  <span className="mt-7 inline-flex items-center gap-1 text-sm font-bold text-primary">
-                    {f.cta} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Level 2 — individual LeadTrace lead feeds */}
-          <div className="mt-16">
-            <div className="flex items-end justify-between gap-4">
-              <div className="text-[0.625rem] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                Popular Templates
-              </div>
-              <Link
-                to="/templates"
-                className="inline-flex items-center gap-1 text-sm font-semibold text-primary"
-              >
-                View All Templates <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-              {POPULAR_TEMPLATES.map((n) => {
-                const page = niches.find((p) => p.slug === n.slug);
-                const Icon = n.icon;
-                const label = n.display ?? page?.nicheLabel ?? page?.title ?? n.slug;
-                return (
-                  <Link
-                    key={n.slug}
-                    to="/leads/$slug"
-                    params={{ slug: n.slug }}
-                    className="group flex items-center gap-4 rounded-2xl border border-border bg-background p-5 transition-colors hover:border-primary"
-                  >
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                      <Icon className="h-4.5 w-4.5" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-display text-base font-black text-foreground">
-                        {label}
-                      </span>
-                      <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-primary">
-                        View Leads <ArrowRight className="h-3 w-3" />
-                      </span>
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-            <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-2 text-xs text-muted-foreground">
-              <span className="font-semibold text-foreground">Also Popular:</span>
-              {BUSINESS_NICHES.map((n) => (
-                <Link
-                  key={n.slug}
-                  to="/leads/$slug"
-                  params={{ slug: n.slug }}
-                  className="rounded-full border border-border bg-background px-3 py-1 font-medium transition-colors hover:border-primary hover:text-foreground"
-                >
-                  {n.display}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Level 3 — external data sources available inside the product */}
-          <div className="mt-16 rounded-3xl border border-border bg-background p-7">
-            <div className="text-[0.625rem] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-              Data Sources
-            </div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              External sources LeadTrace pulls from — every record still runs the same pipeline.
-            </p>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {DATA_SOURCES.map((s) => {
-                const t = getTemplate(s.id);
-                if (!t) return null;
-                return (
-                  <Link
-                    key={s.id}
-                    to="/templates/$templateId"
-                    params={{ templateId: s.id }}
-                    className="group flex items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 transition-colors hover:border-primary"
-                  >
-                    <TemplateLogo template={t} className="h-9 w-9" imgClassName="h-5 w-5" iconClassName="h-4 w-4" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-bold text-foreground">{s.label}</span>
-                      <span className="block truncate text-[0.6875rem] text-muted-foreground">{s.sub}</span>
-                    </span>
-                    <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Find Your Next Customers — searchable, filterable lead-source directory */}
+      <FindCustomersSection />
 
       {/* Benefits (formerly pipeline stages) */}
       <section className="bg-background py-14">
@@ -779,5 +641,218 @@ function LeadsIndexBody() {
         </div>
       </section>
     </MarketingLayout>
+  );
+}
+
+/**
+ * Lead-source directory: header facts, sticky-feeling filter bar with live
+ * search, a flat three-column card grid, and the featured LeadTrace feeds
+ * as full-width banner strips underneath. Flat surfaces only — no gradients.
+ */
+function FindCustomersSection() {
+  const [group, setGroup] = useState<string>("All Sources");
+  const [query, setQuery] = useState("");
+
+  const ordered = useMemo(
+    () =>
+      [...NICHE_ORDER].sort(
+        (a, b) => Number(PRIORITY.has(b.slug)) - Number(PRIORITY.has(a.slug)),
+      ),
+    [],
+  );
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return ordered.filter((n) => {
+      if (group !== "All Sources" && !(n.groups ?? []).includes(group)) return false;
+      if (!q) return true;
+      return (
+        (n.display ?? n.slug).toLowerCase().includes(q) ||
+        (n.desc ?? "").toLowerCase().includes(q) ||
+        (n.groups ?? []).some((g) => g.toLowerCase().includes(q))
+      );
+    });
+  }, [ordered, group, query]);
+
+  return (
+    <section className="border-y border-border bg-surface py-16 md:py-20">
+      <div className="mx-auto max-w-[90rem] px-6">
+        {/* Header */}
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.16em] text-primary">
+              Leads To Deals — On Autopilot <Sparkles className="h-3.5 w-3.5" />
+            </div>
+            <h2 className="mt-3 font-display text-4xl font-black leading-[1.05] text-foreground md:text-5xl">
+              Find Your <span className="text-primary">Next</span> Customers
+            </h2>
+            <p className="mt-3 text-base text-muted-foreground">
+              Choose a lead source below to build a targeted list in minutes.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-7 gap-y-2 pt-2 text-sm font-medium text-foreground">
+            {NICHE_FACTS.map((f) => (
+              <span key={f.label} className="inline-flex items-center gap-2">
+                <f.icon className="h-4 w-4 shrink-0 text-primary" /> {f.label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Filter bar */}
+        <div className="mt-10 rounded-3xl border border-border bg-background p-3">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              {(["All Sources", ...NICHE_CATEGORIES] as string[]).map((c) => {
+                const active = group === c;
+                const Icon = GROUP_ICONS[c] ?? Database;
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setGroup(c)}
+                    aria-pressed={active}
+                    className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors ${
+                      active
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-surface text-muted-foreground hover:border-primary hover:text-foreground"
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" /> {c}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="relative w-full lg:w-80">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search lead sources..."
+                aria-label="Search lead sources"
+                className="w-full rounded-full border border-border bg-surface py-2 pl-10 pr-4 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Directory grid */}
+        {visible.length === 0 ? (
+          <p className="mt-10 text-sm text-muted-foreground">
+            No lead sources match that search. Try another niche or category.
+          </p>
+        ) : (
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {visible.map((n) => {
+              const Icon = n.icon;
+              return (
+                <Link
+                  key={n.slug}
+                  to="/leads/$slug"
+                  params={{ slug: n.slug }}
+                  className="group flex items-center gap-4 rounded-2xl border border-border bg-background p-5 transition-colors hover:border-primary"
+                >
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[0.625rem] font-bold uppercase tracking-[0.12em] text-primary">
+                      {n.tag ?? "Lead Source"}
+                    </span>
+                    <span className="mt-1 block font-display text-base font-black text-foreground">
+                      {n.display ?? n.slug}
+                    </span>
+                    <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
+                      {n.desc}
+                    </span>
+                    <span className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-primary">
+                      View Leads <ArrowRight className="h-3 w-3" />
+                    </span>
+                  </span>
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-colors group-hover:border-primary group-hover:text-primary">
+                    <ChevronRight className="h-4 w-4" />
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Featured LeadTrace feeds — flat banner strips */}
+        <div className="mt-8 space-y-4">
+          {FEATURED_FEEDS.map((f) => (
+            <div
+              key={f.to}
+              className="flex flex-col gap-5 rounded-3xl border border-primary/40 bg-primary/[0.04] p-6 md:flex-row md:items-center md:justify-between"
+            >
+              <div className="flex items-center gap-4">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                  <f.icon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  {f.isNew && (
+                    <span className="mb-1 inline-block rounded-full border border-primary bg-background px-2 py-0.5 text-[0.5625rem] font-bold uppercase tracking-[0.12em] text-primary">
+                      New
+                    </span>
+                  )}
+                  <div className="font-display text-lg font-black text-foreground">{f.title}</div>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{f.body}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                {f.recordTypes && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {f.recordTypes.map((r) => (
+                      <span
+                        key={r}
+                        className="rounded-full border border-border bg-background px-2 py-0.5 text-[0.625rem] font-semibold text-muted-foreground"
+                      >
+                        {r}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <Button asChild className="rounded-full">
+                  <Link to={f.to}>
+                    {f.cta} <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* External data sources */}
+        <div className="mt-10 rounded-3xl border border-border bg-background p-6">
+          <div className="text-[0.625rem] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+            Data Sources
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            External sources LeadTrace pulls from — every record still runs the same pipeline.
+          </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {DATA_SOURCES.map((s) => {
+              const t = getTemplate(s.id);
+              if (!t) return null;
+              return (
+                <Link
+                  key={s.id}
+                  to="/templates/$templateId"
+                  params={{ templateId: s.id }}
+                  className="group flex items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 transition-colors hover:border-primary"
+                >
+                  <TemplateLogo template={t} className="h-9 w-9" imgClassName="h-5 w-5" iconClassName="h-4 w-4" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-bold text-foreground">{s.label}</span>
+                    <span className="block truncate text-[0.6875rem] text-muted-foreground">{s.sub}</span>
+                  </span>
+                  <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
