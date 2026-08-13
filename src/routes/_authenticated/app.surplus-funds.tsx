@@ -96,9 +96,267 @@ function SurplusFundsFeed() {
   const pageSize = filters.pageSize;
   const lastPage = Math.max(1, Math.ceil(total / pageSize));
 
+  // Summary strip — built from the currently loaded page. Only the page is
+  // available client-side, so the amount total is explicitly scoped to it.
+  const pageSurplusTotal = records.reduce((sum, r) => sum + (r.surplus_amount ?? 0), 0);
+  const clerkConfirmedCount = records.filter((r) => r.confidence === "clerk_confirmed").length;
+
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="space-y-4">
+      <div className="mx-auto w-full max-w-[92rem] space-y-5 px-1">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <PageHeader
+            title="Surplus Funds"
+            description="Excess proceeds held by county clerks after tax deed and foreclosure sales. Sort by claim deadline or newest sale."
+          />
+          <Button
+            variant="outline"
+            className="h-9 shrink-0 rounded-lg"
+            onClick={() => exportCsv.mutate()}
+            disabled={exportCsv.isPending || total === 0}
+          >
+            {exportCsv.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <Download className="mr-2 h-4 w-4" aria-hidden />
+            )}
+            Export CSV
+          </Button>
+        </div>
+
+        <SurplusFilterBar
+          filters={filters}
+          onChange={setFilters}
+          onReset={() => setFiltersState(EMPTY_FILTERS)}
+          isFiltered={isFiltered}
+        />
+
+        {/* Summary strip */}
+        <div className="flex flex-wrap items-center gap-3">
+          <SummaryChip label="Total Records" value={query.isLoading ? "—" : total.toLocaleString()} />
+          <SummaryChip
+            label="Total Surplus (this page)"
+            value={query.isLoading ? "—" : currency.format(pageSurplusTotal)}
+          />
+          <SummaryChip
+            label="Clerk Confirmed (this page)"
+            value={query.isLoading ? "—" : clerkConfirmedCount.toLocaleString()}
+            accent
+          />
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Sort</span>
+            <div className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5">
+              {SORT_OPTIONS.map((option) => {
+                const active = filters.sort === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setFilters({ sort: option.value, page: 1 })}
+                    className={
+                      "h-7 rounded-md px-3 text-xs font-medium transition-colors " +
+                      (active
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground")
+                    }
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <Card className="overflow-hidden p-0 shadow-sm">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Case
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Property
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  County
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Owner Of Record
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Surplus
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Sale Type
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Sale Date
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Escheat
+                </TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Confidence
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {query.isLoading ? (
+                <LoadingRows />
+              ) : records.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="h-40 text-center align-middle">
+                    <p className="font-medium">No Surplus Records Match These Filters.</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Widen the amount range or the sale dates, or clear the filters to see
+                      everything in your published states.
+                    </p>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                records.map((record, idx) => (
+                  <TableRow
+                    key={record.id}
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => setSelected(record)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelected(record);
+                      }
+                    }}
+                    className={
+                      "cursor-pointer focus-visible:bg-surface-muted focus-visible:outline-none [&_td]:py-2 hover:bg-muted/40 " +
+                      (idx % 2 === 1 ? "bg-muted/20" : "")
+                    }
+                  >
+                    <TableCell className="font-mono text-[11px] text-muted-foreground">
+                      {record.case_number ?? "—"}
+                    </TableCell>
+                    <TableCell className="max-w-[12rem]">
+                      {record.property_address ? (
+                        <span className="block truncate">{record.property_address}</span>
+                      ) : [record.property_city, record.property_zip]
+                          .filter(Boolean)
+                          .join(", ") ? (
+                        <span className="block truncate">
+                          {[record.property_city, record.property_zip].filter(Boolean).join(", ")}
+                        </span>
+                      ) : (
+                        <span className="text-xs italic text-muted-foreground">
+                          Not in clerk list
+                        </span>
+                      )}
+                      {record.parcel_id ? (
+                        <span className="block font-mono text-[10px] text-muted-foreground">
+                          {record.parcel_id}
+                        </span>
+                      ) : null}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {record.county_name ?? "—"}
+                      <span className="ml-1 text-xs text-muted-foreground">
+                        {record.state_code}
+                      </span>
+                    </TableCell>
+                    <TableCell className="max-w-[12rem]">
+                      {record.owner_of_record ? (
+                        <span className="block truncate">{record.owner_of_record}</span>
+                      ) : (
+                        <span className="text-xs italic text-muted-foreground">
+                          Not in clerk list
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right text-[15px] font-bold tabular-nums text-foreground">
+                      {currency.format(record.surplus_amount)}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {SALE_TYPE_LABELS[record.sale_type] ?? record.sale_type}
+                    </TableCell>
+                    <TableCell className="tabular-nums text-muted-foreground">
+                      {formatFeedDate(record.sale_date)}
+                    </TableCell>
+                    <TableCell>
+                      <EscheatCountdown
+                        days={record.days_to_escheat}
+                        escheatDate={record.escheat_date}
+                        destination={record.escheat_destination}
+                        disbursementStatus={record.disbursement_status}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <ConfidenceBadge
+                        confidence={record.confidence}
+                        sourceUrl={record.source_url}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Card>
+
+        {total > pageSize ? (
+          <nav aria-label="Pagination" className="flex items-center justify-between text-sm">
+            <span className="tabular-nums text-muted-foreground">
+              Page {filters.page} of {lastPage}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={filters.page <= 1}
+                onClick={() => setFilters({ page: filters.page - 1 })}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={filters.page >= lastPage}
+                onClick={() => setFilters({ page: filters.page + 1 })}
+              >
+                Next
+              </Button>
+            </div>
+          </nav>
+        ) : null}
+
+        <SurplusDetailPanel record={selected} onOpenChange={(open) => !open && setSelected(null)} />
+      </div>
+    </TooltipProvider>
+  );
+}
+
+function SummaryChip({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
+  return (
+    <div
+      className={
+        "flex items-center gap-2 rounded-lg border px-3 py-1.5 " +
+        (accent ? "border-success/30 bg-success/5" : "border-border bg-muted/30")
+      }
+    >
+      <Sparkles className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
+      <div className="flex items-baseline gap-2">
+        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className="text-sm font-semibold tabular-nums text-foreground">{value}</span>
+      </div>
+    </div>
+  );
+}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <PageHeader
             title="Surplus Funds"
