@@ -107,3 +107,15 @@ doc_number (e.g. `SURP-<fips>-<sale_number>`), sale_date, parcel_apn,
 amount (current balance / surplus), sale_type (tax_deed), county, state,
 source_url, confidence ('clerk_confirmed' for these clerk lists).
 Owner name enriched later (parcel → owner).
+
+## Round 4 — re-probe of the "next" counties (post-Marion)
+
+| County | Verdict |
+|---|---|
+| Sarasota (12115) | ❌ No tax-deed surplus LIST. Page carries only a claim form; the "Unclaimed Moneys" list is general clerk checks, not tax-deed surplus. Do not enable. |
+| Osceola (12097) | ❌ "Outstanding Checks & Unclaimed Monies" = clerk checks, not tax-deed surplus. Do not enable. |
+| Sumter (12119) | 🟡 Correct page (`/public-records/tax-deeds/tax-deed-overbids/`) with the right table shape, but it states "There are no properties on the tax deed surplus list at this time." Keep `unverified`; revisit when rows appear. |
+
+**Marion remains the only FL county with a machine-readable clerk surplus list
+we ingest end to end (645 rows, $6.87M).** Public guide pages for FL + Marion
+are published and the public view now accepts clerk-primary rows.
