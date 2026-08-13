@@ -676,31 +676,31 @@ function FindCustomersSection() {
 
   return (
     <section className="border-y border-border bg-surface py-16 md:py-20">
-      <div className="mx-auto max-w-[110rem] px-6">
+      <div className="mx-auto max-w-[90rem] px-6">
         {/* Header */}
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.16em] text-primary">
-              Leads To Deals — On Autopilot <Sparkles className="h-3.5 w-3.5" />
-            </div>
-            <h2 className="mt-3 font-display text-4xl font-black leading-[1.05] text-foreground md:text-5xl">
-              Find Your <span className="text-primary">Next</span> Customers
+        <div>
+          <div className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.16em] text-primary">
+            Leads To Deals — On Autopilot <Sparkles className="h-3.5 w-3.5" />
+          </div>
+          <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <h2 className="whitespace-nowrap font-display text-[clamp(1.75rem,3.4vw,3rem)] font-black leading-[1.05] text-foreground">
+              Find Your Next Customers
             </h2>
-            <p className="mt-3 text-base text-muted-foreground">
-              Choose a lead source below to build a targeted list in minutes.
-            </p>
+            <div className="flex flex-wrap items-center gap-x-7 gap-y-2 text-sm font-medium text-foreground">
+              {NICHE_FACTS.map((f) => (
+                <span key={f.label} className="inline-flex items-center gap-2 whitespace-nowrap">
+                  <f.icon className="h-4 w-4 shrink-0 text-primary" /> {f.label}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-x-7 gap-y-2 pt-2 text-sm font-medium text-foreground">
-            {NICHE_FACTS.map((f) => (
-              <span key={f.label} className="inline-flex items-center gap-2">
-                <f.icon className="h-4 w-4 shrink-0 text-primary" /> {f.label}
-              </span>
-            ))}
-          </div>
+          <p className="mt-3 text-base text-muted-foreground">
+            Choose a lead source below to build a targeted list in minutes.
+          </p>
         </div>
 
         {/* Filter bar */}
-        <div className="mt-8 rounded-full border border-border bg-background p-3">
+        <div className="relative left-1/2 mt-8 w-[min(110rem,calc(100vw-3rem))] -translate-x-1/2 rounded-full border border-border bg-background p-3">
           <div className="flex flex-col gap-3 xl:flex-row xl:flex-nowrap xl:items-center xl:justify-between">
             <div className="flex flex-wrap items-center gap-2 xl:flex-nowrap">
               {(["All Sources", ...NICHE_CATEGORIES] as string[]).map((c) => {
