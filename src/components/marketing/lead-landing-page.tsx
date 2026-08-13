@@ -133,8 +133,8 @@ export function LeadLandingPage({ page }: { page: LeadPage }) {
 
       {/* [5] Mid-page CTA — identical on every page */}
       <section className="border-y border-border bg-surface py-14">
-        <div className="mx-auto max-w-3xl px-6 text-center">
-          <h2 className="font-display text-3xl md:text-4xl font-black text-foreground">
+        <div className="mx-auto max-w-none px-6 text-center">
+          <h2 className="font-display font-black text-foreground whitespace-nowrap text-[clamp(1.05rem,3.4vw,2.5rem)]">
             Type A Niche And A County. Get A Clean List In Minutes.
           </h2>
           <Button asChild size="lg" className="mt-7 rounded-full">

@@ -103,7 +103,7 @@ export function ToolShell<T>({
         </div>
 
         <div className="mt-12 rounded-2xl bg-ink text-ink-foreground p-8">
-          <div className="font-display text-2xl font-black">Type A Niche And A County. Get A Clean List In Minutes.</div>
+          <div className="font-display font-black whitespace-nowrap text-[clamp(0.85rem,2.4vw,1.5rem)]">Type A Niche And A County. Get A Clean List In Minutes.</div>
           <Button asChild className="mt-5 rounded-full">
             <Link to="/auth" search={{ mode: "signup" }}>
               Start Free <ArrowRight className="h-4 w-4 ml-1" />
