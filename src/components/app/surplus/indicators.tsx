@@ -56,10 +56,12 @@ export function EscheatCountdown({
   days,
   escheatDate,
   destination,
+  disbursementStatus,
 }: {
   days: number | null;
   escheatDate: string | null;
   destination?: string | null;
+  disbursementStatus?: string | null;
 }) {
   const tier = escheatTier(days);
 
@@ -72,7 +74,45 @@ export function EscheatCountdown({
   }
 
   const d = days as number;
-  const label = d < 0 ? `Passed ${Math.abs(d)}d Ago` : d === 0 ? "Today" : `${d}d`;
+
+  // Negative days mean the statutory escheat window has elapsed. But elapsed
+  // ≠ gone: the clerk may still hold the funds (disbursement_status 'unclaimed'
+  // or 'claim_filed'). Only treat the money as truly lost when the clerk has
+  // marked it 'escheated'. Anything else held gets a calm "Held by clerk" pill
+  // so the desk doesn't write off a still-claimable lead.
+  if (d < 0) {
+    if (disbursementStatus === "escheated") {
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="tabular-nums font-medium text-destructive">
+              Passed {Math.abs(d)}d Ago
+            </span>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs">
+            Escheated {formatFeedDate(escheatDate)}
+            {destination ? ` to ${destination}` : ""}. Funds are no longer held by the clerk.
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex items-center rounded-full border border-success/30 bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
+            Held by clerk
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          Statutory 120-day window has passed, but the clerk still lists these funds as
+          unclaimed. Verify current status before acting.
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  const label = d === 0 ? "Today" : `${d}d`;
   const tone =
     tier === "critical"
       ? "text-destructive font-semibold"
