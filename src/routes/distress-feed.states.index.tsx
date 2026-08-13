@@ -34,7 +34,7 @@ const TYPE_META: Record<string, { icon: typeof Gavel; sub: string }> = {
   liens: { icon: ClipboardList, sub: "Recorded liens & judgments" },
   "code-violations": { icon: FileWarning, sub: "Municipal violations" },
   evictions: { icon: Building2, sub: "Tired-landlord signals" },
-  "surplus-funds": { icon: Wallet, sub: "Excess auction proceeds" },
+  "surplus-funds": { icon: Wallet, sub: "Auction overages & excess proceeds" },
   "demolition-orders": { icon: FileWarning, sub: "Demolition & vacate orders" },
 };
 

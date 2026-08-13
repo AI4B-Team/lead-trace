@@ -1,8 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowRight, ScrollText } from "lucide-react";
+import { ArrowRight, ScrollText, Wallet } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/marketing-layout";
 import { RouteErrorState } from "@/components/route-error";
 import { getStateHub } from "@/lib/state-guides.functions";
+import { getSurplusStatePage } from "@/lib/surplus/public.functions";
 import { canonicalUrl } from "@/lib/seo";
 import { formatDate, recordTypeLabel, type FeedCountyRow } from "@/lib/distress-feed.shared";
 import {
@@ -18,7 +19,22 @@ export const Route = createFileRoute("/distress-feed/states/$state/")({
   loader: async ({ params }) => {
     if (params.state.length !== 2) throw notFound();
     const data = await getStateHub({ data: { state: params.state.toUpperCase() } });
-    return { ...data, stateName: stateName(data.state) };
+    // Surplus coverage lives in its own published guide layer. A miss here must
+    // not blank the hub, and an unpublished state gets no surplus card at all.
+    const surplus = await getSurplusStatePage({ data: { state: params.state.toUpperCase() } }).catch(
+      () => null,
+    );
+    return {
+      ...data,
+      stateName: stateName(data.state),
+      surplus:
+        surplus?.rules && surplus.aggregate
+          ? {
+              records: surplus.aggregate.record_count,
+              counties: surplus.counties.length,
+            }
+          : null,
+    };
   },
   head: ({ loaderData }) => {
     const d = loaderData as
@@ -99,8 +115,9 @@ function StateHub() {
     counties: FeedCountyRow[];
     guides: StateGuideRow[];
     stats: Array<{ slug: string; stats: StateTypeStats | null }>;
+    surplus: { records: number; counties: number } | null;
   };
-  const { state, stateName: name, counties, guides, stats } = loaded;
+  const { state, stateName: name, counties, guides, stats, surplus } = loaded;
   const statsBySlug = new Map<string, StateTypeStats | null>(stats.map((s) => [s.slug, s.stats]));
   const totalRecords = counties.reduce((sum, c) => sum + Number(c.total_records ?? 0), 0);
   const lastPull = counties
@@ -140,6 +157,32 @@ function StateHub() {
           <p className="mt-1 font-mono text-xs text-muted-foreground">
             as of {formatDate(lastPull)}
           </p>
+        ) : null}
+
+        {surplus ? (
+          <Link
+            to="/distress-feed/states/$state/surplus-funds"
+            params={{ state: state.toLowerCase() }}
+            className="mt-10 block rounded-2xl border border-primary/30 bg-primary/5 p-6 transition hover:border-primary"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2 font-display text-xl font-bold text-foreground">
+                <Wallet className="h-5 w-5 text-primary" aria-hidden /> Surplus Funds
+              </span>
+              <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                View Surplus Funds <ArrowRight className="h-4 w-4" />
+              </span>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Auction overages and unclaimed excess proceeds.
+            </p>
+            {surplus.records > 0 ? (
+              <p className="mt-2 font-mono text-xs text-muted-foreground">
+                {surplus.records.toLocaleString()} records ·{" "}
+                {surplus.counties.toLocaleString()} counties
+              </p>
+            ) : null}
+          </Link>
         ) : null}
 
         {guides.length ? (
