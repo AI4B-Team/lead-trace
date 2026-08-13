@@ -122,9 +122,8 @@ function SurplusFundsHub() {
               <span>{usd0.format(totals.amount)} Confirmed Unclaimed</span>
             </div>
           ) : (
-            <p className="mt-7 max-w-2xl font-mono text-sm text-muted-foreground">
-              Clerk confirmation is in progress. Coverage goes live state by state — see where we
-              are today.
+            <p className="mt-7 max-w-none whitespace-nowrap font-mono text-sm text-muted-foreground">
+              Clerk confirmation is in progress. Coverage goes live state by state — see where we are today.
             </p>
           )}
         </section>
