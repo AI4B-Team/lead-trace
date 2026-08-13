@@ -676,7 +676,7 @@ function FindCustomersSection() {
 
   return (
     <section className="border-y border-border bg-surface py-16 md:py-20">
-      <div className="mx-auto max-w-[90rem] px-6">
+      <div className="mx-auto max-w-[110rem] px-6">
         {/* Header */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -700,9 +700,9 @@ function FindCustomersSection() {
         </div>
 
         {/* Filter bar */}
-        <div className="mt-8 rounded-[1.75rem] border border-border bg-background p-3">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap items-center gap-2">
+        <div className="mt-8 rounded-full border border-border bg-background p-3">
+          <div className="flex flex-col gap-3 xl:flex-row xl:flex-nowrap xl:items-center xl:justify-between">
+            <div className="flex flex-wrap items-center gap-2 xl:flex-nowrap">
               {(["All Sources", ...NICHE_CATEGORIES] as string[]).map((c) => {
                 const active = group === c;
                 const Icon = GROUP_ICONS[c] ?? Database;
@@ -712,7 +712,7 @@ function FindCustomersSection() {
                     type="button"
                     onClick={() => setGroup(c)}
                     aria-pressed={active}
-                    className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors ${
+                    className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-2 text-[0.8125rem] font-semibold transition-colors ${
                       active
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-border bg-surface text-muted-foreground hover:border-primary hover:text-foreground"
@@ -723,7 +723,7 @@ function FindCustomersSection() {
                 );
               })}
             </div>
-            <div className="relative w-full lg:w-80">
+            <div className="relative w-full shrink-0 xl:w-72">
               <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 value={query}
