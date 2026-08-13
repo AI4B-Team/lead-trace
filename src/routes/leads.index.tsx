@@ -699,52 +699,8 @@ function FindCustomersSection() {
           </div>
         </div>
 
-        {/* Featured LeadTrace feeds — flat banner strips */}
-        <div className="mt-8 space-y-4">
-          {FEATURED_FEEDS.map((f) => (
-            <div
-              key={f.to}
-              className="flex flex-col gap-5 rounded-3xl border border-primary/40 bg-primary/[0.04] p-6 md:flex-row md:items-center md:justify-between"
-            >
-              <div className="flex items-center gap-4">
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
-                  <f.icon className="h-5 w-5" />
-                </span>
-                <div className="min-w-0">
-                  {f.isNew && (
-                    <span className="mb-1 inline-block rounded-full border border-primary bg-background px-2 py-0.5 text-[0.5625rem] font-bold uppercase tracking-[0.12em] text-primary">
-                      New
-                    </span>
-                  )}
-                  <div className="font-display text-lg font-black text-foreground">{f.title}</div>
-                  <p className="mt-0.5 text-sm text-muted-foreground">{f.body}</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-4">
-                {f.recordTypes && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {f.recordTypes.map((r) => (
-                      <span
-                        key={r}
-                        className="rounded-full border border-border bg-background px-2 py-0.5 text-[0.625rem] font-semibold text-muted-foreground"
-                      >
-                        {r}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <Button asChild className="rounded-full">
-                  <Link to={f.to}>
-                    {f.cta} <ArrowRight className="ml-1 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-
         {/* Filter bar */}
-        <div className="mt-10 rounded-3xl border border-border bg-background p-3">
+        <div className="mt-8 rounded-[1.75rem] border border-border bg-background p-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-2">
               {(["All Sources", ...NICHE_CATEGORIES] as string[]).map((c) => {
@@ -786,9 +742,10 @@ function FindCustomersSection() {
             No lead sources match that search. Try another niche or category.
           </p>
         ) : (
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {visible.map((n) => {
               const Icon = n.icon;
+              const property = n.category === "property";
               return (
                 <Link
                   key={n.slug}
@@ -796,21 +753,31 @@ function FindCustomersSection() {
                   params={{ slug: n.slug }}
                   className="group flex items-center gap-4 rounded-2xl border border-border bg-background p-5 transition-colors hover:border-primary"
                 >
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                  <span
+                    className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${
+                      property ? "bg-warn/10 text-warn" : "bg-primary/10 text-primary"
+                    }`}
+                  >
                     <Icon className="h-5 w-5" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[0.625rem] font-bold uppercase tracking-[0.12em] text-primary">
+                    <span
+                      className={`inline-block rounded-full px-2 py-0.5 text-[0.625rem] font-bold ${
+                        property ? "bg-warn/10 text-warn" : "bg-primary/10 text-primary"
+                      }`}
+                    >
                       {n.tag ?? "Lead Source"}
                     </span>
-                    <span className="mt-1 block font-display text-base font-black text-foreground">
+                    <span className="mt-1.5 block font-display text-base font-black text-foreground">
                       {n.display ?? n.slug}
                     </span>
-                    <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
-                      {n.desc}
-                    </span>
-                    <span className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-primary">
-                      View Leads <ArrowRight className="h-3 w-3" />
+                    <span className="mt-1 flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
+                      <span className="block max-w-[16rem] text-xs leading-relaxed text-muted-foreground">
+                        {n.desc}
+                      </span>
+                      <span className="inline-flex items-center gap-1 whitespace-nowrap text-xs font-bold text-primary">
+                        View Leads <ArrowRight className="h-3 w-3" />
+                      </span>
                     </span>
                   </span>
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-colors group-hover:border-primary group-hover:text-primary">
@@ -822,6 +789,49 @@ function FindCustomersSection() {
           </div>
         )}
 
+        {/* Featured LeadTrace feeds — flat banner strips under the directory */}
+        <div className="mt-4 space-y-4">
+          {FEATURED_FEEDS.map((f) => (
+            <div
+              key={f.to}
+              className="flex flex-col gap-5 rounded-[1.75rem] border border-primary/30 bg-primary/[0.04] px-6 py-5 md:flex-row md:items-center md:justify-between"
+            >
+              <div className="flex items-center gap-4">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                  <f.icon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  {f.isNew && (
+                    <span className="mb-1 inline-block rounded-full border border-primary bg-background px-2 py-0.5 text-[0.5625rem] font-bold uppercase tracking-[0.12em] text-primary">
+                      New
+                    </span>
+                  )}
+                  <div className="font-display text-lg font-black text-foreground">{f.title}</div>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{f.body}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-6">
+                {f.recordTypes && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {f.recordTypes.map((r) => (
+                      <span
+                        key={r}
+                        className="rounded-full border border-border bg-background px-2 py-0.5 text-[0.625rem] font-semibold text-muted-foreground"
+                      >
+                        {r}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <Button asChild className="rounded-full">
+                  <Link to={f.to}>
+                    {f.cta} <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
 
         {/* External data sources */}
         <div className="mt-10 rounded-3xl border border-border bg-background p-6">
