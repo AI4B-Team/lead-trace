@@ -746,7 +746,7 @@ function FindCustomersSection() {
         {/* Filter bar */}
         <div className="mt-10 rounded-3xl border border-border bg-background p-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
               {(["All Sources", ...NICHE_CATEGORIES] as string[]).map((c) => {
                 const active = group === c;
                 const Icon = GROUP_ICONS[c] ?? Database;
