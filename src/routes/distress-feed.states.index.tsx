@@ -10,7 +10,6 @@ import {
   Gavel,
   Landmark,
   Receipt,
-  RefreshCw,
   Scale,
   Search,
   Wallet,
