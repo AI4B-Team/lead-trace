@@ -581,7 +581,7 @@ export const TEMPLATES: Template[] = [
     shortTitle: "Surplus Funds",
     shortSubtitle: "Auction Overages",
     title: "Surplus Funds",
-    subtitle: "Auction Overages & Unclaimed Proceeds.",
+    subtitle: "Auction Overages & Unclaimed Funds",
     categories: ["records", "realestate"],
     prompt:
       "Show me surplus funds and excess proceeds from tax deed and foreclosure sales in Hillsborough County FL",
