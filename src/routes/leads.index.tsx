@@ -47,6 +47,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MarketingLayout } from "@/components/marketing/marketing-layout";
+import { TemplateLogo } from "@/components/marketing/template-logo";
+import { getTemplate } from "@/lib/templates";
 import { PipelineFlow } from "@/components/marketing/pipeline-flow";
 import { MiniWorkflow, PillarArrow, PillarCard } from "@/components/marketing/leads-pillars";
 import { CONTENT_UPDATED, LEAD_PAGES, REFERENCE_FUNNEL } from "@/lib/lead-pages";
@@ -90,7 +92,14 @@ const NICHE_CATEGORIES = [
   "Home Services",
 ];
 
-const NICHE_ORDER: { slug: string; icon: React.ComponentType<{ className?: string }>; category: "business" | "property"; display?: string }[] = [
+type NicheEntry = {
+  slug: string;
+  icon: React.ComponentType<{ className?: string }>;
+  category: "business" | "property";
+  display?: string;
+};
+
+const NICHE_ORDER: NicheEntry[] = [
   { slug: "roofing-contractors", icon: HardHat, category: "business", display: "Roofing Contractors" },
   { slug: "hvac-companies", icon: Flame, category: "business", display: "HVAC Companies" },
   { slug: "plumbers", icon: Droplet, category: "business", display: "Plumbers" },
@@ -109,6 +118,72 @@ const NICHE_ORDER: { slug: string; icon: React.ComponentType<{ className?: strin
   { slug: "vacant-properties", icon: Home, category: "property", display: "Vacant Properties" },
   { slug: "absentee-owners", icon: MapPin, category: "property", display: "Absentee Owners" },
   { slug: "pre-foreclosures", icon: Gavel, category: "property", display: "Pre-Foreclosures" },
+];
+
+/** Level 1 — proprietary LeadTrace intelligence products. */
+const FEATURED_FEEDS: {
+  to: "/distress-feed" | "/street-scan" | "/surplus-funds";
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  body: string;
+  cta: string;
+  recordTypes?: string[];
+  isNew?: boolean;
+}[] = [
+  {
+    to: "/distress-feed",
+    icon: Radar,
+    title: "Distress Feed",
+    body: "All major distress signals in one feed.",
+    cta: "Explore Distress Feed",
+    recordTypes: [
+      "Probate",
+      "Tax Defaults",
+      "Pre-Foreclosures",
+      "Code Violations",
+      "Vacant Properties",
+      "Surplus Funds",
+    ],
+  },
+  {
+    to: "/street-scan",
+    icon: Car,
+    title: "Street Scan",
+    body: "AI-powered street-level opportunity discovery.",
+    cta: "Explore Street Scan",
+  },
+  {
+    to: "/surplus-funds",
+    icon: CircleDollarSign,
+    title: "Surplus Funds",
+    body: "Find unclaimed foreclosure and tax-sale surplus funds.",
+    cta: "Explore Surplus Funds",
+    isNew: true,
+  },
+];
+
+/** Level 2 — curated individual lead feeds; everything else lives behind View All. */
+const POPULAR_SLUGS = [
+  "probate-filings",
+  "tax-delinquencies",
+  "pre-foreclosures",
+  "absentee-owners",
+  "vacant-properties",
+  "code-violations",
+];
+
+const POPULAR_TEMPLATES: NicheEntry[] = POPULAR_SLUGS.map(
+  (s) => NICHE_ORDER.find((n) => n.slug === s)!,
+).filter(Boolean);
+
+const BUSINESS_NICHES = NICHE_ORDER.filter((n) => n.category === "business").slice(0, 8);
+
+/** Level 3 — external sources, official brand marks only, deliberately compact. */
+const DATA_SOURCES: { id: string; label: string; sub: string }[] = [
+  { id: "gmaps", label: "Google Maps", sub: "Business Listings" },
+  { id: "zillow", label: "Zillow FSBOs", sub: "For-Sale-By-Owner Properties" },
+  { id: "linkedin", label: "LinkedIn Companies", sub: "Company + Decision-Maker Profiles" },
+  { id: "yelp", label: "Yelp Businesses", sub: "Local Businesses" },
 ];
 
 /** Benefit cards, sharpest copy first. */
