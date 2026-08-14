@@ -45,8 +45,27 @@ export async function hasCoverage(fips: string, recordType: string): Promise<boo
   return (data ?? []).length > 0;
 }
 
+/**
+ * Before answering "is X available?", reconcile the registry against the whole
+ * records database: any county / record-type pair that actually holds rows is
+ * registered as verified coverage. Without this the assistant can claim a lead
+ * type is unavailable while thousands of its records sit in the database.
+ */
+export async function syncDataBackedCoverage(): Promise<number> {
+  try {
+    const supabase = await admin();
+    const { data } = await (supabase as unknown as {
+      rpc: (fn: string) => Promise<{ data: number | null }>;
+    }).rpc("sync_data_backed_coverage");
+    return data ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 /** Every verified row, for label-based lookups and UI hints. */
 export async function verifiedCoverage(): Promise<CoverageRow[]> {
+  await syncDataBackedCoverage();
   const supabase = await admin();
   const { data } = await supabase
     .from("source_coverage")
