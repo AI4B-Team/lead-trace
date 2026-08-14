@@ -85,15 +85,23 @@ export async function coveredFipsForCounty(
   const { county, state } = splitCountyLabel(countyLabel);
   const typeKey = recordTypeId(recordType) ?? recordType;
   const supabase = await admin();
-  let q = supabase
-    .from("source_coverage")
-    .select("fips")
-    .eq("status", "verified")
-    .eq("record_type", typeKey)
-    .ilike("county_name", county);
-  if (state) q = q.eq("state", state);
-  const { data } = await q;
-  return (data ?? []).map((r) => (r as { fips: string }).fips);
+  const read = async () => {
+    let q = supabase
+      .from("source_coverage")
+      .select("fips")
+      .eq("status", "verified")
+      .eq("record_type", typeKey)
+      .ilike("county_name", county);
+    if (state) q = q.eq("state", state);
+    const { data } = await q;
+    return (data ?? []).map((r) => (r as { fips: string }).fips);
+  };
+  const hits = await read();
+  if (hits.length) return hits;
+  // Nothing registered — reconcile against the records database before we
+  // tell anyone this county / record type isn't available.
+  await syncDataBackedCoverage();
+  return read();
 }
 
 export async function hasCountyCoverage(
