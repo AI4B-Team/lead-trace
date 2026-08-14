@@ -45,8 +45,27 @@ export async function hasCoverage(fips: string, recordType: string): Promise<boo
   return (data ?? []).length > 0;
 }
 
+/**
+ * Before answering "is X available?", reconcile the registry against the whole
+ * records database: any county / record-type pair that actually holds rows is
+ * registered as verified coverage. Without this the assistant can claim a lead
+ * type is unavailable while thousands of its records sit in the database.
+ */
+export async function syncDataBackedCoverage(): Promise<number> {
+  try {
+    const supabase = await admin();
+    const { data } = await (supabase as unknown as {
+      rpc: (fn: string) => Promise<{ data: number | null }>;
+    }).rpc("sync_data_backed_coverage");
+    return data ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 /** Every verified row, for label-based lookups and UI hints. */
 export async function verifiedCoverage(): Promise<CoverageRow[]> {
+  await syncDataBackedCoverage();
   const supabase = await admin();
   const { data } = await supabase
     .from("source_coverage")
@@ -66,15 +85,23 @@ export async function coveredFipsForCounty(
   const { county, state } = splitCountyLabel(countyLabel);
   const typeKey = recordTypeId(recordType) ?? recordType;
   const supabase = await admin();
-  let q = supabase
-    .from("source_coverage")
-    .select("fips")
-    .eq("status", "verified")
-    .eq("record_type", typeKey)
-    .ilike("county_name", county);
-  if (state) q = q.eq("state", state);
-  const { data } = await q;
-  return (data ?? []).map((r) => (r as { fips: string }).fips);
+  const read = async () => {
+    let q = supabase
+      .from("source_coverage")
+      .select("fips")
+      .eq("status", "verified")
+      .eq("record_type", typeKey)
+      .ilike("county_name", county);
+    if (state) q = q.eq("state", state);
+    const { data } = await q;
+    return (data ?? []).map((r) => (r as { fips: string }).fips);
+  };
+  const hits = await read();
+  if (hits.length) return hits;
+  // Nothing registered — reconcile against the records database before we
+  // tell anyone this county / record type isn't available.
+  await syncDataBackedCoverage();
+  return read();
 }
 
 export async function hasCountyCoverage(

@@ -5091,6 +5091,7 @@ export type Database = {
           state_code: string
         }[]
       }
+      sync_data_backed_coverage: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "super_admin" | "owner" | "admin" | "member"
