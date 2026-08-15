@@ -892,7 +892,24 @@ export async function runNightlyPulls(): Promise<{
 
   const bytesTotal = proxyMod.endRealauctionBudget();
   console.log(`[distress-feed] RealAuction bytes downloaded this sweep: ${bytesTotal}`);
-  return { ok: results.every((r) => !r.error), targets: results.length, results, bytesUsed: bytesTotal };
+  // A single county's clerk site returning 403 or changing its markup is normal
+  // sourcing noise, not a broken schedule — flagging the whole tick as failed
+  // there keeps the cron health list permanently red and hides real outages.
+  // The tick only fails when nothing at all got through: every attempted pull
+  // errored, which points at us (egress, credentials, a bad deploy).
+  const attempted = results.filter((r) => !r.skipped);
+  const failedPulls = attempted.filter((r) => r.error);
+  const firstError = failedPulls[0]?.error;
+  return {
+    ok: attempted.length === 0 || failedPulls.length < attempted.length,
+    targets: results.length,
+    pulled: attempted.length - failedPulls.length,
+    failed: failedPulls.length,
+    skipped: results.length - attempted.length,
+    firstError,
+    results,
+    bytesUsed: bytesTotal,
+  };
 }
 
 /** Record types we are configured to pull for a county, for the county page. */
