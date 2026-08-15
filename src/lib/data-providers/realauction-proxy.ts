@@ -51,8 +51,11 @@ const WAF_CLERK_HOSTS = [
   "lakecountyclerk.org",
   "escambiaclerk.com",
   "leonclerk.com",
+  "leonclerk.org",
   "pascoclerk.com",
   "pinellasclerk.gov",
+  "mypinellasclerk.gov",
+  "pinellasclerk.org",
   "hcclerk.org",
 ];
 

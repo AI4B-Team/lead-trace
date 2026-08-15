@@ -31,9 +31,9 @@ const COUNTIES: Array<{ county: string; roots: string[] }> = [
 
 const RELEVANT = /tax.?deed|surplus|overbid|excess\s*(funds|proceeds)|unclaimed/i;
 
-type Hit = { text: string; href: string };
+export type Hit = { text: string; href: string };
 
-function links(html: string, base: string): Hit[] {
+export function links(html: string, base: string): Hit[] {
   const out = new Map<string, Hit>();
   // Anchors carrying the phrase in either the label or the target.
   for (const m of html.matchAll(/<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)) {
