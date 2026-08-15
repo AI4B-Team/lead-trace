@@ -66,7 +66,16 @@ export function pickTable(tables: string[], columns: string[]): { rows: string[]
   return hit ? { rows: hit.rows, index: hit.index } : null;
 }
 
-export function parseHtmlTable(html: string, columnMap: Record<string, string>): ClerkSurplusRow[] {
+export function parseHtmlTable(
+  html: string,
+  columnMap: Record<string, string>,
+  /**
+   * Used only when the clerk publishes no status column at all — several
+   * counties publish a list that *is* the outstanding balances by definition.
+   * It never overrides a status the page actually printed.
+   */
+  defaultClaimStatus?: ClerkSurplusRow["claim_status"],
+): ClerkSurplusRow[] {
   const columns = Object.keys(columnMap);
   const picked = pickTable(extractTables(html), columns);
   if (!picked) return [];
@@ -80,7 +89,9 @@ export function parseHtmlTable(html: string, columnMap: Record<string, string>):
       if (name) record[name] = cells[i] ?? "";
     });
     const row = toClerkRow(record, columnMap);
-    if (row) out.push(row);
+    if (!row) continue;
+    if (row.claim_status === "unknown" && defaultClaimStatus) row.claim_status = defaultClaimStatus;
+    out.push(row);
   }
   return out;
 }
@@ -94,7 +105,8 @@ export async function runHtmlTable(ctx: HandlerContext): Promise<HandlerResult> 
   }
   const { html, bytes } = await politeHtml(source.source_url);
   const fetchedAt = new Date().toISOString();
-  const rows = parseHtmlTable(html, columnMap);
+  const defaultClaimStatus = source.fetch_config?.["defaultClaimStatus"] as ClerkSurplusRow["claim_status"] | undefined;
+  const rows = parseHtmlTable(html, columnMap, defaultClaimStatus);
   return {
     rows,
     fetchedAt,
