@@ -1,0 +1,242 @@
+{
+  "generatedAt": "2026-08-15T15:58:52.495Z",
+  "report": [
+    {
+      "county": "Clay",
+      "state": "FL",
+      "site": "https://clayclerk.com",
+      "blockedBy": "list published as a single image PDF",
+      "contacts": [
+        {
+          "email": "info@clayclerk.com",
+          "label": "Email Us",
+          "page": "https://clayclerk.com/contact-us",
+          "relevant": true
+        },
+        {
+          "email": "clayarchives@clayclerk.com",
+          "label": "clayarchives@clayclerk.com",
+          "page": "https://clayclerk.com/contact",
+          "relevant": false
+        }
+      ],
+      "notes": [
+        "/public-records-request: Source Returned HTTP 404",
+        "/records-request: Source Returned HTTP 404"
+      ]
+    },
+    {
+      "county": "St. Lucie",
+      "state": "FL",
+      "site": "https://www.stlucieclerk.com",
+      "blockedBy": "claim form only",
+      "contacts": [],
+      "notes": [
+        "/contact: Source Returned HTTP 500",
+        "/contact-us: Source Returned HTTP 500",
+        "/public-records: Source Returned HTTP 500",
+        "/public-records-request: Source Returned HTTP 500",
+        "/records-request: Source Returned HTTP 500"
+      ]
+    },
+    {
+      "county": "Bay",
+      "state": "FL",
+      "site": "https://www.baycoclerk.com",
+      "blockedBy": "claim form only",
+      "contacts": [],
+      "notes": [
+        "/contact-us: Source Returned HTTP 404",
+        "/public-records-request: Source Returned HTTP 404",
+        "/records-request: Source Returned HTTP 404"
+      ]
+    },
+    {
+      "county": "Okaloosa",
+      "state": "FL",
+      "site": "https://okaloosaclerk.com",
+      "blockedBy": "claim instructions only",
+      "contacts": [],
+      "notes": [
+        "/records-request: Source Returned HTTP 404"
+      ]
+    },
+    {
+      "county": "Nassau",
+      "state": "FL",
+      "site": "https://www.nassauclerk.com",
+      "blockedBy": "sale notices only",
+      "contacts": [],
+      "notes": [
+        "/: Source Returned HTTP 522",
+        "/contact: Source Returned HTTP 404",
+        "/contact-us: Source Returned HTTP 404",
+        "/public-records: Source Returned HTTP 404",
+        "/public-records-request: Source Returned HTTP 404",
+        "/records-request: Source Returned HTTP 404"
+      ]
+    },
+    {
+      "county": "Charlotte",
+      "state": "FL",
+      "site": "https://www.charlotteclerk.com",
+      "blockedBy": "tax deed portal robots-disallowed",
+      "contacts": [],
+      "notes": [
+        "/contact: Source Returned HTTP 404",
+        "/contact-us: Source Returned HTTP 404",
+        "/public-records: Source Returned HTTP 404",
+        "/public-records-request: Source Returned HTTP 404",
+        "/records-request: Source Returned HTTP 404"
+      ]
+    },
+    {
+      "county": "Collier",
+      "state": "FL",
+      "site": "https://www.collierclerk.com",
+      "blockedBy": "pages time out",
+      "contacts": [
+        {
+          "email": "collierclerk@collierclerk.com",
+          "label": "collierclerk@collierclerk.com",
+          "page": "https://www.collierclerk.com/",
+          "relevant": false
+        }
+      ],
+      "notes": [
+        "/contact: timeout after 25000ms (page)",
+        "/contact-us: timeout after 25000ms (page)",
+        "/public-records: timeout after 25000ms (page)",
+        "/public-records-request: timeout after 25000ms (page)",
+        "/records-request: timeout after 25000ms (page)"
+      ]
+    },
+    {
+      "county": "Duval",
+      "state": "FL",
+      "site": "https://www.duvalclerk.com",
+      "blockedBy": "403 WAF on datacenter IPs",
+      "contacts": [],
+      "notes": [
+        "/: Source Returned HTTP 403",
+        "/contact: Source Returned HTTP 403",
+        "/contact-us: Source Returned HTTP 403",
+        "/public-records: Source Returned HTTP 403",
+        "/public-records-request: Source Returned HTTP 403",
+        "/records-request: Source Returned HTTP 403"
+      ]
+    },
+    {
+      "county": "Lee",
+      "state": "FL",
+      "site": "https://www.leeclerk.org",
+      "blockedBy": "403 WAF on datacenter IPs",
+      "contacts": [],
+      "notes": [
+        "/: Source Returned HTTP 403",
+        "/contact: Source Returned HTTP 403",
+        "/contact-us: Source Returned HTTP 403",
+        "/public-records: Source Returned HTTP 403",
+        "/public-records-request: Source Returned HTTP 403",
+        "/records-request: Source Returned HTTP 403"
+      ]
+    },
+    {
+      "county": "Lake",
+      "state": "FL",
+      "site": "https://www.lakecountyclerk.org",
+      "blockedBy": "403 WAF on datacenter IPs",
+      "contacts": [],
+      "notes": []
+    },
+    {
+      "county": "Escambia",
+      "state": "FL",
+      "site": "https://www.escambiaclerk.com",
+      "blockedBy": "403 WAF on datacenter IPs",
+      "contacts": [],
+      "notes": [
+        "/: Source Returned HTTP 403",
+        "/contact: Source Returned HTTP 403",
+        "/contact-us: Source Returned HTTP 403",
+        "/public-records: Source Returned HTTP 403",
+        "/public-records-request: Source Returned HTTP 403",
+        "/records-request: Source Returned HTTP 403"
+      ]
+    },
+    {
+      "county": "Leon",
+      "state": "FL",
+      "site": "https://cvweb.leonclerk.com",
+      "blockedBy": "403 WAF on datacenter IPs",
+      "contacts": [],
+      "notes": [
+        "/: Source Returned HTTP 403",
+        "/contact: Source Returned HTTP 403",
+        "/contact-us: Source Returned HTTP 403",
+        "/public-records: Source Returned HTTP 403",
+        "/public-records-request: Source Returned HTTP 403",
+        "/records-request: Source Returned HTTP 403"
+      ]
+    },
+    {
+      "county": "Pasco",
+      "state": "FL",
+      "site": "https://www.pascoclerk.com",
+      "blockedBy": "403 WAF on datacenter IPs",
+      "contacts": [],
+      "notes": [
+        "/contact: Source Returned HTTP 404",
+        "/contact-us: Source Returned HTTP 404",
+        "/public-records: Source Returned HTTP 404",
+        "/public-records-request: Source Returned HTTP 404",
+        "/records-request: Source Returned HTTP 404"
+      ]
+    },
+    {
+      "county": "Pinellas",
+      "state": "FL",
+      "site": "https://www.mypinellasclerk.gov",
+      "blockedBy": "403 WAF on datacenter IPs",
+      "contacts": [],
+      "notes": [
+        "/: Source Returned HTTP 403",
+        "/contact: Source Returned HTTP 403",
+        "/contact-us: Source Returned HTTP 403",
+        "/public-records: Source Returned HTTP 403",
+        "/public-records-request: Source Returned HTTP 403",
+        "/records-request: Source Returned HTTP 403"
+      ]
+    },
+    {
+      "county": "Highlands",
+      "state": "FL",
+      "site": "https://www.hcclerk.org",
+      "blockedBy": "403 WAF on datacenter IPs",
+      "contacts": [],
+      "notes": [
+        "/: Source Returned HTTP 403",
+        "/contact: Source Returned HTTP 404",
+        "/contact-us: Source Returned HTTP 404",
+        "/public-records: Source Returned HTTP 404",
+        "/public-records-request: Source Returned HTTP 404",
+        "/records-request: Source Returned HTTP 404"
+      ]
+    },
+    {
+      "county": "Seminole",
+      "state": "FL",
+      "site": "https://www.seminoleclerk.org",
+      "blockedBy": "invalid TLS chain",
+      "contacts": [],
+      "notes": [
+        "/: unable to verify the first certificate",
+        "/contact: unable to verify the first certificate",
+        "/contact-us: unable to verify the first certificate",
+        "/public-records: unable to verify the first certificate",
+        "/public-records-request: unable to verify the first certificate",
+        "/records-request: unable to verify the first certificate"
+      ]
+    }
+  ]
+}
