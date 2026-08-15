@@ -119,7 +119,16 @@ export async function composeAndSchedule(agencyId: string, opts: {
  * Managed email transport. Delivery, retries, suppression and rate limits are
  * handled upstream; a suppressed recipient is a normal, non-error outcome.
  */
-async function sendEmail(to: string, subject: string, body: string): Promise<{ sent: boolean; error?: string }> {
+type SendOutcome = {
+  sent: boolean;
+  error?: string;
+  /** Recipient is blocked upstream — the address itself is the problem. */
+  suppressed?: boolean;
+  /** Seconds to wait before this send should be attempted again. */
+  retryAfterSeconds?: number;
+};
+
+async function sendEmail(to: string, subject: string, body: string): Promise<SendOutcome> {
   const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) return { sent: false, error: "Email Sending Is Not Configured Yet" };
   try {
@@ -132,9 +141,23 @@ async function sendEmail(to: string, subject: string, body: string): Promise<{ s
       { to, from: REQUEST_FROM, subject, text: body, html, purpose: "records_request", label: "records-request" },
       { apiKey },
     );
-    if (!result.success) return { sent: false, error: `Not Delivered (${result.status ?? "Unknown Reason"})` };
+    if (!result.success) {
+      const reason = String((result as { reason?: string }).reason ?? result.status ?? "Unknown Reason");
+      if (reason === "recipient_suppressed") {
+        return { sent: false, suppressed: true, error: "Address Blocked After Earlier Bounce Or Complaint" };
+      }
+      return { sent: false, error: `Not Delivered (${reason})` };
+    }
     return { sent: true };
   } catch (e) {
+    const rate = e as { status?: number; retryAfterSeconds?: number | null };
+    if (rate && rate.status === 429) {
+      return {
+        sent: false,
+        retryAfterSeconds: rate.retryAfterSeconds ?? 60,
+        error: "Sending Paused Briefly — Hourly Email Allowance Reached",
+      };
+    }
     return { sent: false, error: e instanceof Error ? e.message : "Email Send Failed" };
   }
 }
@@ -174,6 +197,13 @@ export async function sendDueRequests(limit = 25) {
       dateRangeDays: Number(r.date_range_days) || undefined,
     });
     const outcome = await sendEmail(email, String(fresh?.subject ?? r.subject), String(fresh?.body ?? r.body));
+    if (outcome.suppressed) {
+      // Upstream will never deliver to this address again: return the county to
+      // the "awaiting contact" queue instead of retrying forever.
+      await handleUndeliverableRecipient(email, "bounced");
+      results.push({ id, sent: false, error: outcome.error });
+      continue;
+    }
     await db
       .from("records_requests")
       .update(
@@ -184,7 +214,13 @@ export async function sendDueRequests(limit = 25) {
               next_send_at: nextSendAt(r.cadence as RequestCadence),
               last_error: null,
             }
-          : { status: "scheduled", last_error: outcome.error ?? null },
+          : {
+              status: "scheduled",
+              last_error: outcome.error ?? null,
+              ...(outcome.retryAfterSeconds
+                ? { next_send_at: new Date(Date.now() + outcome.retryAfterSeconds * 1000).toISOString() }
+                : {}),
+            },
       )
       .eq("id", id);
     results.push({ id, ...outcome });
