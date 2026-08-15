@@ -240,6 +240,8 @@ export const scheduleRecordsRequest = createServerFn({ method: "POST" })
       recordTypes: data.recordTypes,
       cadence: data.cadence,
       dateRangeDays: data.dateRangeDays,
+      // Explicit admin action: start the cycle now.
+      resetSchedule: true,
     });
     return { request };
   });
@@ -383,6 +385,7 @@ export const setSurplusCustodian = createServerFn({ method: "POST" })
     await composeAndSchedule(agencyId, {
       recordTypes: ["surplus_funds"],
       cadence: data.cadence ?? "monthly",
+      resetSchedule: true,
     });
     return { agencyId };
   });
