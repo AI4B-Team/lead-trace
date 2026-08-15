@@ -249,3 +249,123 @@ export const saveAgencyColumnMap = createServerFn({ method: "POST" })
       userId: context.userId,
     });
   });
+
+// ── Surplus counties covered by request rather than crawl ──────────────────
+
+/**
+ * The counties whose surplus lists cannot be read by crawl (no machine-readable
+ * list, or the site forbids collection). Each needs a records custodian address
+ * before a request can go out, so the queue reports which ones still lack one.
+ */
+export const listRequestPathSurplus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: sources }, { data: agencies }, { data: requests }] = await Promise.all([
+      supabaseAdmin
+        .from("surplus_sources")
+        .select("id, county_name, state, sale_kind, refresh_cadence, status, notes, last_checked_at")
+        .eq("handler", "records_request")
+        .order("state")
+        .order("county_name"),
+      supabaseAdmin.from("agency_contacts").select("id, county_name, state, email, agency_name, responsive"),
+      supabaseAdmin.from("records_requests").select("agency_id, status, cadence, next_send_at, last_sent_at"),
+    ]);
+    const key = (county: string | null, state: string | null) =>
+      `${(county ?? "").toLowerCase()}|${(state ?? "").toUpperCase()}`;
+    const byCounty = new Map((agencies ?? []).map((a) => [key(a.county_name, a.state), a]));
+    const reqByAgency = new Map((requests ?? []).map((r) => [r.agency_id, r]));
+    return {
+      counties: (sources ?? []).map((s) => {
+        const agency = byCounty.get(key(s.county_name, s.state)) ?? null;
+        const request = agency ? (reqByAgency.get(agency.id) ?? null) : null;
+        return {
+          id: s.id,
+          countyName: s.county_name,
+          state: s.state,
+          saleKind: s.sale_kind,
+          cadence: s.refresh_cadence,
+          notes: s.notes,
+          lastCheckedAt: s.last_checked_at,
+          contactEmail: agency?.email ?? null,
+          agencyName: agency?.agency_name ?? null,
+          responsive: agency?.responsive ?? null,
+          requestStatus: request?.status ?? null,
+          nextSendAt: request?.next_send_at ?? null,
+          lastSentAt: request?.last_sent_at ?? null,
+        };
+      }),
+    };
+  });
+
+/** Record a custodian address for a request-path county and put it on cadence. */
+export const setSurplusCustodian = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        countyName: z.string().min(2).max(120),
+        state: z.string().length(2),
+        email: z.string().email(),
+        agencyName: z.string().min(2).max(200).optional(),
+        cadence: z.enum(["weekly", "biweekly", "monthly", "quarterly"]).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const state = data.state.toUpperCase();
+    const { data: existing } = await supabaseAdmin
+      .from("agency_contacts")
+      .select("id, record_types")
+      .eq("state", state)
+      .ilike("county_name", data.countyName)
+      .limit(1)
+      .maybeSingle();
+
+    let agencyId: string;
+    if (existing?.id) {
+      const recordTypes = Array.from(new Set([...(existing.record_types ?? []), "surplus_funds"]));
+      const { error } = await supabaseAdmin
+        .from("agency_contacts")
+        .update({ email: data.email, record_types: recordTypes })
+        .eq("id", existing.id);
+      if (error) throw new Error(error.message);
+      agencyId = existing.id as string;
+    } else {
+      const { data: created, error } = await supabaseAdmin
+        .from("agency_contacts")
+        .insert({
+          agency_name: data.agencyName ?? `${data.countyName} County Clerk of Court`,
+          department: "Public Records",
+          county_name: data.countyName,
+          state,
+          email: data.email,
+          record_types: ["surplus_funds"],
+          // Unproven until a reply arrives; the sweep still schedules the first ask.
+          responsive: false,
+        })
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message);
+      agencyId = (created as { id: string }).id;
+    }
+
+    const { composeAndSchedule } = await import("./records-requests.server");
+    await composeAndSchedule(agencyId, {
+      recordTypes: ["surplus_funds"],
+      cadence: data.cadence ?? "monthly",
+    });
+    return { agencyId };
+  });
+
+/** Re-run the request-path sweep so newly contactable counties get scheduled. */
+export const sweepRequestPathSurplus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { sweepRecordsRequestSurplusSources } = await import("./surplus/records-request-intake.server");
+    return sweepRecordsRequestSurplusSources();
+  });
