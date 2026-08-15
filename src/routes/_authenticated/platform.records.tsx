@@ -194,11 +194,20 @@ function PublicRecordsPage() {
                     <TableCell className="text-xs">{s.record_type}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={`text-[10px] ${STATUS_TONE[s.status] ?? ""}`}>
-                        {s.status}
+                        {STATUS_LABEL[s.status] ?? s.status}
                       </Badge>
+                      {s.status === "policy_blocked" && s.last_error ? (
+                        <p className="mt-1 max-w-[26rem] text-[10px] leading-snug text-muted-foreground">
+                          {s.last_error}
+                        </p>
+                      ) : null}
                     </TableCell>
                     <TableCell>
-                      <Button
+                      {s.status === "policy_blocked" ? (
+                        // Re-enabling would restart a crawl the source owner forbids.
+                        <span className="text-[10px] text-muted-foreground">Not collectable</span>
+                      ) : (
+                        <Button
                         size="sm"
                         variant={s.status === "enabled" ? "ghost" : "secondary"}
                         onClick={() =>
@@ -207,6 +216,7 @@ function PublicRecordsPage() {
                       >
                         {s.status === "enabled" ? "Disable" : "Enable"}
                       </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
