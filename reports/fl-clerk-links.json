@@ -1,0 +1,181 @@
+{
+  "generatedAt": "2026-08-15T15:16:54.634Z",
+  "report": [
+    {
+      "county": "Orange",
+      "note": "via https://myorangeclerk.com/",
+      "links": [
+        {
+          "text": "",
+          "href": "https://www.myorangeclerk.com/News/unclaimed-checks"
+        },
+        {
+          "text": "Unclaimed Checks List",
+          "href": "https://myorangeclerk.com/News/unclaimed-checks"
+        }
+      ]
+    },
+    {
+      "county": "Charlotte",
+      "note": "via https://www.charlotteclerk.com/",
+      "links": [
+        {
+          "text": "Tax Deed - Search",
+          "href": "https://taxdeeds.charlotteclerk.com/"
+        },
+        {
+          "text": "Tax Deed - Auction",
+          "href": "https://www.charlotte.realforeclose.com/index.cfm"
+        },
+        {
+          "text": "Tax Deeds",
+          "href": "https://www.charlotteclerk.com/departments/taxdeed/"
+        },
+        {
+          "text": "read More",
+          "href": "https://www.charlotteclerk.com/clerknews/NewsTaxDeedWorkshops05292026/"
+        },
+        {
+          "text": "read More",
+          "href": "https://www.charlotteclerk.com/clerknews/NewsTaxDeedWorkshops052026/"
+        }
+      ]
+    },
+    {
+      "county": "Seminole",
+      "note": "https://www.seminoleclerk.org/: unable to verify the first certificate",
+      "links": []
+    },
+    {
+      "county": "St. Lucie",
+      "note": "via https://www.stlucieclerk.com/",
+      "links": [
+        {
+          "text": "Search Tax Deeds",
+          "href": "https://acclaimweb.stlucieclerk.gov/TributeWeb/"
+        },
+        {
+          "text": "Foreclosure and Tax Deed Auctions",
+          "href": "https://stlucieclerk.gov/auctions"
+        },
+        {
+          "text": "Foreclosure and Tax Deed Auctions",
+          "href": "https://www.stlucieclerk.com/services/auctions"
+        },
+        {
+          "text": "Tax Deeds",
+          "href": "http://www.stlucieclerk.gov/services/auctions/tax-deeds"
+        },
+        {
+          "text": "Unclaimed Funds",
+          "href": "https://www.stlucieclerk.com/services/unclaimed-funds"
+        },
+        {
+          "text": "Learn More",
+          "href": "https://stlucieclerk.gov/services/unclaimed-funds"
+        },
+        {
+          "text": "Bid on Foreclosures and Tax Deeds",
+          "href": "https://stlucie.realforeclose.com/"
+        },
+        {
+          "text": "Tax Deeds",
+          "href": "https://www.stlucieclerk.com/services/auctions/tax-deeds"
+        },
+        {
+          "text": "Bid on Foreclosures and Tax Deeds",
+          "href": "https://stlucie.clerkauction.com/"
+        }
+      ]
+    },
+    {
+      "county": "Alachua",
+      "note": "https://alachuaclerk.com/: Unable to connect. Is the computer able to access the url?",
+      "links": []
+    },
+    {
+      "county": "Collier",
+      "note": "via https://www.collierclerk.com/",
+      "links": [
+        {
+          "text": "Tax Deed Sales",
+          "href": "https://www.collierclerk.com/tax-deed-sales/"
+        },
+        {
+          "text": "Unclaimed Monies",
+          "href": "https://www.collierclerk.com/finance/accounting/unclaimed-monies/"
+        },
+        {
+          "text": "",
+          "href": "https://www.collierclerk.com/finance/unclaimed-monies/"
+        }
+      ]
+    },
+    {
+      "county": "Clay",
+      "note": "via https://www.clayclerk.com/",
+      "links": [
+        {
+          "text": "Tax Deeds",
+          "href": "https://clayclerk.com/departments/recording/tax-deeds/"
+        },
+        {
+          "text": "Tax Deeds & Foreclosures Sales, Online Bidding",
+          "href": "https://clayclerk.com/tax-deeds-foreclosures/"
+        },
+        {
+          "text": "Read Full Announcement",
+          "href": "https://clayclerk.com/announcements/annual-unclaimed-funds-list-published/"
+        }
+      ]
+    },
+    {
+      "county": "Bay",
+      "note": "via https://www.baycoclerk.com/",
+      "links": [
+        {
+          "text": "Tax Deed Auctions",
+          "href": "https://www.baycoclerk.com/public-records/property-sales/tax-deed-auctions/"
+        },
+        {
+          "text": "Tax Deeds & Foreclosures",
+          "href": "https://www.baycoclerk.com/public-records/property-sales/"
+        }
+      ]
+    },
+    {
+      "county": "Highlands",
+      "note": "https://www.hcclerk.org/: Source Returned HTTP 403",
+      "links": []
+    },
+    {
+      "county": "Indian River",
+      "note": "https://www.clerk.indian-river.org/: Unable to connect. Is the computer able to access the url?",
+      "links": []
+    },
+    {
+      "county": "Nassau",
+      "note": "via https://www.nassauclerk.com/",
+      "links": [
+        {
+          "text": "Tax Deed & Foreclosures View upcoming sales and auctions",
+          "href": "https://www.nassauclerk.com/190/View-Tax-Deed-Sales-and-Foreclosures"
+        },
+        {
+          "text": "Tax Deed Sales",
+          "href": "https://www.nassauclerk.com/190/2006/View-Tax-Deed-Sales"
+        }
+      ]
+    },
+    {
+      "county": "Okaloosa",
+      "note": "via https://www.okaloosaclerk.com/",
+      "links": [
+        {
+          "text": "Tax Deeds",
+          "href": "https://okaloosaclerk.com/board-services/tax-deed-sales/"
+        }
+      ]
+    }
+  ]
+}
