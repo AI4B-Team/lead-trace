@@ -86,12 +86,20 @@ export function parseXlsxMatrix(matrix: string[][], config: XlsxListConfig): Cle
 
 export async function runXlsxList(ctx: HandlerContext): Promise<HandlerResult> {
   const { source } = ctx;
-  if (!source.source_url) return emptyResult("No source_url configured");
   const config = (source.fetch_config ?? {}) as XlsxListConfig;
+  if (!source.source_url && !config.indexUrl) return emptyResult("No source_url or indexUrl configured");
   if (!config.columnMap || !Object.keys(config.columnMap).length) {
     return emptyResult("No columnMap in fetch_config — spreadsheet columns must be confirmed first");
   }
-  const res = await politeFetch(source.source_url, {
+  let fileUrl = source.source_url;
+  if (config.indexUrl) {
+    const { html } = await politeHtml(config.indexUrl);
+    const found = pickWorkbookLink(html, config.indexUrl, config.linkPattern);
+    // A stale pinned URL is better than nothing, but no URL at all is a gap.
+    if (!found && !fileUrl) return emptyResult("Index page carried no workbook link matching linkPattern");
+    if (found) fileUrl = found;
+  }
+  const res = await politeFetch(fileUrl!, {
     headers: { Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
   });
   const buf = new Uint8Array(await res.arrayBuffer());
