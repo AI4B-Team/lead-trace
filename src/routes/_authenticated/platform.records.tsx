@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Database, FileSpreadsheet, Loader2, Mail, Radar, Send } from "lucide-react";
+import { Database, FileSpreadsheet, Loader2, Mail, Radar, RefreshCw, Send } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/app/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -17,9 +18,12 @@ import {
   discoverDataSources,
   listAgencies,
   listDataSources,
+  listRequestPathSurplus,
   scheduleRecordsRequest,
   sendRecordsRequestsNow,
   setDataSourceStatus,
+  setSurplusCustodian,
+  sweepRequestPathSurplus,
 } from "@/lib/records-admin.functions";
 import { CADENCE_LABEL, REQUEST_STATUS_LABEL, statuteFor } from "@/lib/records-requests.shared";
 
@@ -66,12 +70,37 @@ function PublicRecordsPage() {
   const setStatus = useServerFn(setDataSourceStatus);
   const schedule = useServerFn(scheduleRecordsRequest);
   const sendNow = useServerFn(sendRecordsRequestsNow);
+  const fetchRequestPath = useServerFn(listRequestPathSurplus);
+  const saveCustodian = useServerFn(setSurplusCustodian);
+  const runRequestSweep = useServerFn(sweepRequestPathSurplus);
 
   const [recordType, setRecordType] = useState<string>(DISCOVERY_RECORD_TYPES[0]);
   const reference = useReferenceData();
 
   const sourcesQ = useQuery({ queryKey: ["admin-data-sources"], queryFn: () => fetchSources() });
   const agenciesQ = useQuery({ queryKey: ["admin-agencies"], queryFn: () => fetchAgencies() });
+  const requestPathQ = useQuery({ queryKey: ["admin-request-path"], queryFn: () => fetchRequestPath() });
+  const [custodianDraft, setCustodianDraft] = useState<Record<string, string>>({});
+
+  const addCustodian = useMutation({
+    mutationFn: (v: { countyName: string; state: string; email: string }) => saveCustodian({ data: v }),
+    onSuccess: () => {
+      toast.success("Custodian saved — request scheduled monthly.");
+      void qc.invalidateQueries({ queryKey: ["admin-request-path"] });
+      void qc.invalidateQueries({ queryKey: ["admin-agencies"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const requestSweep = useMutation({
+    mutationFn: () => runRequestSweep(),
+    onSuccess: (r) => {
+      const waiting = r.results.filter((x) => x.status === "awaiting_contact").length;
+      toast.success(`${r.results.length - waiting} scheduled, ${waiting} awaiting a custodian address.`);
+      void qc.invalidateQueries({ queryKey: ["admin-request-path"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const discover = useMutation({
     mutationFn: () => runDiscovery({ data: { recordType } }),
@@ -112,6 +141,8 @@ function PublicRecordsPage() {
   const agencies = agenciesQ.data?.agencies ?? [];
   const requests = agenciesQ.data?.requests ?? [];
   const files = agenciesQ.data?.files ?? [];
+  const requestPath = requestPathQ.data?.counties ?? [];
+  const awaitingContact = requestPath.filter((c) => !c.contactEmail).length;
   const requestFor = (agencyId: string) => requests.find((r) => r.agency_id === agencyId);
 
   return (
