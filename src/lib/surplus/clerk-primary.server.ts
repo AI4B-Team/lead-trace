@@ -95,18 +95,29 @@ export function clerkRowToFiling(
     `${row.sale_date ?? "nodate"}|${(row.property_address ?? "").toUpperCase()}`;
   const docNumber = `SURP-${ctx.fips}-${key}`;
 
+  // Some clerks (e.g. DeKalb GA) DO print the name the funds are held for next
+  // to the amount, plus a zip in the situs line. Use it when present; never
+  // invent one when the list is owner-less (Marion FL).
+  const printedName = (row.claimant_name ?? "").trim();
+  const isEntity = /\b(LLC|L\.L\.C|INC|CORP|CO|COMPANY|TRUST|LP|LLP|PARTNERS|BANK|ESTATE|HOLDINGS|PROPERTIES|INVESTMENTS|ENTERPRISES|PLAN)\b/i.test(
+    printedName,
+  );
+  const nameParts = printedName ? printedName.split(/\s+/) : [];
+  const rawZip = typeof row.raw?.["zip"] === "string" ? (row.raw["zip"] as string) : "";
+  const zip = /^\d{5}$/.test(rawZip.trim()) ? rawZip.trim() : null;
+
   return {
     doc_number: docNumber,
     filed_date: row.sale_date ?? null,
-    owner_first: null,
-    owner_last: null,
-    // The clerk lists carry no owner name; enrichment (parcel → owner) fills
-    // this later. Keeping it null is correct, not a gap in this record.
-    company_entity: null,
+    owner_first: !printedName || isEntity || nameParts.length < 2 ? null : nameParts[0]!,
+    owner_last: !printedName || isEntity ? null : nameParts[nameParts.length - 1]!,
+    // Owner-less clerk lists stay null here; enrichment (parcel → owner) fills
+    // them later, which is a gap to close, not a value to guess.
+    company_entity: printedName && isEntity ? printedName : null,
     property_address: row.property_address ?? null,
     property_city: null,
     property_state: ctx.state.toUpperCase(),
-    property_zip: null,
+    property_zip: zip,
     amount: row.confirmed_amount,
     auction_date: row.sale_date ?? null,
     status: row.claim_status ?? "unclaimed",
