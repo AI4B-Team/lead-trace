@@ -3150,41 +3150,50 @@ export type Database = {
       records_request_files: {
         Row: {
           agency_id: string
+          detected_columns: string[]
           file_type: string | null
           filename: string
           id: string
           parse_error: string | null
           parse_status: string
+          raw_text: string | null
           received_at: string
           request_id: string | null
           rows_parsed: number
           rows_total: number
+          sample_rows: Json
           storage_path: string | null
         }
         Insert: {
           agency_id: string
+          detected_columns?: string[]
           file_type?: string | null
           filename: string
           id?: string
           parse_error?: string | null
           parse_status?: string
+          raw_text?: string | null
           received_at?: string
           request_id?: string | null
           rows_parsed?: number
           rows_total?: number
+          sample_rows?: Json
           storage_path?: string | null
         }
         Update: {
           agency_id?: string
+          detected_columns?: string[]
           file_type?: string | null
           filename?: string
           id?: string
           parse_error?: string | null
           parse_status?: string
+          raw_text?: string | null
           received_at?: string
           request_id?: string | null
           rows_parsed?: number
           rows_total?: number
+          sample_rows?: Json
           storage_path?: string | null
         }
         Relationships: [

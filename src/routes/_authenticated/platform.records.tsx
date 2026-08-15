@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Database, FileSpreadsheet, Loader2, Mail, Radar, RefreshCw, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ import {
   setDataSourceStatus,
   setSurplusCustodian,
   sweepRequestPathSurplus,
+  remapReturnedFile,
 } from "@/lib/records-admin.functions";
 import { CADENCE_LABEL, REQUEST_STATUS_LABEL, statuteFor } from "@/lib/records-requests.shared";
 
@@ -62,6 +63,95 @@ const STATUS_LABEL: Record<string, string> = {
   policy_blocked: "Policy Blocked",
 };
 
+/** Canonical fields a returned spreadsheet can fill, in review order. */
+const MAPPABLE_FIELDS: Array<{ key: string; label: string }> = [
+  { key: "address", label: "Address" },
+  { key: "city", label: "City" },
+  { key: "state", label: "State" },
+  { key: "zip", label: "ZIP" },
+  { key: "owner", label: "Owner Or Respondent" },
+  { key: "case_id", label: "Case Number" },
+  { key: "case_date", label: "Filing Date" },
+  { key: "status", label: "Status" },
+  { key: "description", label: "Description" },
+  { key: "amount", label: "Amount" },
+];
+
+const NONE = "__none__";
+
+/**
+ * One-time manual mapping for a file we could not read. The saved mapping is
+ * remembered for the agency, so this is the only time a human sees it.
+ */
+function ColumnMapper({
+  columns,
+  sampleRows,
+  busy,
+  onSave,
+}: {
+  columns: string[];
+  sampleRows: Array<Record<string, unknown>>;
+  busy: boolean;
+  onSave: (columnMap: Record<string, string>) => void;
+}) {
+  const [draft, setDraft] = useState<Record<string, string>>({});
+
+  if (columns.length === 0) {
+    return (
+      <p className="py-2 text-xs text-muted-foreground">
+        No column headings were captured for this file — ask the agency to resend it as CSV or Excel.
+      </p>
+    );
+  }
+
+  const sample = (col: string) =>
+    sampleRows.map((r) => String(r[col] ?? "").trim()).filter(Boolean)[0] ?? "";
+
+  return (
+    <div className="space-y-3 py-2">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {MAPPABLE_FIELDS.map((f) => (
+          <div key={f.key} className="space-y-1">
+            <label className="text-[11px] font-medium text-muted-foreground">{f.label}</label>
+            <Select
+              value={draft[f.key] ?? NONE}
+              onValueChange={(v) =>
+                setDraft((d) => {
+                  const next = { ...d };
+                  if (v === NONE) delete next[f.key];
+                  else next[f.key] = v;
+                  return next;
+                })
+              }
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="Not In File" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE}>Not In File</SelectItem>
+                {columns.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                    {sample(c) ? ` — ${sample(c).slice(0, 24)}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <Button size="sm" disabled={busy || !draft.address} onClick={() => onSave(draft)}>
+          {busy ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : null} Save Mapping And Re-Ingest
+        </Button>
+        {!draft.address ? (
+          <span className="text-[11px] text-muted-foreground">An address column is required.</span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function PublicRecordsPage() {
   const qc = useQueryClient();
   const fetchSources = useServerFn(listDataSources);
@@ -73,6 +163,7 @@ function PublicRecordsPage() {
   const fetchRequestPath = useServerFn(listRequestPathSurplus);
   const saveCustodian = useServerFn(setSurplusCustodian);
   const runRequestSweep = useServerFn(sweepRequestPathSurplus);
+  const remapFile = useServerFn(remapReturnedFile);
 
   const [recordType, setRecordType] = useState<string>(DISCOVERY_RECORD_TYPES[0]);
   const reference = useReferenceData();
@@ -81,6 +172,21 @@ function PublicRecordsPage() {
   const agenciesQ = useQuery({ queryKey: ["admin-agencies"], queryFn: () => fetchAgencies() });
   const requestPathQ = useQuery({ queryKey: ["admin-request-path"], queryFn: () => fetchRequestPath() });
   const [custodianDraft, setCustodianDraft] = useState<Record<string, string>>({});
+  const [mappingFile, setMappingFile] = useState<string | null>(null);
+
+  const remap = useMutation({
+    mutationFn: (v: { fileId: string; columnMap: Record<string, string> }) => remapFile({ data: v }),
+    onSuccess: (r) => {
+      if (r.status === "parsed") {
+        toast.success(`Mapped and ingested ${r.rowsParsed} rows to ${r.distributedTo} workspaces.`);
+        setMappingFile(null);
+      } else {
+        toast.error(r.error ?? "Still could not read the file with that mapping.");
+      }
+      void qc.invalidateQueries({ queryKey: ["admin-agencies"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const addCustodian = useMutation({
     mutationFn: (v: { countyName: string; state: string; email: string }) => saveCustodian({ data: v }),
@@ -501,6 +607,7 @@ function PublicRecordsPage() {
               </TableHeader>
               <TableBody>
                 {files.map((f) => (
+                  <Fragment key={f.id}>
                   <TableRow key={f.id}>
                     <TableCell className="font-medium">{f.filename}</TableCell>
                     <TableCell className="tabular-nums">{f.rows_total}</TableCell>
@@ -518,11 +625,36 @@ function PublicRecordsPage() {
                       >
                         {f.parse_status.replace("_", " ")}
                       </Badge>
+                      {f.parse_status === "needs_mapping" ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="ml-2 h-6 px-2 text-[11px]"
+                          onClick={() => setMappingFile(mappingFile === f.id ? null : f.id)}
+                        >
+                          {mappingFile === f.id ? "Close" : "Map Columns"}
+                        </Button>
+                      ) : null}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {new Date(f.received_at).toLocaleDateString()}
                     </TableCell>
                   </TableRow>
+                  {mappingFile === f.id ? (
+                    <TableRow key={`${f.id}-map`}>
+                      <TableCell colSpan={5} className="bg-muted/30">
+                        <ColumnMapper
+                          columns={(f.detected_columns as string[] | null) ?? []}
+                          sampleRows={(f.sample_rows as Array<Record<string, unknown>> | null) ?? []}
+                          busy={remap.isPending}
+                          onSave={(columnMap: Record<string, string>) =>
+                            remap.mutate({ fileId: f.id, columnMap })
+                          }
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                  </Fragment>
                 ))}
               </TableBody>
             </Table>
