@@ -862,9 +862,12 @@ export async function runNightlyPulls(): Promise<{
         vendorHalted = err.message;
         console.error(`[distress-feed] ${err.message}`);
       }
-      // Obeying robots.txt is a policy skip, not a broken source.
-      const { RobotsDisallowedError } = await import("./data-providers/scraper-policy");
-      if (err instanceof RobotsDisallowedError) disallowed = true;
+      // Obeying robots.txt is a policy skip, not a broken source. Match on the
+      // error NAME, not the class: this module reaches scraper-policy through a
+      // dynamic import, and an `instanceof` against a separately-loaded copy of
+      // that module silently returns false — which is how every robots skip was
+      // landing in the health log as a failed pull and turning the whole tick red.
+      if (err instanceof Error && err.name === "RobotsDisallowedError") disallowed = true;
     }
     const bytes = target.proxied ? proxyMod.bytesUsed() - bytesBefore : 0;
     const httpStatus = target.proxied ? proxyMod.lastVendorStatus() : null;

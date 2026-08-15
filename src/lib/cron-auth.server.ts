@@ -105,10 +105,13 @@ export async function runTick(
     const result = await fn();
     const body = (result ?? {}) as Record<string, unknown>;
     const failed = body["ok"] === false;
+    // A failing tick usually carries `firstError` (per-item runners) rather than
+    // `error`; without this the admin health list just said "Tick Failed".
+    const reason = String(body["error"] ?? body["firstError"] ?? "Tick Failed");
     await recordTickResult(
       key,
       failed ? "error" : "ok",
-      failed ? String(body["error"] ?? "Tick Failed") : summarise(body),
+      failed ? reason : summarise(body),
       Date.now() - startedAt,
     );
     return Response.json(body, { status: failed ? 500 : 200 });
