@@ -50,6 +50,12 @@ const STATUS_TONE: Record<string, string> = {
   discovered: "border-border text-muted-foreground",
   disabled: "border-border text-muted-foreground",
   failed: "border-destructive/40 text-destructive",
+  // Not broken and not our choice to pause: the source owner forbids collection.
+  policy_blocked: "border-warning/40 text-warning",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  policy_blocked: "Policy Blocked",
 };
 
 function PublicRecordsPage() {
