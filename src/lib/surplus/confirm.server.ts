@@ -267,9 +267,14 @@ async function markSourceFailure(db: DB, source: SurplusSourceRow, reason: strin
 }
 
 /** Nightly sweep across every due source. */
-export async function sweepSurplusSources(): Promise<{ results: SourceRunResult[] }> {
+export async function sweepSurplusSources(
+  opts: { includeUnverified?: boolean } = {},
+): Promise<{ results: SourceRunResult[] }> {
   const db = await admin();
-  const [sources, statutes] = await Promise.all([dueSources(db), loadStatutes(db)]);
+  const [sources, statutes] = await Promise.all([
+    dueSources(db, { includeUnverified: opts.includeUnverified }),
+    loadStatutes(db),
+  ]);
   const results: SourceRunResult[] = [];
   for (const source of sources) {
     results.push(await runSurplusSource(source, { statutes }));
