@@ -1,0 +1,113 @@
+{
+  "generatedAt": "2026-08-15T16:05:57.582Z",
+  "report": [
+    {
+      "county": "Duval",
+      "proxied": true,
+      "hits": [
+        {
+          "text": "Tax Deed Auctions",
+          "href": "https://www.duvalclerk.com/online-option/tax-deed-auctions"
+        },
+        {
+          "text": "Tax Deeds",
+          "href": "https://www.duvalclerk.com/how-do-i/bid-on/tax-deeds"
+        },
+        {
+          "text": "Unclaimed Funds",
+          "href": "https://www.duvalclerk.com/departments/finance-and-accounting/unclaimed-funds"
+        },
+        {
+          "text": "Tax Deed Files",
+          "href": "https://www.duvalclerk.com/how-do-i/search-for/tax-deed-files"
+        },
+        {
+          "text": "Tax Deeds",
+          "href": "https://www.duvalclerk.com/departments/county-services/tax-deed-files"
+        },
+        {
+          "text": "Tax Deeds",
+          "href": "https://www.duval.realtaxdeed.com/"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "county": "Lee",
+      "proxied": true,
+      "hits": [],
+      "notes": [
+        "https://www.leeclerk.org/: Source Returned HTTP 403",
+        "https://www.leeclerk.org/sitemap.xml: Source Returned HTTP 403"
+      ]
+    },
+    {
+      "county": "Lake",
+      "proxied": true,
+      "hits": [],
+      "notes": [
+        "https://www.lakecountyclerk.org/: Source Returned HTTP 403",
+        "https://lakecountyclerk.org/: Source Returned HTTP 403"
+      ]
+    },
+    {
+      "county": "Escambia",
+      "proxied": true,
+      "hits": [],
+      "notes": [
+        "https://www.escambiaclerk.com/: Source Returned HTTP 403",
+        "https://www.escambiaclerk.com/sitemap.xml: Source Returned HTTP 403"
+      ]
+    },
+    {
+      "county": "Leon",
+      "proxied": true,
+      "hits": [
+        {
+          "text": "Tax Deeds",
+          "href": "https://leonclerk.com/divisions/property-sales/tax-deeds/"
+        },
+        {
+          "text": "Unclaimed Money",
+          "href": "https://leonclerk.com/helpful-resources/records/unclaimed-money/"
+        },
+        {
+          "text": "Tax Deeds & Foreclosures Sales, Online Bidding",
+          "href": "https://www.leonclerk.com/divisions/property-sales/"
+        }
+      ],
+      "notes": [
+        "https://cvweb.leonclerk.com/: Source Returned HTTP 403"
+      ]
+    },
+    {
+      "county": "Pasco",
+      "proxied": true,
+      "hits": [
+        {
+          "text": "COULD YOU BE OWED MONEY? CHECK PASCO'S 2026 UNCLAIMED FUNDS LIST",
+          "href": "https://www.pascoclerk.com/CivicAlerts.aspx?AID=316"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "county": "Pinellas",
+      "proxied": true,
+      "hits": [],
+      "notes": [
+        "https://mypinellasclerk.gov/: Source Returned HTTP 403",
+        "https://www.mypinellasclerk.gov/sitemap.xml: Source Returned HTTP 403"
+      ]
+    },
+    {
+      "county": "Highlands",
+      "proxied": true,
+      "hits": [],
+      "notes": [
+        "https://www.hcclerk.org/: Source Returned HTTP 403",
+        "https://www.hcclerk.org/sitemap.xml: Source Returned HTTP 504"
+      ]
+    }
+  ]
+}

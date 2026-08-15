@@ -32,6 +32,54 @@ export function isRealauctionUrl(url: string): boolean {
   return VENDOR_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
 }
 
+// ---------------------------------------------------------------------------
+// Second proxy scope: county clerk sites behind a commercial WAF.
+//
+// Verified 2026-08-15: these clerks answer datacenter egress with a flat 403
+// (their WAF, not robots — robots.txt allows the paths we want). Routing them
+// through the same residential path is the only way to read pages the clerk
+// publishes publicly. Robots is still enforced on every request in
+// scraper-policy; the proxy changes our IP, never our permission.
+//
+// Add hosts here only after a direct fetch has been observed to 403, and keep
+// the list to clerk-owned hostnames. `PROXY_EXTRA_HOSTS` (comma separated)
+// allows an operator to widen this without a deploy.
+// ---------------------------------------------------------------------------
+const WAF_CLERK_HOSTS = [
+  "duvalclerk.com",
+  "leeclerk.org",
+  "lakecountyclerk.org",
+  "escambiaclerk.com",
+  "leonclerk.com",
+  "leonclerk.org",
+  "pascoclerk.com",
+  "pinellasclerk.gov",
+  "mypinellasclerk.gov",
+  "pinellasclerk.org",
+  "hcclerk.org",
+];
+
+function extraProxyHosts(): string[] {
+  return (process.env["PROXY_EXTRA_HOSTS"] ?? "")
+    .split(",")
+    .map((h) => h.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+/** Every host we deliberately route through the residential proxy. */
+export function requiresProxy(url: string): boolean {
+  if (isRealauctionUrl(url)) return true;
+  let host: string;
+  try {
+    host = new URL(url).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  return [...WAF_CLERK_HOSTS, ...extraProxyHosts()].some(
+    (h) => host === h || host.endsWith(`.${h}`),
+  );
+}
+
 export class ProxyUnavailableError extends Error {
   readonly code = "proxy_unavailable";
   constructor(reason: string) {

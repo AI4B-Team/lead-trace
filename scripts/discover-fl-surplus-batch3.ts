@@ -65,7 +65,7 @@ function withTimeout<T>(work: Promise<T>, ms: number, label: string): Promise<T>
   ]);
 }
 
-async function probe(county: string, url: string): Promise<Probe> {
+export async function probe(county: string, url: string): Promise<Probe> {
   const base = { county, url, ok: false, robotsAllowed: false, handler: "unknown", tables: 0, headers: [] as string[], suggested: {}, docLinks: [] as string[], note: "" };
   const allowed = await withTimeout(robotsAllows(url), 15_000, "robots").catch(() => false);
   base.robotsAllowed = Boolean(allowed);
@@ -119,4 +119,4 @@ async function main() {
   console.log(`\n${probes.filter((p) => p.ok).length} candidate(s). Report: reports/fl-surplus-batch3.json`);
 }
 
-void main();
+if (import.meta.main) void main();
