@@ -38,6 +38,35 @@ export function nextSendAt(cadence: RequestCadence, from = new Date()): string {
   return new Date(from.getTime() + CADENCE_DAYS[cadence] * 86_400_000).toISOString();
 }
 
+/**
+ * A clerk address that hard-bounces (or files a complaint) is a wrong address,
+ * not a delivery hiccup: keep mailing it and the domain's reputation pays for
+ * it. Park the request and drop the address so the county reappears as
+ * "awaiting contact" in the admin queue for a human to correct.
+ *
+ * Notification/bookkeeping only — Lovable already blocks the send itself.
+ * Safe to run more than once for the same event.
+ */
+export async function handleUndeliverableRecipient(recipient: string, reason: "bounced" | "complaint") {
+  const db = await admin();
+  const email = recipient.trim().toLowerCase();
+  const { data: agencies } = await db
+    .from("agency_contacts")
+    .select("id, email")
+    .ilike("email", email)
+    .limit(10);
+  const ids = ((agencies ?? []) as Array<{ id: string }>).map((a) => a.id);
+  if (ids.length === 0) return { matched: 0 };
+
+  const note =
+    reason === "complaint"
+      ? `Marked As Spam By ${email} — Address Cleared`
+      : `Mail To ${email} Bounced — Address Cleared`;
+  await db.from("records_requests").update({ status: "failed", last_error: note }).in("agency_id", ids);
+  await db.from("agency_contacts").update({ email: null, notes: note }).in("id", ids);
+  return { matched: ids.length };
+}
+
 /** Compose (or recompose) the request body for an agency and schedule it. */
 export async function composeAndSchedule(agencyId: string, opts: {
   recordTypes?: string[];
