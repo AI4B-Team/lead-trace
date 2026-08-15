@@ -120,7 +120,8 @@ export function clerkRowToFiling(
   // comma when the clerk used one.
   const commaAt = printedName.indexOf(",");
   const surnameFirst = commaAt > 0 ? printedName.slice(0, commaAt).trim() : null;
-  const givenNames = commaAt > 0 ? printedName.slice(commaAt + 1).trim() : "";
+  // A suffix comma ("Walton, Wilbur, Jr") is punctuation, not a name boundary.
+  const givenNames = commaAt > 0 ? printedName.slice(commaAt + 1).replace(/,/g, " ").trim() : "";
   const nameParts = surnameFirst
     ? [...(givenNames ? givenNames.split(/\s+/) : []), surnameFirst]
     : printedName
