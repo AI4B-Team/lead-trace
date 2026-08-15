@@ -716,6 +716,10 @@ function observedSourceClass(f: RawFiling): import("./distress/reconcile.shared"
 export async function runNightlyPulls(): Promise<{
   ok: boolean;
   targets: number;
+  pulled: number;
+  failed: number;
+  skipped: number;
+  firstError?: string;
   results: Array<{
     county: string;
     recordType: string;
