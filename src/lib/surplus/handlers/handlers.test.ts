@@ -125,4 +125,29 @@ describe("pdf_list handler", () => {
     expect(rows[0]).toMatchObject({ case_number: "123-2024", confirmed_amount: 5000, sale_date: "2025-07-16" });
     expect(rows[1]).toMatchObject({ case_number: "124-2024", confirmed_amount: 6250.5, sale_date: "2025-08-20" });
   });
+
+  it("rejoins rows the PDF wrapped and reads a spelled-out sale date (Hall GA)", () => {
+    const config = {
+      columns: ["sale_date", "purchaser", "parcel_apn", "owner_and_address", "confirmed_amount"],
+      rowPattern:
+        "^([A-Z][a-z]+ \\d{1,2}, \\d{4}) (.+?) ((?:\\d{5}[A-Z]?[ ]?\\d{6}[A-Z]?)|(?:[MP]\\d{6,8})) (.+?) ([\\d,]+\\.\\d{2})\\$$",
+      joinPattern: "^[A-Z][a-z]+ \\d{1,2}, \\d{4} ",
+      skipLines: ["HALL COUNTY TAX COMMISSIONER", "TAX SALE DATE"],
+      defaultClaimStatus: "unclaimed" as const,
+    };
+    const rows = parsePdfLines(
+      [
+        "HALL COUNTY TAX COMMISSIONER - TAX SALE EXCESS FUNDS",
+        "November 1, 2016 MARSHA PIPER 15032D000050A THOMASON GEORGIA 2200 ATHENS HWY GAINESVILLE 3,797.42$",
+        "October 1, 2024 MARTEL ASSET MANAGEMENT",
+        "LLC 01039A000003 JONES BRIAN H 605 NE CANDLER ST GAINESVILLE 105,607.85$",
+      ],
+      config,
+    );
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ parcel_apn: "15032D000050A", confirmed_amount: 3797.42, sale_date: "2016-11-01" });
+    // The wrapped second line belongs to the row above, not a dropped record.
+    expect(rows[1]).toMatchObject({ parcel_apn: "01039A000003", confirmed_amount: 105607.85, sale_date: "2024-10-01" });
+    expect(rows[1]?.claim_status).toBe("unclaimed");
+  });
 });
