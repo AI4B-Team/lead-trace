@@ -34,14 +34,21 @@ export async function assertMember(
   if (!data) throw new Error("You do not have access to that workspace.");
 }
 
+/**
+ * Workspace scoping, shared by the feed and by the filter-option reads.
+ * Derived public-records rows carry no workspace; clerk confirmations belong to
+ * one workspace and must never widen another workspace's filter options.
+ */
+function scopeWorkspace(q: any, workspaceId: string | null) {
+  return workspaceId
+    ? q.or(`workspace_id.is.null,workspace_id.eq.${workspaceId}`)
+    : q.is("workspace_id", null);
+}
+
 function buildQuery(db: any, f: SurplusFilters, select: string, count = false) {
   let q = db.from(VIEW).select(select, count ? { count: "exact" } : undefined);
 
-  // Derived rows are public-records data and carry no workspace; clerk
-  // confirmations are workspace-scoped and must stay private.
-  q = f.workspaceId
-    ? q.or(`workspace_id.is.null,workspace_id.eq.${f.workspaceId}`)
-    : q.is("workspace_id", null);
+  q = scopeWorkspace(q, f.workspaceId);
 
   if (f.states.length) q = q.in("state_code", f.states);
   if (f.counties.length) q = q.in("county_fips", f.counties);
@@ -109,8 +116,10 @@ export async function listRecords(f: SurplusFilters) {
 /** States that actually have visible records — unpublished states never appear. */
 export async function listStates(workspaceId: string | null) {
   const db = await admin();
-  const { data, error } = await db.from(VIEW).select("state_code").limit(20_000);
-  void workspaceId;
+  const { data, error } = await scopeWorkspace(
+    db.from(VIEW).select("state_code"),
+    workspaceId,
+  ).limit(20_000);
   if (error) throw new Error(`Could not load states: ${error.message}`);
   return [...new Set(((data ?? []) as { state_code: string }[]).map((r) => r.state_code))].sort();
 }
@@ -119,14 +128,13 @@ export async function listStates(workspaceId: string | null) {
  * County options for the dependent filter, scoped to the selected states so the
  * picker can never offer a county that resolves outside them.
  */
-export async function listCounties(states: string[]) {
+export async function listCounties(states: string[], workspaceId: string | null = null) {
   if (!states.length) return [];
   const db = await admin();
-  const { data, error } = await db
-    .from(VIEW)
-    .select("county_fips, county_name, state_code")
-    .in("state_code", states)
-    .limit(20_000);
+  const { data, error } = await scopeWorkspace(
+    db.from(VIEW).select("county_fips, county_name, state_code").in("state_code", states),
+    workspaceId,
+  ).limit(20_000);
   if (error) throw new Error(`Could not load counties: ${error.message}`);
   const seen = new Map<string, { fips: string; name: string; stateCode: string }>();
   for (const row of (data ?? []) as {
