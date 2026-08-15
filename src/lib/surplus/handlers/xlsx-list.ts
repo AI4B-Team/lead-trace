@@ -13,7 +13,7 @@
  * the dollar figure is how a wrong amount reaches a customer.
  */
 
-import { politeFetch } from "../../data-providers/scraper-policy";
+import { politeFetch, politeHtml } from "../../data-providers/scraper-policy";
 import { emptyResult, toClerkRow, type ClerkSurplusRow, type HandlerContext, type HandlerResult } from "./types";
 
 export type XlsxListConfig = {
@@ -21,7 +21,27 @@ export type XlsxListConfig = {
   headerRow?: number;
   columnMap?: Record<string, string>;
   defaultClaimStatus?: ClerkSurplusRow["claim_status"];
+  /** Clerk page that links the current workbook (filenames rotate weekly). */
+  indexUrl?: string;
+  /** Regex matched against each href on indexUrl; first match wins. */
+  linkPattern?: string;
 };
+
+/** Newest workbook link on a clerk index page, absolute. */
+export function pickWorkbookLink(html: string, base: string, linkPattern?: string): string | null {
+  const re = linkPattern ? new RegExp(linkPattern, "i") : /\.xlsx?(\?|$)/i;
+  const hrefs: string[] = [];
+  const hrefRe = /href="([^"]+)"/gi;
+  let m: RegExpExecArray | null;
+  while ((m = hrefRe.exec(html))) hrefs.push(m[1]!);
+  const hit = hrefs.find((h) => re.test(h));
+  if (!hit) return null;
+  try {
+    return new URL(hit.replace(/&amp;/g, "&"), base).toString();
+  } catch {
+    return null;
+  }
+}
 
 /** Rows as text, in sheet order, so the same column logic as html_table applies. */
 export async function sheetToMatrix(bytes: Uint8Array, sheetName?: string): Promise<string[][]> {
