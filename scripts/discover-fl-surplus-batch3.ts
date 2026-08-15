@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
 // ---------------------------------------------------------------------------
-// Batch 2 of Florida clerk-primary surplus discovery.
+// Batch 3 of Florida clerk-primary surplus discovery.
 //
-//   bun run scripts/discover-fl-surplus-batch2.ts
+//   bun run scripts/discover-fl-surplus-batch3.ts
 //
 // Probe only. Reports which clerk publishes a machine-readable list of held
 // tax deed surplus, which handler fits, and what the columns actually say.
@@ -15,24 +15,15 @@ import { extractRows, extractTables, stripTags } from "../src/lib/surplus/handle
 import { pickListDocuments } from "../src/lib/surplus/doc-classify";
 
 const CANDIDATES: Array<{ county: string; urls: string[] }> = [
-  { county: "Duval", urls: ["https://www.duvalclerk.com/departments/tax-deeds", "https://www.duvalclerk.com/departments/tax-deeds/tax-deed-surplus"] },
-  { county: "Orange", urls: ["https://myorangeclerk.com/Divisions/Tax-Deeds", "https://myorangeclerk.com/Divisions/Tax-Deeds/Surplus-Funds"] },
-  { county: "Lee", urls: ["https://www.leeclerk.org/departments/tax-deeds/surplus-funds", "https://www.leeclerk.org/departments/tax-deeds"] },
-  { county: "Lake", urls: ["https://www.lakecountyclerk.org/official-records/tax-deeds/", "https://www.lakecountyclerk.org/services/tax_deeds/surplus_funds.aspx"] },
-  { county: "Seminole", urls: ["https://www.seminoleclerk.org/Departments/TaxDeeds/", "https://seminole.realtaxdeed.com/"] },
-  { county: "Alachua", urls: ["https://alachuaclerk.org/tax-deeds/", "https://alachuaclerk.org/tax-deed-surplus/"] },
-  { county: "Escambia", urls: ["https://www.escambiaclerk.com/163/Tax-Deeds", "https://www.escambiaclerk.com/482/Tax-Deed-Surplus"] },
-  { county: "Leon", urls: ["https://cvweb.leonclerk.com/public/online_services/tax_deeds/", "https://www.leonclerk.com/tax-deeds/"] },
-  { county: "St. Lucie", urls: ["https://stlucieclerk.com/tax-deed-sales", "https://stlucieclerk.com/surplus-funds"] },
-  { county: "Charlotte", urls: ["https://www.charlotteclerk.com/departments/official-records/tax-deed-sales", "https://www.charlotteclerk.com/tax-deed-surplus"] },
-  { county: "Collier", urls: ["https://www.collierclerk.com/tax-deeds/", "https://www.collierclerk.com/records/tax-deeds/surplus/"] },
-  { county: "Clay", urls: ["https://www.clayclerk.com/tax-deeds/", "https://www.clayclerk.com/tax-deed-surplus/"] },
-  { county: "Bay", urls: ["https://www.baycoclerk.com/tax-deeds/", "https://www.baycoclerk.com/tax-deed-surplus-funds/"] },
-  { county: "Okaloosa", urls: ["https://www.okaloosaclerk.com/tax-deeds/", "https://www.clerkofcourts.cc/tax-deeds/"] },
-  { county: "Highlands", urls: ["https://www.hcclerk.org/official-records/tax-deeds", "https://www.hcclerk.org/tax-deed-surplus"] },
-  { county: "Putnam", urls: ["https://www.putnam-fl.com/coc/tax-deeds/", "https://putnam.realtaxdeed.com/"] },
-  { county: "Indian River", urls: ["https://www.clerk.indian-river.org/tax-deed-sales", "https://www.clerk.indian-river.org/surplus-funds"] },
-  { county: "Nassau", urls: ["https://www.nassauclerk.com/tax-deeds/", "https://www.nassauclerk.com/tax-deed-surplus/"] },
+  // Real paths recovered from each clerk's own homepage links (batch 2 guessed
+  // these and got 404s). Order is preference order per county.
+  { county: "Clay", urls: ["https://clayclerk.com/announcements/annual-unclaimed-funds-list-published/", "https://clayclerk.com/departments/recording/tax-deeds/"] },
+  { county: "St. Lucie", urls: ["https://www.stlucieclerk.com/services/unclaimed-funds", "https://www.stlucieclerk.com/services/auctions/tax-deeds"] },
+  { county: "Collier", urls: ["https://www.collierclerk.com/tax-deed-sales/", "https://www.collierclerk.com/finance/accounting/unclaimed-monies/"] },
+  { county: "Charlotte", urls: ["https://www.charlotteclerk.com/departments/taxdeed/", "https://taxdeeds.charlotteclerk.com/"] },
+  { county: "Bay", urls: ["https://www.baycoclerk.com/public-records/property-sales/tax-deed-auctions/", "https://www.baycoclerk.com/public-records/property-sales/"] },
+  { county: "Nassau", urls: ["https://www.nassauclerk.com/190/View-Tax-Deed-Sales-and-Foreclosures", "https://www.nassauclerk.com/190/2006/View-Tax-Deed-Sales"] },
+  { county: "Okaloosa", urls: ["https://okaloosaclerk.com/board-services/tax-deed-sales/"] },
 ];
 
 const FIELD_HINTS: Array<[RegExp, string]> = [
@@ -65,15 +56,24 @@ function pdfLinks(html: string, base: string): string[] {
 
 type Probe = Record<string, unknown>;
 
+// Some clerk sites accept the connection then never respond. Without a ceiling
+// one hung host stalls the whole sweep, so every network step gets a deadline.
+function withTimeout<T>(work: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    work,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`timeout after ${ms}ms (${label})`)), ms)),
+  ]);
+}
+
 async function probe(county: string, url: string): Promise<Probe> {
   const base = { county, url, ok: false, robotsAllowed: false, handler: "unknown", tables: 0, headers: [] as string[], suggested: {}, docLinks: [] as string[], note: "" };
-  const allowed = await robotsAllows(url).catch(() => false);
+  const allowed = await withTimeout(robotsAllows(url), 15_000, "robots").catch(() => false);
   base.robotsAllowed = Boolean(allowed);
   if (!allowed) return { ...base, note: "robots.txt disallows — not collectable" };
 
   let html = "";
   try {
-    html = (await politeHtml(url)).html;
+    html = (await withTimeout(politeHtml(url), 25_000, "page")).html;
   } catch (err) {
     return { ...base, note: err instanceof Error ? err.message : String(err) };
   }
@@ -115,8 +115,8 @@ async function main() {
     }
   }
   mkdirSync("reports", { recursive: true });
-  writeFileSync("reports/fl-surplus-batch2.json", JSON.stringify({ generatedAt: new Date().toISOString(), probes }, null, 2));
-  console.log(`\n${probes.filter((p) => p.ok).length} candidate(s). Report: reports/fl-surplus-batch2.json`);
+  writeFileSync("reports/fl-surplus-batch3.json", JSON.stringify({ generatedAt: new Date().toISOString(), probes }, null, 2));
+  console.log(`\n${probes.filter((p) => p.ok).length} candidate(s). Report: reports/fl-surplus-batch3.json`);
 }
 
 void main();
