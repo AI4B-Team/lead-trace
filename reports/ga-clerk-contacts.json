@@ -1,0 +1,37 @@
+{
+  "generatedAt": "2026-08-15T20:15:07.340Z",
+  "report": [
+    {
+      "county": "Clayton",
+      "state": "GA",
+      "site": "https://www.claytoncountyga.gov",
+      "pagesTried": [],
+      "contacts": [],
+      "notes": []
+    },
+    {
+      "county": "Clayton",
+      "state": "GA",
+      "site": "https://www.claytoncountyga.gov/government/tax-commissioner",
+      "pagesTried": [],
+      "contacts": [],
+      "notes": []
+    },
+    {
+      "county": "Cobb",
+      "state": "GA",
+      "site": "https://www.cobbtax.org",
+      "pagesTried": [],
+      "contacts": [],
+      "notes": []
+    },
+    {
+      "county": "Cobb",
+      "state": "GA",
+      "site": "https://www.cobbsuperiorcourtclerk.com",
+      "pagesTried": [],
+      "contacts": [],
+      "notes": []
+    }
+  ]
+}
