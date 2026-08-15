@@ -3,9 +3,12 @@
  *
  * Hillsborough FL is the reference case: a weekly "Tax Deed" workbook whose
  * first row is an as-of note and whose real header row is row 2
- * (CASE NUMBER | BALANCE). Config mirrors html_table plus a sheet/header hint:
+ * (CASE NUMBER | BALANCE). Its filename carries the publish date, so the config
+ * can point at the clerk's index page and let us resolve the current file
+ * instead of pinning a URL that dies next week:
  *   { sheet?: string, headerRow?: number (1-based), columnMap: { "<header>": "<field>" },
- *     defaultClaimStatus?: "unclaimed" | "claim_filed" | "disbursed" | "escheated" }
+ *     defaultClaimStatus?: "unclaimed" | "claim_filed" | "disbursed" | "escheated",
+ *     indexUrl?: string, linkPattern?: string }
  * Without a columnMap we parse nothing and say why — guessing which column is
  * the dollar figure is how a wrong amount reaches a customer.
  */
