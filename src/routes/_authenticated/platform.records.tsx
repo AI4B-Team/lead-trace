@@ -250,6 +250,12 @@ function PublicRecordsPage() {
   const requestPath = requestPathQ.data?.counties ?? [];
   const awaitingContact = requestPath.filter((c) => !c.contactEmail).length;
   const requestFor = (agencyId: string) => requests.find((r) => r.agency_id === agencyId);
+  // A sender-side block affects every request at once, so say it once at the top
+  // instead of leaving the same red line repeated down the table.
+  const senderBlocked = requests.some((r) => {
+    const e = String(r.last_error ?? "").toLowerCase();
+    return e.includes("not configured") || e.includes("domain_not_verified") || e.includes("emails_disabled");
+  });
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-6">
