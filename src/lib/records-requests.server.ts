@@ -86,17 +86,24 @@ export async function composeAndSchedule(agencyId: string, opts: {
   return data;
 }
 
-/** Resend transport. Absent an API key we leave the request scheduled. */
+/**
+ * Managed email transport. Delivery, retries, suppression and rate limits are
+ * handled upstream; a suppressed recipient is a normal, non-error outcome.
+ */
 async function sendEmail(to: string, subject: string, body: string): Promise<{ sent: boolean; error?: string }> {
-  const key = process.env["RESEND_API_KEY"];
-  if (!key) return { sent: false, error: "Email Sending Is Not Configured Yet (RESEND_API_KEY Missing)" };
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: `LeadTrace Records <${REQUEST_FROM}>`, to: [to], subject, text: body }),
-  });
-  if (!res.ok) return { sent: false, error: `Email Provider Returned HTTP ${res.status}` };
-  return { sent: true };
+  try {
+    const { sendLovableEmail } = await import("@lovable.dev/email-js");
+    const result = await sendLovableEmail({
+      to,
+      subject,
+      text: body,
+      from: { name: "LeadTrace Records" },
+    });
+    if (!result.sent) return { sent: false, error: `Not Delivered (${result.reason ?? "Unknown Reason"})` };
+    return { sent: true };
+  } catch (e) {
+    return { sent: false, error: e instanceof Error ? e.message : "Email Send Failed" };
+  }
 }
 
 /**
