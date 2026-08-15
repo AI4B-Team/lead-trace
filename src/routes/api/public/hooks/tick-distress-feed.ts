@@ -25,10 +25,19 @@ export const Route = createFileRoute("/api/public/hooks/tick-distress-feed")({
           // against the auction record derived in the same cycle.
           const { sweepSurplusSources } = await import("@/lib/surplus/confirm.server");
           const surplus = await sweepSurplusSources({ includeUnverified: true });
+          // Counties whose clerk publishes nothing machine-readable (or whose
+          // site refuses automation entirely): the public-records request is the
+          // only path. This schedules at most one request per agency per cycle;
+          // returned spreadsheets land on the records@ inbound hook.
+          const { sweepRecordsRequestSurplusSources } = await import(
+            "@/lib/surplus/records-request-intake.server"
+          );
+          const surplusRequests = await sweepRecordsRequestSurplusSources();
           return {
             ...pulls,
             clerkSurplus: clerkSurplus.results,
             surplusConfirmations: surplus.results,
+            surplusRequests: surplusRequests.results,
             // Watched (non-live) sources that parsed rows this cycle are ready
             // for promotion review.
             surplusWatchReady: clerkSurplus.results
