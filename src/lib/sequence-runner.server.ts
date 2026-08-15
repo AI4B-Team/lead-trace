@@ -89,11 +89,12 @@ export async function recordSequenceSend(
 ): Promise<void> {
   const { data: steps } = await db
     .from("campaign_steps")
-    .select("step_order, delay_minutes")
+    .select("step_order, delay_minutes, active")
     .eq("campaign_id", args.campaignId)
     .order("step_order");
-  const list = (steps ?? []) as Array<{ delay_minutes: number | null }>;
-  const nextIndex = args.sentStep + 1;
+  const list = (steps ?? []) as Array<{ delay_minutes: number | null; active: boolean | null }>;
+  let nextIndex = args.sentStep + 1;
+  while (nextIndex < list.length && list[nextIndex]!.active === false) nextIndex += 1;
   const nextStep = list[nextIndex];
   const now = new Date();
 
@@ -319,11 +320,16 @@ export async function runSequenceTick(workspaceId?: string): Promise<{
         .order("step_order");
       stepsCache.set(row.campaign_id, (data ?? []) as never);
     }
-    const steps = (stepsCache.get(row.campaign_id) ?? []).filter((s) => s.active !== false);
-    const step = steps[row.current_step];
+    // current_step is an index into the FULL ordered step list, so inactive
+    // steps must be skipped by index — filtering them out would shift every
+    // later index and send the wrong touch (or complete the row early).
+    const steps = stepsCache.get(row.campaign_id) ?? [];
+    let stepIndex = row.current_step;
+    while (stepIndex < steps.length && steps[stepIndex]!.active === false) stepIndex += 1;
+    const step = steps[stepIndex];
     if (!step) {
       await db.from("lead_sequence_state")
-        .update({ status: "completed", next_send_at: null })
+        .update({ status: "completed", current_step: stepIndex, next_send_at: null })
         .eq("id", row.id);
       completed += 1;
       continue;
@@ -431,7 +437,8 @@ export async function runSequenceTick(workspaceId?: string): Promise<{
       });
       num.sentToday += 1;
 
-      const nextIndex = row.current_step + 1;
+      let nextIndex = stepIndex + 1;
+      while (nextIndex < steps.length && steps[nextIndex]!.active === false) nextIndex += 1;
       const nextStep = steps[nextIndex];
       const now = new Date();
       await db.from("lead_sequence_state").update({
