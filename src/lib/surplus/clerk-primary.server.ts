@@ -44,6 +44,12 @@ import { SURPLUS_HANDLERS, type ClerkSurplusRow, type SurplusSourceRow } from ".
 
 type DB = SupabaseClient<Database>;
 
+/**
+ * Handlers that read the clerk's OWN published surplus list, and therefore may
+ * write confirmed (not estimated) surplus_funds rows.
+ */
+export const CLERK_PRIMARY_HANDLERS = ["pdf_list", "html_table", "xlsx_list"] as const;
+
 export type ClerkIngestResult = {
   sourceId: string;
   county: string;
