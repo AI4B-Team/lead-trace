@@ -144,3 +144,25 @@ four blocked GA counties are parked rather than proxied.
 
 **Live clerk-confirmed surplus counties: Marion FL (718 rows) and DeKalb GA
 (226 rows, $6.61M).** Both public guide pages are published and in the sitemap.
+
+## 2026-08-15 — round 4 (FL Gulf/east coast + metro probes)
+
+| County | Result | Action |
+| --- | --- | --- |
+| Manatee FL | Clerk "List of Unclaimed Funds" HTML table: case number, sale date, property owner, surplus amount, clerk-printed one-year date | **LIVE** (`html_table`), 8 held balances / $256,689.43 |
+| Sarasota FL | Surplus page explains notices + claim form, no list of held balances | `unverified`, re-probe monthly |
+| Volusia FL | Tax deed page reachable, no surplus list | `unverified`, re-probe monthly |
+| Duval, Lee, Escambia, Collier FL | 403/503 from clerk WAF (datacenter IP) | `broken` — residential proxy reserved for RealAuction |
+| Orange, Osceola, Okaloosa FL | Tax deed URLs 404 (site restructure) | needs URL rediscovery |
+| Alachua FL / Leon FL | Timeout / DNS failure | retry later |
+| Brevard FL | Surplus affidavit only on new page; overbid PDF still stale (2020) | stays `unverified` |
+
+Live clerk-confirmed counties after this round: Marion FL (718 / $7.74M), DeKalb GA
+(226 / $6.61M), Hillsborough FL (49 / $3.00M), Manatee FL (8 / $256.7K).
+
+Also added `/api/public/hooks/tick-clerk-surplus` on a daily 10:35 UTC schedule, so
+clerk lists refresh independently of the 12-hour nightly Distress Feed lock (which
+previously blocked same-day re-ingest after a source promotion).
+
+Note: Manatee case 2025TD000222 is printed by the Clerk with a 12/8/2026 sale date
+(clerk typo — sibling cases are 12/8/2025). We publish it as the Clerk published it.
