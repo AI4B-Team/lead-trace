@@ -1,0 +1,1 @@
+update public.cron_locks set last_tick_at = now() - interval '2 hours' where key = 'tick-clerk-surplus';
