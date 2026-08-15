@@ -89,11 +89,12 @@ export async function recordSequenceSend(
 ): Promise<void> {
   const { data: steps } = await db
     .from("campaign_steps")
-    .select("step_order, delay_minutes")
+    .select("step_order, delay_minutes, active")
     .eq("campaign_id", args.campaignId)
     .order("step_order");
-  const list = (steps ?? []) as Array<{ delay_minutes: number | null }>;
-  const nextIndex = args.sentStep + 1;
+  const list = (steps ?? []) as Array<{ delay_minutes: number | null; active: boolean | null }>;
+  let nextIndex = args.sentStep + 1;
+  while (nextIndex < list.length && list[nextIndex]!.active === false) nextIndex += 1;
   const nextStep = list[nextIndex];
   const now = new Date();
 
