@@ -58,15 +58,38 @@ export const Route = createFileRoute("/api/public/hooks/records-inbound")({
         }
 
         const { ingestAgencyFile } = await import("@/lib/records-requests.server");
+        const { agencyHandlesSurplus, ingestSurplusRequestFile } = await import(
+          "@/lib/surplus/records-request-intake.server"
+        );
+        const agencyId = (agency as { id: string }).id;
+        // Surplus lists are NOT leads: they become clerk-confirmed surplus_funds
+        // rows in the distress feed, spreadsheets included.
+        const surplus = await agencyHandlesSurplus(agencyId);
         const results = [];
         for (const att of payload.attachments ?? []) {
           const filename = att.filename ?? "attachment.csv";
           if (!/\.(csv|txt|xlsx|xls)$/i.test(filename)) continue;
+          if (surplus) {
+            try {
+              results.push(
+                await ingestSurplusRequestFile({
+                  agencyId,
+                  filename,
+                  ...(/\.xlsx?$/i.test(filename)
+                    ? { bytes: new Uint8Array(Buffer.from(att.content ?? "", "base64")) }
+                    : { text: decode(att) }),
+                }),
+              );
+            } catch (err) {
+              results.push({ filename, status: "failed", error: err instanceof Error ? err.message : String(err) });
+            }
+            continue;
+          }
           if (/\.xlsx?$/i.test(filename)) {
             // Spreadsheets are queued for a one-time mapping/extract by a human,
             // then remembered for that agency permanently.
             await supabaseAdmin.from("records_request_files").insert({
-              agency_id: (agency as { id: string }).id,
+              agency_id: agencyId,
               filename,
               file_type: filename.split(".").pop()!.toLowerCase(),
               parse_status: "needs_mapping",
@@ -78,7 +101,7 @@ export const Route = createFileRoute("/api/public/hooks/records-inbound")({
           try {
             results.push(
               await ingestAgencyFile({
-                agencyId: (agency as { id: string }).id,
+                agencyId,
                 filename,
                 text: decode(att),
               }),
