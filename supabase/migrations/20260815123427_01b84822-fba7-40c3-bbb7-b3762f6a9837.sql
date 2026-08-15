@@ -1,0 +1,2 @@
+update public.source_coverage set fips = '13097', updated_at = now() where state='GA' and county_name='Douglas' and record_type='surplus_funds' and fips <> '13097';
+update public.source_coverage set fips = '13135', updated_at = now() where state='GA' and county_name='Gwinnett' and record_type='surplus_funds' and fips <> '13135';
