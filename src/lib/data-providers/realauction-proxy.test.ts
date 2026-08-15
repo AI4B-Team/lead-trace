@@ -11,6 +11,7 @@ import {
   realauctionProxyStatus,
   REALAUCTION_USER_AGENT,
   recordVendorFetch,
+  requiresProxy,
   startRealauctionBudget,
 } from "./realauction-proxy";
 import { politeFetch, BOT_USER_AGENT } from "./scraper-policy";
