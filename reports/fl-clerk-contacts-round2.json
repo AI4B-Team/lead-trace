@@ -1,0 +1,278 @@
+{
+  "generatedAt": "2026-08-15T16:32:25.424Z",
+  "report": [
+    {
+      "county": "Bay",
+      "state": "FL",
+      "site": "https://www.baycoclerk.com",
+      "contacts": [],
+      "notes": [
+        "/contact-us: HTTP 404",
+        "/public-records-request: HTTP 404",
+        "/records-request: HTTP 404"
+      ]
+    },
+    {
+      "county": "Brevard",
+      "state": "FL",
+      "site": "https://www.brevardclerk.us",
+      "contacts": [
+        {
+          "email": "helpdesk@brevardclerk.us",
+          "label": "helpdesk@brevardclerk.us",
+          "page": "https://www.brevardclerk.us/",
+          "relevant": true
+        }
+      ],
+      "notes": [
+        "/contact: HTTP 404",
+        "/public-records: HTTP 404",
+        "/public-records-request: HTTP 404",
+        "/records-request: HTTP 404"
+      ]
+    },
+    {
+      "county": "Charlotte",
+      "state": "FL",
+      "site": "https://www.charlotteclerk.com",
+      "contacts": [],
+      "notes": [
+        "/contact: HTTP 404",
+        "/contact-us: HTTP 404",
+        "/public-records: HTTP 404",
+        "/public-records-request: HTTP 404",
+        "/records-request: HTTP 404"
+      ]
+    },
+    {
+      "county": "Citrus",
+      "state": "FL",
+      "site": "https://www.citrusclerk.gov",
+      "contacts": [],
+      "notes": [
+        "/: HTTP 403",
+        "/contact: HTTP 403",
+        "/contact-us: HTTP 403",
+        "/public-records: HTTP 403",
+        "/public-records-request: HTTP 403",
+        "/records-request: HTTP 403"
+      ]
+    },
+    {
+      "county": "Duval",
+      "state": "FL",
+      "site": "https://www.duvalclerk.com",
+      "contacts": [],
+      "notes": []
+    },
+    {
+      "county": "Escambia",
+      "state": "FL",
+      "site": "https://www.escambiaclerk.com",
+      "contacts": [],
+      "notes": [
+        "/: HTTP 403",
+        "/contact: HTTP 403",
+        "/contact-us: HTTP 403",
+        "/public-records: HTTP 403",
+        "/public-records-request: HTTP 403",
+        "/records-request: HTTP 403"
+      ]
+    },
+    {
+      "county": "Hernando",
+      "state": "FL",
+      "site": "https://www.hernandoclerk.com",
+      "contacts": [
+        {
+          "email": "publicrecordsrequest@hernandoclerk.org",
+          "label": "publicrecordsrequest@hernandoclerk.org",
+          "page": "https://www.hernandoclerk.com/public-records",
+          "relevant": true
+        }
+      ],
+      "notes": [
+        "/records-request: HTTP 404"
+      ]
+    },
+    {
+      "county": "Highlands",
+      "state": "FL",
+      "site": "https://www.hcclerk.org",
+      "contacts": [],
+      "notes": [
+        "/: HTTP 403",
+        "/contact: HTTP 404",
+        "/contact-us: HTTP 404",
+        "/public-records: HTTP 404",
+        "/public-records-request: HTTP 404",
+        "/records-request: HTTP 404"
+      ]
+    },
+    {
+      "county": "Lake",
+      "state": "FL",
+      "site": "https://www.lakecountyclerk.org",
+      "contacts": [],
+      "notes": [
+        "/: HTTP 403",
+        "/contact: HTTP 403",
+        "/contact-us: HTTP 403",
+        "/public-records: HTTP 403",
+        "/public-records-request: HTTP 403",
+        "/records-request: HTTP 403"
+      ]
+    },
+    {
+      "county": "Lee",
+      "state": "FL",
+      "site": "https://www.leeclerk.org",
+      "contacts": [],
+      "notes": [
+        "/: HTTP 403",
+        "/contact: HTTP 403",
+        "/contact-us: HTTP 403",
+        "/public-records: HTTP 403",
+        "/public-records-request: HTTP 403",
+        "/records-request: HTTP 403"
+      ]
+    },
+    {
+      "county": "Leon",
+      "state": "FL",
+      "site": "https://www.leonclerk.com",
+      "contacts": [],
+      "notes": [
+        "/contact-us: HTTP 404",
+        "/public-records: HTTP 404",
+        "/public-records-request: HTTP 404"
+      ]
+    },
+    {
+      "county": "Nassau",
+      "state": "FL",
+      "site": "https://www.nassauclerk.com",
+      "contacts": [],
+      "notes": [
+        "/contact: HTTP 404",
+        "/contact-us: HTTP 404",
+        "/public-records: HTTP 404",
+        "/public-records-request: HTTP 404",
+        "/records-request: HTTP 404"
+      ]
+    },
+    {
+      "county": "Okaloosa",
+      "state": "FL",
+      "site": "https://okaloosaclerk.com",
+      "contacts": [],
+      "notes": [
+        "/records-request: HTTP 404"
+      ]
+    },
+    {
+      "county": "Pasco",
+      "state": "FL",
+      "site": "https://www.pascoclerk.com",
+      "contacts": [],
+      "notes": [
+        "/contact: HTTP 404",
+        "/contact-us: HTTP 404",
+        "/public-records: HTTP 404",
+        "/public-records-request: HTTP 404",
+        "/records-request: HTTP 404"
+      ]
+    },
+    {
+      "county": "Pinellas",
+      "state": "FL",
+      "site": "https://www.mypinellasclerk.gov",
+      "contacts": [],
+      "notes": [
+        "/: HTTP 403",
+        "/contact: HTTP 403",
+        "/contact-us: HTTP 403",
+        "/public-records: HTTP 403",
+        "/public-records-request: HTTP 403",
+        "/records-request: HTTP 403"
+      ]
+    },
+    {
+      "county": "Polk",
+      "state": "FL",
+      "site": "https://www.polkcountyclerk.net",
+      "contacts": [],
+      "notes": [
+        "/: HTTP 403",
+        "/contact: HTTP 403",
+        "/contact-us: HTTP 403",
+        "/public-records: HTTP 403",
+        "/public-records-request: HTTP 403",
+        "/records-request: HTTP 403"
+      ]
+    },
+    {
+      "county": "Sarasota",
+      "state": "FL",
+      "site": "https://www.sarasotaclerk.com",
+      "contacts": [],
+      "notes": [
+        "/: HTTP 403",
+        "/contact: HTTP 403",
+        "/contact-us: HTTP 403",
+        "/public-records: HTTP 403",
+        "/public-records-request: HTTP 403",
+        "/records-request: HTTP 403"
+      ]
+    },
+    {
+      "county": "St. Lucie",
+      "state": "FL",
+      "site": "https://www.stlucieclerk.com",
+      "contacts": [],
+      "notes": [
+        "/: HTTP 403",
+        "/contact: HTTP 403",
+        "/contact-us: HTTP 403",
+        "/public-records: HTTP 403",
+        "/public-records-request: HTTP 403",
+        "/records-request: HTTP 403"
+      ]
+    },
+    {
+      "county": "Volusia",
+      "state": "FL",
+      "site": "https://www.clerk.org",
+      "contacts": [],
+      "notes": []
+    },
+    {
+      "county": "Clayton",
+      "state": "GA",
+      "site": "https://www.claytoncountyga.gov",
+      "contacts": [],
+      "notes": [
+        "/: HTTP 403",
+        "/contact: HTTP 403",
+        "/contact-us: HTTP 403",
+        "/public-records: HTTP 403",
+        "/public-records-request: HTTP 403",
+        "/records-request: HTTP 403"
+      ]
+    },
+    {
+      "county": "Cobb",
+      "state": "GA",
+      "site": "https://www.cobbtaxcommissioner.com",
+      "contacts": [],
+      "notes": [
+        "/: HTTP 504",
+        "/contact: HTTP 504",
+        "/contact-us: HTTP 504",
+        "/public-records: HTTP 504",
+        "/public-records-request: HTTP 504",
+        "/records-request: HTTP 504"
+      ]
+    }
+  ]
+}
