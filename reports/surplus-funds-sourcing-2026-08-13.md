@@ -119,3 +119,28 @@ Owner name enriched later (parcel → owner).
 **Marion remains the only FL county with a machine-readable clerk surplus list
 we ingest end to end (645 rows, $6.87M).** Public guide pages for FL + Marion
 are published and the public view now accepts clerk-primary rows.
+
+## Round 5 — 2026-08-15 (post-DeKalb GA)
+
+### GA statute verification
+`O.C.G.A. § 48-4-5` full text could not be retrieved from any source we can
+reach (legis.ga.gov API empty, Justia / FindLaw / Casetext / eLaws all block or
+return nothing). The GA statute row stays `published = false`, so **no Georgia
+claim deadline or escheat window is asserted anywhere in the product.**
+
+### Next-county probes
+
+| County | Verdict |
+|---|---|
+| Brevard FL (12009) | 🟡 Clerk "Tax Deeds - Overbid" PDF is machine-readable (sale date, TDF#, overbid amount, paid/escheat notes) but the newest sale on it is **12/3/2020** and it carries no owner name or parcel. Registered `unverified`, re-probe monthly. |
+| Cobb GA | ❌ 403 WAF block on datacenter IPs. |
+| Fulton GA | ❌ Cloudflare block, incl. headless Chrome. |
+| Clayton GA | ❌ GoDaddy firewall denies our egress. |
+| Gwinnett GA | ❌ Request times out (geo/bot filtering). |
+| Polk / Escambia / Lee / Orange / Hillsborough FL | ❌ No published surplus list (404/403, or claim forms only). |
+
+The residential proxy remains scoped to RealAuction only, per policy, so the
+four blocked GA counties are parked rather than proxied.
+
+**Live clerk-confirmed surplus counties: Marion FL (718 rows) and DeKalb GA
+(226 rows, $6.61M).** Both public guide pages are published and in the sitemap.
