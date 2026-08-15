@@ -5,6 +5,11 @@
  * a row pattern instead of selectors:
  *   { columns: ["case_number","property_address","confirmed_amount"],
  *     rowPattern?: string,   // regex with one capture group per column
+ *     rowPatterns?: string[],// several shapes for one list, tried in order and
+ *                            // sharing the same `columns` (Athens-Clarke GA
+ *                            // prints some addresses with a house number and
+ *                            // some without, and one regex cannot split the
+ *                            // defendant name from both shapes correctly)
  *     groupPattern?: string, // regex whose capture 1 is a value shared by the
  *     groupField?: string,   // rows that follow it (Osceola prints sale dates
  *                            // as group headers, not per-row cells)
@@ -52,6 +57,7 @@ export function parsePdfLines(
   config: {
     columns?: string[];
     rowPattern?: string;
+    rowPatterns?: string[];
     groupPattern?: string;
     groupField?: string;
     joinPattern?: string;
@@ -61,8 +67,9 @@ export function parsePdfLines(
   },
 ): ClerkSurplusRow[] {
   const columns = config.columns ?? [];
-  if (!config.rowPattern || !columns.length) return [];
-  const re = new RegExp(config.rowPattern);
+  const patterns = [config.rowPattern, ...(config.rowPatterns ?? [])].filter(Boolean) as string[];
+  if (!patterns.length || !columns.length) return [];
+  const res = patterns.map((p) => new RegExp(p));
   const groupRe = config.groupPattern && config.groupField ? new RegExp(config.groupPattern) : null;
   let groupValue: string | null = null;
   const skip = (config.skipLines ?? []).map((s) => s.toLowerCase());
@@ -79,7 +86,11 @@ export function parsePdfLines(
         continue;
       }
     }
-    const m = line.match(re);
+    let m: RegExpMatchArray | null = null;
+    for (const re of res) {
+      m = line.match(re);
+      if (m) break;
+    }
     if (!m) continue;
     const record: Record<string, string> = {};
     columns.forEach((col, i) => {
@@ -110,6 +121,7 @@ export async function runPdfList(ctx: HandlerContext): Promise<HandlerResult> {
   const config = source.fetch_config as {
     columns?: string[];
     rowPattern?: string;
+    rowPatterns?: string[];
     groupPattern?: string;
     groupField?: string;
     joinPattern?: string;
@@ -117,7 +129,7 @@ export async function runPdfList(ctx: HandlerContext): Promise<HandlerResult> {
     columnMap?: Record<string, string>;
     defaultClaimStatus?: ClerkSurplusRow["claim_status"];
   };
-  if (!config?.rowPattern || !config.columns?.length) {
+  if ((!config?.rowPattern && !config?.rowPatterns?.length) || !config.columns?.length) {
     return emptyResult("No rowPattern/columns in fetch_config — the PDF layout must be confirmed first");
   }
   const res = await politeFetch(source.source_url, { headers: { Accept: "application/pdf" } });
