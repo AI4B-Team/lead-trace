@@ -111,6 +111,7 @@ import { Route as ApiPublicHooksTickPlanRenewalRouteImport } from './routes/api/
 import { Route as ApiPublicHooksTickJobsRouteImport } from './routes/api/public/hooks/tick-jobs'
 import { Route as ApiPublicHooksTickDistressFeedRouteImport } from './routes/api/public/hooks/tick-distress-feed'
 import { Route as ApiPublicHooksTickComplianceDigestRouteImport } from './routes/api/public/hooks/tick-compliance-digest'
+import { Route as ApiPublicHooksTickClerkSurplusRouteImport } from './routes/api/public/hooks/tick-clerk-surplus'
 import { Route as ApiPublicHooksTickCampaignsRouteImport } from './routes/api/public/hooks/tick-campaigns'
 import { Route as ApiPublicHooksTickAgentsRouteImport } from './routes/api/public/hooks/tick-agents'
 import { Route as ApiPublicHooksTelnyxInboundRouteImport } from './routes/api/public/hooks/telnyx-inbound'
@@ -676,6 +677,12 @@ const ApiPublicHooksTickComplianceDigestRoute =
     path: '/api/public/hooks/tick-compliance-digest',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksTickClerkSurplusRoute =
+  ApiPublicHooksTickClerkSurplusRouteImport.update({
+    id: '/api/public/hooks/tick-clerk-surplus',
+    path: '/api/public/hooks/tick-clerk-surplus',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksTickCampaignsRoute =
   ApiPublicHooksTickCampaignsRouteImport.update({
     id: '/api/public/hooks/tick-campaigns',
@@ -861,6 +868,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/telnyx-inbound': typeof ApiPublicHooksTelnyxInboundRoute
   '/api/public/hooks/tick-agents': typeof ApiPublicHooksTickAgentsRoute
   '/api/public/hooks/tick-campaigns': typeof ApiPublicHooksTickCampaignsRoute
+  '/api/public/hooks/tick-clerk-surplus': typeof ApiPublicHooksTickClerkSurplusRoute
   '/api/public/hooks/tick-compliance-digest': typeof ApiPublicHooksTickComplianceDigestRoute
   '/api/public/hooks/tick-distress-feed': typeof ApiPublicHooksTickDistressFeedRoute
   '/api/public/hooks/tick-jobs': typeof ApiPublicHooksTickJobsRoute
@@ -978,6 +986,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/telnyx-inbound': typeof ApiPublicHooksTelnyxInboundRoute
   '/api/public/hooks/tick-agents': typeof ApiPublicHooksTickAgentsRoute
   '/api/public/hooks/tick-campaigns': typeof ApiPublicHooksTickCampaignsRoute
+  '/api/public/hooks/tick-clerk-surplus': typeof ApiPublicHooksTickClerkSurplusRoute
   '/api/public/hooks/tick-compliance-digest': typeof ApiPublicHooksTickComplianceDigestRoute
   '/api/public/hooks/tick-distress-feed': typeof ApiPublicHooksTickDistressFeedRoute
   '/api/public/hooks/tick-jobs': typeof ApiPublicHooksTickJobsRoute
@@ -1099,6 +1108,7 @@ export interface FileRoutesById {
   '/api/public/hooks/telnyx-inbound': typeof ApiPublicHooksTelnyxInboundRoute
   '/api/public/hooks/tick-agents': typeof ApiPublicHooksTickAgentsRoute
   '/api/public/hooks/tick-campaigns': typeof ApiPublicHooksTickCampaignsRoute
+  '/api/public/hooks/tick-clerk-surplus': typeof ApiPublicHooksTickClerkSurplusRoute
   '/api/public/hooks/tick-compliance-digest': typeof ApiPublicHooksTickComplianceDigestRoute
   '/api/public/hooks/tick-distress-feed': typeof ApiPublicHooksTickDistressFeedRoute
   '/api/public/hooks/tick-jobs': typeof ApiPublicHooksTickJobsRoute
@@ -1220,6 +1230,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/telnyx-inbound'
     | '/api/public/hooks/tick-agents'
     | '/api/public/hooks/tick-campaigns'
+    | '/api/public/hooks/tick-clerk-surplus'
     | '/api/public/hooks/tick-compliance-digest'
     | '/api/public/hooks/tick-distress-feed'
     | '/api/public/hooks/tick-jobs'
@@ -1337,6 +1348,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/telnyx-inbound'
     | '/api/public/hooks/tick-agents'
     | '/api/public/hooks/tick-campaigns'
+    | '/api/public/hooks/tick-clerk-surplus'
     | '/api/public/hooks/tick-compliance-digest'
     | '/api/public/hooks/tick-distress-feed'
     | '/api/public/hooks/tick-jobs'
@@ -1457,6 +1469,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/telnyx-inbound'
     | '/api/public/hooks/tick-agents'
     | '/api/public/hooks/tick-campaigns'
+    | '/api/public/hooks/tick-clerk-surplus'
     | '/api/public/hooks/tick-compliance-digest'
     | '/api/public/hooks/tick-distress-feed'
     | '/api/public/hooks/tick-jobs'
@@ -1539,6 +1552,7 @@ export interface RootRouteChildren {
   ApiPublicHooksTelnyxInboundRoute: typeof ApiPublicHooksTelnyxInboundRoute
   ApiPublicHooksTickAgentsRoute: typeof ApiPublicHooksTickAgentsRoute
   ApiPublicHooksTickCampaignsRoute: typeof ApiPublicHooksTickCampaignsRoute
+  ApiPublicHooksTickClerkSurplusRoute: typeof ApiPublicHooksTickClerkSurplusRoute
   ApiPublicHooksTickComplianceDigestRoute: typeof ApiPublicHooksTickComplianceDigestRoute
   ApiPublicHooksTickDistressFeedRoute: typeof ApiPublicHooksTickDistressFeedRoute
   ApiPublicHooksTickJobsRoute: typeof ApiPublicHooksTickJobsRoute
@@ -2279,6 +2293,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTickComplianceDigestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/tick-clerk-surplus': {
+      id: '/api/public/hooks/tick-clerk-surplus'
+      path: '/api/public/hooks/tick-clerk-surplus'
+      fullPath: '/api/public/hooks/tick-clerk-surplus'
+      preLoaderRoute: typeof ApiPublicHooksTickClerkSurplusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/tick-campaigns': {
       id: '/api/public/hooks/tick-campaigns'
       path: '/api/public/hooks/tick-campaigns'
@@ -2584,6 +2605,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksTelnyxInboundRoute: ApiPublicHooksTelnyxInboundRoute,
   ApiPublicHooksTickAgentsRoute: ApiPublicHooksTickAgentsRoute,
   ApiPublicHooksTickCampaignsRoute: ApiPublicHooksTickCampaignsRoute,
+  ApiPublicHooksTickClerkSurplusRoute: ApiPublicHooksTickClerkSurplusRoute,
   ApiPublicHooksTickComplianceDigestRoute:
     ApiPublicHooksTickComplianceDigestRoute,
   ApiPublicHooksTickDistressFeedRoute: ApiPublicHooksTickDistressFeedRoute,
