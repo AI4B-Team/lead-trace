@@ -16,7 +16,7 @@ import {
 import { csvToRecords } from "./data-providers/bulk-file";
 import { inferFieldMap, isUsableMap, normalizeRows, type FieldMap } from "./data-providers/source-mapping";
 
-const REQUEST_FROM = "records@leadtrace.app";
+const REQUEST_FROM = "records@leadtrace.com";
 
 type AgencyRow = {
   id: string;
@@ -86,17 +86,28 @@ export async function composeAndSchedule(agencyId: string, opts: {
   return data;
 }
 
-/** Resend transport. Absent an API key we leave the request scheduled. */
+/**
+ * Managed email transport. Delivery, retries, suppression and rate limits are
+ * handled upstream; a suppressed recipient is a normal, non-error outcome.
+ */
 async function sendEmail(to: string, subject: string, body: string): Promise<{ sent: boolean; error?: string }> {
-  const key = process.env["RESEND_API_KEY"];
-  if (!key) return { sent: false, error: "Email Sending Is Not Configured Yet (RESEND_API_KEY Missing)" };
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: `LeadTrace Records <${REQUEST_FROM}>`, to: [to], subject, text: body }),
-  });
-  if (!res.ok) return { sent: false, error: `Email Provider Returned HTTP ${res.status}` };
-  return { sent: true };
+  const apiKey = process.env["LOVABLE_API_KEY"];
+  if (!apiKey) return { sent: false, error: "Email Sending Is Not Configured Yet" };
+  try {
+    const { sendLovableEmail } = await import("@lovable.dev/email-js");
+    const html = `<pre style="font-family:inherit;white-space:pre-wrap">${body
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")}</pre>`;
+    const result = await sendLovableEmail(
+      { to, from: REQUEST_FROM, subject, text: body, html, purpose: "records_request", label: "records-request" },
+      { apiKey },
+    );
+    if (!result.success) return { sent: false, error: `Not Delivered (${result.status ?? "Unknown Reason"})` };
+    return { sent: true };
+  } catch (e) {
+    return { sent: false, error: e instanceof Error ? e.message : "Email Send Failed" };
+  }
 }
 
 /**

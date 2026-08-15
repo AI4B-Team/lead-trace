@@ -139,6 +139,6 @@ export function composeRequestBody(args: ComposeArgs): string {
     "",
     "Sincerely,",
     args.requesterName ?? "LeadTrace Records Team",
-    args.requesterEmail ?? "records@leadtrace.app",
+    args.requesterEmail ?? "records@leadtrace.com",
   ].join("\n");
 }
