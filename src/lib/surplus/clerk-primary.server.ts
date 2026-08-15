@@ -223,7 +223,7 @@ export async function ingestClerkSurplusSource(
   // Only PRIMARY clerk handlers belong here (the clerk's own published list:
   // PDF, HTML table, or spreadsheet). realauction_tab / open_data /
   // records_request are handled by the existing phase-2 pipeline.
-  if (!CLERK_PRIMARY_HANDLERS.includes(source.handler)) {
+  if (!(CLERK_PRIMARY_HANDLERS as readonly string[]).includes(source.handler)) {
     return { ...base, skipped: `handler '${source.handler}' is not a clerk-primary handler` };
   }
 
