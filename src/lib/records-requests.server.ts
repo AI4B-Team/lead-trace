@@ -230,12 +230,16 @@ export async function sendDueRequests(limit = 25) {
 
 // ── Inbound file handling ──────────────────────────────────────────────────
 
-/** Remembered mapping for an agency, if a human already fixed one. */
+/**
+ * Remembered mapping for an agency, if a human already fixed one. A mapping
+ * saved for this specific record type wins over the agency-wide fallback, so
+ * order the specific row first instead of taking whichever row comes back.
+ */
 async function savedMap(agencyId: string, recordType: string | null): Promise<FieldMap | null> {
   const db = await admin();
   let q = db.from("agency_column_maps").select("column_map, record_type").eq("agency_id", agencyId);
   if (recordType) q = q.or(`record_type.eq.${recordType},record_type.is.null`);
-  const { data } = await q.limit(1);
+  const { data } = await q.order("record_type", { ascending: true, nullsFirst: false }).limit(1);
   const row = (data ?? [])[0] as { column_map?: FieldMap } | undefined;
   return row?.column_map ?? null;
 }
@@ -292,12 +296,13 @@ export async function ingestAgencyFile(args: {
   };
 
   if (rows.length === 0 || !isUsableMap(map)) {
+    const why = rows.length === 0 ? "No Readable Rows In File" : "Could Not Auto-Map Columns";
     const { data: file } = await db
       .from("records_request_files")
       .insert({
         ...fileInsert,
         parse_status: "needs_mapping",
-        parse_error: "Could Not Auto-Map Columns",
+        parse_error: why,
         // Kept so a human can fix the mapping and re-ingest without asking the
         // agency to resend the file.
         raw_text: args.text.slice(0, 4_000_000),
