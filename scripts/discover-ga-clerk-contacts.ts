@@ -6,10 +6,8 @@
 //
 //   bun run scripts/discover-ga-clerk-contacts.ts
 //
-// Round 2 missed eight counties whose sites answer fine but do not use the
-// conventional /contact or /public-records paths. Guessing more paths is a dead
-// end, so this pass reads the homepage (and sitemap.xml when present), picks the
-// links whose text or href names a records/contact desk, and extracts published
+// Reads the homepage (and sitemap.xml when present), follows the links whose
+// text or href names a records/excess-funds desk, and extracts published
 // addresses from those pages. Seeds nothing.
 // ---------------------------------------------------------------------------
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -23,7 +21,7 @@ const COUNTIES: Array<{ county: string; state: string; site: string }> = [
   { county: "Cobb", state: "GA", site: "https://www.cobbsuperiorcourtclerk.com" },
 ];
 
-const LINKY = /contact|public\s*record|records\s*request|tax\s*deed|surplus|unclaimed|excess|finance|comptroller|custodian|excess\\s*funds|tax\\s*sale/i;
+const LINKY = /contact|public\s*record|records\s*request|tax\s*deed|surplus|unclaimed|excess|finance|comptroller|custodian|tax\s*sale/i;
 const GENERIC = /^(webmaster|postmaster|noreply|no-reply|donotreply|abuse|privacy|jobs|hr|media|press)@/i;
 const RELEVANT = /records|tax\s*deed|surplus|unclaimed|excess|finance|comptroller|custodian|foia|sunshine|public\s*record/i;
 const ADDRESS = /^[\w.+-]+@(?:[\w-]+\.)+[a-z]{2,}$/i;
