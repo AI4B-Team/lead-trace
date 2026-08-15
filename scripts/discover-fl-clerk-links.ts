@@ -79,4 +79,4 @@ async function main() {
   console.log("\nReport: reports/fl-clerk-links.json");
 }
 
-void main();
+if (import.meta.main) void main();
