@@ -172,15 +172,43 @@ async function tickOne(campaign: {
   if (dropRoom === 0) return { dispatched: 0, reason: "drop_complete" };
 
   const take = Math.min(remainingCap, remainingMonthly, dropRoom, 50);
-  const { data: leads } = await supabaseAdmin
-    .from("leads")
-    .select("id, full_name, phone, phone_type, city, state, address")
-    .eq("job_id", campaign.list_job_id)
-    .eq("scrub_status", "clean")
-    // Records with no verified provenance are never contactable.
-    .in("data_provenance", TRUSTED_PROVENANCE)
-    .limit(take * 4);
-  if (!leads?.length) {
+  // Keyset pagination that skips leads already messaged on this campaign. A
+  // plain LIMIT would keep returning the same first page of already-contacted
+  // leads once the campaign is past its first batch, stalling it forever.
+  const wanted = take * 4;
+  const leads: Array<{
+    id: string; full_name: string | null; phone: string | null;
+    phone_type: string | null; city: string | null; state: string | null; address: string | null;
+  }> = [];
+  let cursor: string | null = null;
+  let anyRows = false;
+  for (let page = 0; page < 20 && leads.length < wanted; page++) {
+    let q = supabaseAdmin
+      .from("leads")
+      .select("id, full_name, phone, phone_type, city, state, address")
+      .eq("job_id", campaign.list_job_id)
+      .eq("scrub_status", "clean")
+      // Records with no verified provenance are never contactable.
+      .in("data_provenance", TRUSTED_PROVENANCE)
+      .order("id")
+      .limit(500);
+    if (cursor) q = q.gt("id", cursor);
+    const { data: pageRows } = await q;
+    if (!pageRows?.length) break;
+    anyRows = true;
+    cursor = pageRows[pageRows.length - 1]!.id;
+    for (const l of pageRows) {
+      if (messaged.has(l.id)) continue;
+      leads.push(l as (typeof leads)[number]);
+      if (leads.length >= wanted) break;
+    }
+    if (pageRows.length < 500) break;
+  }
+  if (!anyRows) {
+    await supabaseAdmin.from("campaigns").update({ status: "completed" }).eq("id", campaign.id);
+    return { dispatched: 0, reason: "list_exhausted" };
+  }
+  if (!leads.length) {
     await supabaseAdmin.from("campaigns").update({ status: "completed" }).eq("id", campaign.id);
     return { dispatched: 0, reason: "list_exhausted" };
   }
