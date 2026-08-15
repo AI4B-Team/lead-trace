@@ -17,9 +17,19 @@ function verify(rawBody: string, signature: string | null): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
+/**
+ * Attachment bodies arrive either base64-encoded or as plain text. Only treat a
+ * body as base64 when the provider says so, or when it is unambiguously base64:
+ * a CSV contains commas and newlines, which are not base64 characters, so
+ * guessing from "does not look like base64" would corrupt every plain CSV.
+ */
 function decode(att: InboundAttachment): string {
   const content = att.content ?? "";
-  if ((att.encoding ?? "").toLowerCase() === "base64" || /^[A-Za-z0-9+/=\s]+$/.test(content) === false) {
+  const encoding = (att.encoding ?? "").toLowerCase();
+  const stripped = content.replace(/\s+/g, "");
+  const looksBase64 =
+    stripped.length > 0 && stripped.length % 4 === 0 && /^[A-Za-z0-9+/]+={0,2}$/.test(stripped);
+  if (encoding === "base64" || (encoding === "" && looksBase64)) {
     try {
       return Buffer.from(content, "base64").toString("utf8");
     } catch {
@@ -47,11 +57,14 @@ export const Route = createFileRoute("/api/public/hooks/records-inbound")({
         if (!from) return Response.json({ error: "No sender" }, { status: 400 });
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { data: agency } = await supabaseAdmin
+        const { data: agencyRows } = await supabaseAdmin
           .from("agency_contacts")
           .select("id")
           .ilike("email", from)
-          .maybeSingle();
+          .limit(1);
+        // More than one agency can share a shared clerk mailbox; matching on
+        // "exactly one" would silently drop the file in that case.
+        const agency = (agencyRows ?? [])[0] ?? null;
         if (!agency) {
           console.warn("records-inbound: unknown sender", from);
           return Response.json({ ok: true, matched: false });
