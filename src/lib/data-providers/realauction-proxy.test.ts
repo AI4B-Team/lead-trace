@@ -211,3 +211,28 @@ describe("relay transport (Workers path)", () => {
     expect(res.status).toBe(403);
   });
 });
+
+describe("requiresProxy", () => {
+  it("covers RealAuction vendor hosts", () => {
+    expect(requiresProxy("https://www.charlotte.realforeclose.com/x")).toBe(true);
+    expect(requiresProxy("https://marion.realtaxdeed.com/")).toBe(true);
+  });
+
+  it("covers WAF-blocked clerk hosts and their subdomains", () => {
+    expect(requiresProxy("https://www.duvalclerk.com/departments")).toBe(true);
+    expect(requiresProxy("https://cvweb.leonclerk.com/")).toBe(true);
+  });
+
+  it("leaves ordinary sources on direct egress", () => {
+    expect(requiresProxy("https://services.arcgis.com/x/FeatureServer/0")).toBe(false);
+    expect(requiresProxy("not a url")).toBe(false);
+  });
+
+  it("honours PROXY_EXTRA_HOSTS at runtime", () => {
+    const prev = process.env["PROXY_EXTRA_HOSTS"];
+    process.env["PROXY_EXTRA_HOSTS"] = "example-clerk.org";
+    expect(requiresProxy("https://www.example-clerk.org/list")).toBe(true);
+    if (prev === undefined) delete process.env["PROXY_EXTRA_HOSTS"];
+    else process.env["PROXY_EXTRA_HOSTS"] = prev;
+  });
+});
