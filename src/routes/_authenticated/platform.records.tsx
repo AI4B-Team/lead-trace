@@ -353,6 +353,126 @@ function PublicRecordsPage() {
       </Card>
 
       {/* Returned files ----------------------------------------------------- */}
+      {/* Request-path surplus counties -------------------------------------- */}
+      <Card>
+        <CardHeader className="flex flex-row items-start justify-between gap-4">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-base font-display">
+              <Mail className="h-4 w-4 text-primary" /> Surplus By Request
+            </CardTitle>
+            <CardDescription>
+              These counties publish no machine-readable surplus list, so coverage runs through a standing records
+              request. Each one needs a records custodian address before anything can be asked for.
+              {awaitingContact > 0 ? ` ${awaitingContact} still awaiting an address.` : ""}
+            </CardDescription>
+          </div>
+          <Button
+            className="shrink-0"
+            variant="secondary"
+            onClick={() => requestSweep.mutate()}
+            disabled={requestSweep.isPending}
+          >
+            {requestSweep.isPending ? (
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="mr-1 h-4 w-4" />
+            )}
+            Run Sweep
+          </Button>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          {requestPathQ.isLoading ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              <Loader2 className="mr-1 inline h-4 w-4 animate-spin" /> Loading…
+            </div>
+          ) : requestPath.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              No counties are on the request path right now.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>County</TableHead>
+                  <TableHead className="w-[130px]">Sale Kind</TableHead>
+                  <TableHead className="w-[130px]">Cadence</TableHead>
+                  <TableHead className="w-[140px]">Request</TableHead>
+                  <TableHead>Custodian</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {requestPath.map((c) => (
+                  <TableRow key={c.id}>
+                    <TableCell>
+                      <div className="font-medium">
+                        {c.countyName} County, {c.state}
+                      </div>
+                      {c.notes ? (
+                        <div className="max-w-[26rem] text-[11px] leading-snug text-muted-foreground">{c.notes}</div>
+                      ) : null}
+                    </TableCell>
+                    <TableCell className="text-xs capitalize">{c.saleKind.replace("_", " ")}</TableCell>
+                    <TableCell className="text-xs capitalize">{c.cadence}</TableCell>
+                    <TableCell>
+                      {c.requestStatus ? (
+                        <Badge variant="outline" className="text-[10px]">
+                          {REQUEST_STATUS_LABEL[c.requestStatus] ?? c.requestStatus}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="border-warning/40 text-[10px] text-warning">
+                          Awaiting Contact
+                        </Badge>
+                      )}
+                      {c.lastSentAt ? (
+                        <div className="mt-1 text-[11px] text-muted-foreground">
+                          Sent {new Date(c.lastSentAt).toLocaleDateString()}
+                        </div>
+                      ) : null}
+                    </TableCell>
+                    <TableCell>
+                      {c.contactEmail ? (
+                        <div className="text-xs">
+                          <div>{c.contactEmail}</div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {c.agencyName}
+                            {c.responsive === false ? " · unproven" : ""}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            className="h-8 w-[240px] text-xs"
+                            placeholder="records@clerk.example.gov"
+                            value={custodianDraft[c.id] ?? ""}
+                            onChange={(e) =>
+                              setCustodianDraft((d) => ({ ...d, [c.id]: e.target.value }))
+                            }
+                          />
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            disabled={!(custodianDraft[c.id] ?? "").includes("@") || addCustodian.isPending}
+                            onClick={() =>
+                              addCustodian.mutate({
+                                countyName: c.countyName,
+                                state: c.state,
+                                email: (custodianDraft[c.id] ?? "").trim(),
+                              })
+                            }
+                          >
+                            Save
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base font-display">
