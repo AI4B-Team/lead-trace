@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { RESCRUB_DAYS, SCRUB_STALE_MESSAGE, isScrubStale, scrubAgeDays } from "@/lib/compliance-rules";
 import { assignJobNames, cadenceBadge, jobSearchKey } from "@/lib/job-naming";
+import { pgIlikePattern } from "@/lib/pg-filter";
 import { TRUSTED_PROVENANCE, UNTRUSTED_LIST_MESSAGE } from "@/lib/provenance.shared";
 
 // List every job for a workspace with lead-bucket counts for the Lists page.

@@ -14,6 +14,7 @@ import {
   type RequestCadence,
 } from "./records-requests.shared";
 import { csvToRecords } from "./data-providers/bulk-file";
+import { pgFilterValue } from "./pg-filter";
 import { inferFieldMap, isUsableMap, normalizeRows, type FieldMap } from "./data-providers/source-mapping";
 
 const REQUEST_FROM = "records@leadtrace.com";
