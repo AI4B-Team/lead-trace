@@ -101,4 +101,28 @@ describe("pdf_list handler", () => {
   it("refuses to guess when no row pattern is configured", () => {
     expect(parsePdfLines(["23-001234-CA 55 Palm Dr $10,500.00"], { columns: config.columns })).toHaveLength(0);
   });
+
+  // Osceola prints the sale date once as a group header and omits it from each
+  // row, so a row must inherit the last header seen above it.
+  it("carries a group header value onto the rows beneath it", () => {
+    const rows = parsePdfLines(
+      [
+        "Tax Deeds Surplus Funds Available",
+        "07/16/2025",
+        "123-2024 1234567 $5,000.00 SMITH JOHN 012345678901234",
+        "08/20/2025",
+        "124-2024 1234568 $6,250.50 DOE JANE 012345678901235",
+      ],
+      {
+        columns: ["case_number", "certificate_number", "confirmed_amount", "claimant_name", "parcel_apn"],
+        rowPattern: "^(\\d{1,4}-\\d{4})\\s+(\\d{6,10})\\s+\\$([\\d,]+\\.\\d{2})\\s*(.*?)\\s*(\\d{9,20})$",
+        groupPattern: "^(\\d{2}/\\d{2}/\\d{4})$",
+        groupField: "sale_date",
+        skipLines: ["Tax Deeds Surplus Funds Available"],
+      },
+    );
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ case_number: "123-2024", confirmed_amount: 5000, sale_date: "2025-07-16" });
+    expect(rows[1]).toMatchObject({ case_number: "124-2024", confirmed_amount: 6250.5, sale_date: "2025-08-20" });
+  });
 });

@@ -35,6 +35,7 @@ export function parsePdfLines(
     groupField?: string;
     skipLines?: string[];
     columnMap?: Record<string, string>;
+    defaultClaimStatus?: ClerkSurplusRow["claim_status"];
   },
 ): ClerkSurplusRow[] {
   const columns = config.columns ?? [];
@@ -69,7 +70,13 @@ export function parsePdfLines(
     const fields = config.groupField ? [...columns, config.groupField] : columns;
     const map = config.columnMap ?? Object.fromEntries(fields.map((c) => [c, c]));
     const row = toClerkRow(record, map);
-    if (row) out.push(row);
+    if (!row) continue;
+    // Only applied when the list prints no status word of its own — e.g. a
+    // report the clerk already filtered down to funds still on hand.
+    if (row.claim_status === "unknown" && config.defaultClaimStatus) {
+      row.claim_status = config.defaultClaimStatus;
+    }
+    out.push(row);
   }
   return out;
 }
@@ -84,6 +91,7 @@ export async function runPdfList(ctx: HandlerContext): Promise<HandlerResult> {
     groupField?: string;
     skipLines?: string[];
     columnMap?: Record<string, string>;
+    defaultClaimStatus?: ClerkSurplusRow["claim_status"];
   };
   if (!config?.rowPattern || !config.columns?.length) {
     return emptyResult("No rowPattern/columns in fetch_config — the PDF layout must be confirmed first");
