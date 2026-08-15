@@ -114,7 +114,18 @@ export function clerkRowToFiling(
   const isEntity = /\b(LLC|L\.L\.C|INC|CORP|CO|COMPANY|TRUST|LP|LLP|PARTNERS|BANK|ESTATE|HOLDINGS|PROPERTIES|INVESTMENTS|ENTERPRISES|PLAN)\b/i.test(
     printedName,
   );
-  const nameParts = printedName ? printedName.split(/\s+/) : [];
+  // Several tax commissioners print the defendant in fifa surname-first
+  // ("Halliday, Katie" — Athens-Clarke GA). Splitting on whitespace alone put
+  // the surname in owner_first and left a trailing comma on it, so honour the
+  // comma when the clerk used one.
+  const commaAt = printedName.indexOf(",");
+  const surnameFirst = commaAt > 0 ? printedName.slice(0, commaAt).trim() : null;
+  const givenNames = commaAt > 0 ? printedName.slice(commaAt + 1).trim() : "";
+  const nameParts = surnameFirst
+    ? [...(givenNames ? givenNames.split(/\s+/) : []), surnameFirst]
+    : printedName
+      ? printedName.split(/\s+/)
+      : [];
   const rawZip = typeof row.raw?.["zip"] === "string" ? (row.raw["zip"] as string) : "";
   const zip = /^\d{5}$/.test(rawZip.trim()) ? rawZip.trim() : null;
 
