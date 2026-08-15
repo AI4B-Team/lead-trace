@@ -250,6 +250,12 @@ function PublicRecordsPage() {
   const requestPath = requestPathQ.data?.counties ?? [];
   const awaitingContact = requestPath.filter((c) => !c.contactEmail).length;
   const requestFor = (agencyId: string) => requests.find((r) => r.agency_id === agencyId);
+  // A sender-side block affects every request at once, so say it once at the top
+  // instead of leaving the same red line repeated down the table.
+  const senderBlocked = requests.some((r) => {
+    const e = String(r.last_error ?? "").toLowerCase();
+    return e.includes("not configured") || e.includes("domain_not_verified") || e.includes("emails_disabled");
+  });
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-6">
@@ -381,6 +387,13 @@ function PublicRecordsPage() {
           </Button>
         </CardHeader>
         <CardContent className="overflow-x-auto">
+          {senderBlocked && (
+            <div className="mb-4 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-xs text-destructive">
+              Requests are composed and queued, but nothing can leave yet — the sender domain still needs to be set up
+              and verified before records requests will mail out. Nothing is lost in the meantime: every due request
+              stays queued and goes out on the next sweep once sending is live.
+            </div>
+          )}
           {agenciesQ.isLoading ? (
             <div className="py-8 text-center text-sm text-muted-foreground">
               <Loader2 className="mr-1 inline h-4 w-4 animate-spin" /> Loading…
