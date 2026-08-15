@@ -179,7 +179,9 @@ function StateSurplusPage() {
           <HowToClaim rules={rules} scopeLabel={name} />
         </Section>
 
-        <Section title={`Where the Money Is Held — ${counties.length} ${name} Counties`}>
+        <Section
+          title={`Where the Money Is Held — ${counties.length} ${name} ${counties.length === 1 ? "County" : "Counties"}`}
+        >
           <CountyTable counties={counties} stateSlug={stateSlug} />
         </Section>
 
