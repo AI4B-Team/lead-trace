@@ -44,6 +44,12 @@ import { SURPLUS_HANDLERS, type ClerkSurplusRow, type SurplusSourceRow } from ".
 
 type DB = SupabaseClient<Database>;
 
+/**
+ * Handlers that read the clerk's OWN published surplus list, and therefore may
+ * write confirmed (not estimated) surplus_funds rows.
+ */
+export const CLERK_PRIMARY_HANDLERS = ["pdf_list", "html_table", "xlsx_list"] as const;
+
 export type ClerkIngestResult = {
   sourceId: string;
   county: string;
@@ -214,9 +220,10 @@ export async function ingestClerkSurplusSource(
     bytes: 0,
   };
 
-  // Only PRIMARY clerk handlers belong here. realauction_tab / open_data /
-  // records_request are handled by the boss's existing phase-2 pipeline.
-  if (source.handler !== "pdf_list" && source.handler !== "html_table") {
+  // Only PRIMARY clerk handlers belong here (the clerk's own published list:
+  // PDF, HTML table, or spreadsheet). realauction_tab / open_data /
+  // records_request are handled by the existing phase-2 pipeline.
+  if (!(CLERK_PRIMARY_HANDLERS as readonly string[]).includes(source.handler)) {
     return { ...base, skipped: `handler '${source.handler}' is not a clerk-primary handler` };
   }
 
@@ -331,7 +338,7 @@ export async function ingestClerkSurplusSource(
 }
 
 /**
- * Sweep every clerk-primary source (pdf_list / html_table). Called from the
+ * Sweep every clerk-primary source (pdf_list / html_table / xlsx_list). Called from the
  * nightly tick BEFORE the phase-2 confirmation sweep, so a clerk row is present
  * in distress_records for any later reconciliation to match against.
  */
@@ -344,7 +351,7 @@ export async function sweepClerkSurplusSources(
     .from("surplus_sources")
     .select("*")
     .in("status", statuses)
-    .in("handler", ["pdf_list", "html_table"]);
+    .in("handler", CLERK_PRIMARY_HANDLERS as unknown as string[]);
   const sources = (data ?? []) as unknown as SurplusSourceRow[];
   const results: ClerkIngestResult[] = [];
   for (const source of sources) {

@@ -11,6 +11,7 @@
 export type SurplusHandlerName =
   | "html_table"
   | "pdf_list"
+  | "xlsx_list"
   | "realauction_tab"
   | "open_data"
   | "records_request";
