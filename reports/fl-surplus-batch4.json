@@ -1,0 +1,82 @@
+{
+  "generatedAt": "2026-08-15T16:07:13.081Z",
+  "probes": [
+    {
+      "county": "Duval",
+      "url": "https://www.duvalclerk.com/departments/finance-and-accounting/unclaimed-funds",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [],
+      "note": "Page mentions surplus but publishes no list (claim instructions only)"
+    },
+    {
+      "county": "Duval",
+      "url": "https://www.duvalclerk.com/online-option/tax-deed-auctions",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [],
+      "note": "Page reachable, no surplus list detected"
+    },
+    {
+      "county": "Leon",
+      "url": "https://leonclerk.com/helpful-resources/records/unclaimed-money/",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [
+        "https://leonclerk.com/uploads/2026/02/OIDA_Community_Service_Agencies.pdf",
+        "https://leonclerk.com/uploads/2026/03/unclaimed_funds_form.pdf"
+      ],
+      "note": "Page mentions surplus but publishes no list (claim instructions only)"
+    },
+    {
+      "county": "Leon",
+      "url": "https://leonclerk.com/divisions/property-sales/tax-deeds/",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [
+        "https://leonclerk.com/uploads/2026/02/OIDA_Community_Service_Agencies.pdf"
+      ],
+      "note": "Page mentions surplus but publishes no list (claim instructions only)"
+    },
+    {
+      "county": "Pasco",
+      "url": "https://www.pascoclerk.com/CivicAlerts.aspx?AID=316",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [],
+      "note": "Page mentions surplus but publishes no list (claim instructions only)"
+    },
+    {
+      "county": "Pasco",
+      "url": "https://www.pascoclerk.com/280/Unclaimed-Funds",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [],
+      "note": "Page reachable, no surplus list detected"
+    }
+  ]
+}
