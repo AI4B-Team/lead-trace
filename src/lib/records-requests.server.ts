@@ -67,11 +67,21 @@ export async function handleUndeliverableRecipient(recipient: string, reason: "b
   return { matched: ids.length };
 }
 
-/** Compose (or recompose) the request body for an agency and schedule it. */
+/**
+ * Compose (or recompose) the request body for an agency and schedule it.
+ *
+ * Throttle invariant: composing must NEVER pull a send forward. The nightly
+ * sweep calls this for every request-path county, so overwriting `next_send_at`
+ * with "now" would re-mail an already-sent clerk every single night. An existing
+ * row therefore keeps its own schedule and lifecycle status unless the caller
+ * explicitly asks to (re)start the cycle.
+ */
 export async function composeAndSchedule(agencyId: string, opts: {
   recordTypes?: string[];
   cadence?: RequestCadence;
   dateRangeDays?: number;
+  /** Start the cycle now (first-ever request, or a human-triggered resend). */
+  resetSchedule?: boolean;
 } = {}) {
   const db = await admin();
   const { data: agency, error } = await db
@@ -82,6 +92,13 @@ export async function composeAndSchedule(agencyId: string, opts: {
   if (error) throw new Error(error.message);
   if (!agency) throw new Error("Agency Not Found");
   const a = agency as unknown as AgencyRow;
+
+  const { data: existingRow } = await db
+    .from("records_requests")
+    .select("id, status, next_send_at")
+    .eq("agency_id", a.id)
+    .maybeSingle();
+  const existing = existingRow as { status?: string; next_send_at?: string | null } | null;
 
   const recordTypes = opts.recordTypes?.length ? opts.recordTypes : a.record_types;
   const cadence = opts.cadence ?? "monthly";
@@ -103,8 +120,11 @@ export async function composeAndSchedule(agencyId: string, opts: {
     date_range_days: dateRangeDays,
     subject: composeRequestSubject(composeArgs),
     body: composeRequestBody(composeArgs),
-    status: "scheduled",
-    next_send_at: new Date().toISOString(),
+    status: existing && !opts.resetSchedule ? (existing.status ?? "scheduled") : "scheduled",
+    next_send_at:
+      existing && !opts.resetSchedule
+        ? (existing.next_send_at ?? new Date().toISOString())
+        : new Date().toISOString(),
   };
   const { data, error: upErr } = await db
     .from("records_requests")
