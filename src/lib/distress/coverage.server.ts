@@ -35,14 +35,21 @@ async function admin() {
 export async function hasCoverage(fips: string, recordType: string): Promise<boolean> {
   const typeKey = recordTypeId(recordType) ?? recordType;
   const supabase = await admin();
-  const { data } = await supabase
-    .from("source_coverage")
-    .select("id")
-    .eq("status", "verified")
-    .eq("fips", fips)
-    .eq("record_type", typeKey)
-    .limit(1);
-  return (data ?? []).length > 0;
+  const read = async () => {
+    const { data } = await supabase
+      .from("source_coverage")
+      .select("id")
+      .eq("status", "verified")
+      .eq("fips", fips)
+      .eq("record_type", typeKey)
+      .limit(1);
+    return (data ?? []).length > 0;
+  };
+  if (await read()) return true;
+  // Nothing registered — reconcile the registry against the records database
+  // before declaring this county / record type unavailable.
+  await syncDataBackedCoverage();
+  return read();
 }
 
 /**
