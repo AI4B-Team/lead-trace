@@ -59,6 +59,7 @@ import { Route as DistressFeedCountiesIndexRouteImport } from './routes/distress
 import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform.index'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as SurplusFundsStateCountyRouteImport } from './routes/surplus-funds.$state.$county'
+import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
 import { Route as AuthenticatedPlatformWorkspacesRouteImport } from './routes/_authenticated/platform.workspaces'
 import { Route as AuthenticatedPlatformStateGuidesRouteImport } from './routes/_authenticated/platform.state-guides'
 import { Route as AuthenticatedPlatformSourcesRouteImport } from './routes/_authenticated/platform.sources'
@@ -378,6 +379,11 @@ const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
 const SurplusFundsStateCountyRoute = SurplusFundsStateCountyRouteImport.update({
   id: '/surplus-funds/$state/$county',
   path: '/surplus-funds/$state/$county',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailEventsRoute = LovableEmailEventsRouteImport.update({
+  id: '/lovable/email/events',
+  path: '/lovable/email/events',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPlatformWorkspacesRoute =
@@ -849,6 +855,7 @@ export interface FileRoutesByFullPath {
   '/platform/sources': typeof AuthenticatedPlatformSourcesRoute
   '/platform/state-guides': typeof AuthenticatedPlatformStateGuidesRoute
   '/platform/workspaces': typeof AuthenticatedPlatformWorkspacesRoute
+  '/lovable/email/events': typeof LovableEmailEventsRoute
   '/surplus-funds/$state/$county': typeof SurplusFundsStateCountyRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/platform/': typeof AuthenticatedPlatformIndexRoute
@@ -967,6 +974,7 @@ export interface FileRoutesByTo {
   '/platform/sources': typeof AuthenticatedPlatformSourcesRoute
   '/platform/state-guides': typeof AuthenticatedPlatformStateGuidesRoute
   '/platform/workspaces': typeof AuthenticatedPlatformWorkspacesRoute
+  '/lovable/email/events': typeof LovableEmailEventsRoute
   '/surplus-funds/$state/$county': typeof SurplusFundsStateCountyRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/platform': typeof AuthenticatedPlatformIndexRoute
@@ -1089,6 +1097,7 @@ export interface FileRoutesById {
   '/_authenticated/platform/sources': typeof AuthenticatedPlatformSourcesRoute
   '/_authenticated/platform/state-guides': typeof AuthenticatedPlatformStateGuidesRoute
   '/_authenticated/platform/workspaces': typeof AuthenticatedPlatformWorkspacesRoute
+  '/lovable/email/events': typeof LovableEmailEventsRoute
   '/surplus-funds/$state/$county': typeof SurplusFundsStateCountyRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/platform/': typeof AuthenticatedPlatformIndexRoute
@@ -1211,6 +1220,7 @@ export interface FileRouteTypes {
     | '/platform/sources'
     | '/platform/state-guides'
     | '/platform/workspaces'
+    | '/lovable/email/events'
     | '/surplus-funds/$state/$county'
     | '/app/'
     | '/platform/'
@@ -1329,6 +1339,7 @@ export interface FileRouteTypes {
     | '/platform/sources'
     | '/platform/state-guides'
     | '/platform/workspaces'
+    | '/lovable/email/events'
     | '/surplus-funds/$state/$county'
     | '/app'
     | '/platform'
@@ -1450,6 +1461,7 @@ export interface FileRouteTypes {
     | '/_authenticated/platform/sources'
     | '/_authenticated/platform/state-guides'
     | '/_authenticated/platform/workspaces'
+    | '/lovable/email/events'
     | '/surplus-funds/$state/$county'
     | '/_authenticated/app/'
     | '/_authenticated/platform/'
@@ -1541,6 +1553,7 @@ export interface RootRouteChildren {
   SurplusFundsIndexRoute: typeof SurplusFundsIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
+  LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   SurplusFundsStateCountyRoute: typeof SurplusFundsStateCountyRoute
   DistressFeedCountiesIndexRoute: typeof DistressFeedCountiesIndexRoute
   DistressFeedGuidesIndexRoute: typeof DistressFeedGuidesIndexRoute
@@ -1927,6 +1940,13 @@ declare module '@tanstack/react-router' {
       path: '/surplus-funds/$state/$county'
       fullPath: '/surplus-funds/$state/$county'
       preLoaderRoute: typeof SurplusFundsStateCountyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/events': {
+      id: '/lovable/email/events'
+      path: '/lovable/email/events'
+      fullPath: '/lovable/email/events'
+      preLoaderRoute: typeof LovableEmailEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/platform/workspaces': {
@@ -2594,6 +2614,7 @@ const rootRouteChildren: RootRouteChildren = {
   SurplusFundsIndexRoute: SurplusFundsIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
+  LovableEmailEventsRoute: LovableEmailEventsRoute,
   SurplusFundsStateCountyRoute: SurplusFundsStateCountyRoute,
   DistressFeedCountiesIndexRoute: DistressFeedCountiesIndexRoute,
   DistressFeedGuidesIndexRoute: DistressFeedGuidesIndexRoute,
