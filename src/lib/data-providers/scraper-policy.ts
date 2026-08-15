@@ -100,7 +100,7 @@ export async function politeFetch(
   const vendor = isRealauctionUrl(url);
   if (vendor) assertBudgetAvailable();
   if (attempt === 0 && !(await robotsAllows(url))) {
-    throw new Error(`robots.txt Disallows ${url}`);
+    throw new RobotsDisallowedError(url);
   }
   await throttle(host, vendor);
   const requestInit: RequestInit = {
