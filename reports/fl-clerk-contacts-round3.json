@@ -1,0 +1,344 @@
+{
+  "generatedAt": "2026-08-15T16:38:28.738Z",
+  "report": [
+    {
+      "county": "Bay",
+      "state": "FL",
+      "site": "https://www.baycoclerk.com",
+      "pagesTried": [
+        "https://www.baycoclerk.com/public-records/",
+        "https://www.baycoclerk.com/public-records/property-sales/tax-deed-auctions/",
+        "https://www.baycoclerk.com/comptroller-services/",
+        "https://www.baycoclerk.com/comptroller-services/county-commissioners/",
+        "https://www.baycoclerk.com/comptroller-services/annual-comprehensive-financial-reports/",
+        "https://www.baycoclerk.com/comptroller-services/department-of-inspector-general/"
+      ],
+      "contacts": [],
+      "notes": []
+    },
+    {
+      "county": "Charlotte",
+      "state": "FL",
+      "site": "https://www.charlotteclerk.com",
+      "pagesTried": [
+        "https://www.charlotteclerk.com/departments/comptroller/",
+        "https://www.charlotteclerk.com/departments/taxdeed/",
+        "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+        "https://www.charlotteclerk.com/clerknews/NewsTaxDeedWorkshops05292026/",
+        "https://www.charlotteclerk.com/clerknews/NewsTaxDeedWorkshops052026/",
+        "https://www.charlotteclerk.com/Clerk/PublicRequest/"
+      ],
+      "contacts": [
+        {
+          "email": "clerkinfo@charlotteclerk.com",
+          "label": "ClerkInfo@CharlotteClerk.com",
+          "page": "https://www.charlotteclerk.com/departments/comptroller/",
+          "relevant": true
+        },
+        {
+          "email": "taxdeeds@charlotteclerk.com",
+          "label": "Taxdeeds@CharlotteClerk.com",
+          "page": "https://www.charlotteclerk.com/departments/taxdeed/",
+          "relevant": true
+        },
+        {
+          "email": "traffic@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": true
+        },
+        {
+          "email": "comptroller@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": true
+        },
+        {
+          "email": "recording@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": true
+        },
+        {
+          "email": "recordsrequest@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": true
+        },
+        {
+          "email": "smallclaims@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": true
+        },
+        {
+          "email": "vab@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/departments/comptroller/",
+          "relevant": false
+        },
+        {
+          "email": "appeals@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": false
+        },
+        {
+          "email": "childsupport@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": false
+        },
+        {
+          "email": "circuitcivil@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": false
+        },
+        {
+          "email": "family@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": false
+        },
+        {
+          "email": "criminalcourts@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": false
+        },
+        {
+          "email": "dv@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": false
+        },
+        {
+          "email": "civilefiling@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": false
+        },
+        {
+          "email": "employee.relations@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": false
+        },
+        {
+          "email": "foreclosures@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": false
+        },
+        {
+          "email": "helpdesk@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": false
+        },
+        {
+          "email": "audit@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": false
+        },
+        {
+          "email": "juryservices@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": false
+        },
+        {
+          "email": "marriageservices@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": false
+        },
+        {
+          "email": "minutes@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": false
+        },
+        {
+          "email": "passports@charlotteclerk.com",
+          "label": "(plain text)",
+          "page": "https://www.charlotteclerk.com/clerk/clerkdirectory/",
+          "relevant": false
+        }
+      ],
+      "notes": []
+    },
+    {
+      "county": "Duval",
+      "state": "FL",
+      "site": "https://www.duvalclerk.com",
+      "pagesTried": [
+        "https://www.duvalclerk.com/contact-us",
+        "https://www.duvalclerk.com/departments/finance-and-accounting",
+        "https://www.duvalclerk.com/online-option/tax-deed-auctions",
+        "https://www.duvalclerk.com/how-do-i/bid-on/tax-deeds",
+        "https://www.duvalclerk.com/departments/finance-and-accounting/unclaimed-funds",
+        "https://www.duvalclerk.com/how-do-i/search-for/tax-deed-files"
+      ],
+      "contacts": [
+        {
+          "email": "finance.clerk@duvalclerk.com",
+          "label": "Finance.Clerk@DuvalClerk.com",
+          "page": "https://www.duvalclerk.com/departments/finance-and-accounting/unclaimed-funds",
+          "relevant": true
+        }
+      ],
+      "notes": []
+    },
+    {
+      "county": "Leon",
+      "state": "FL",
+      "site": "https://www.leonclerk.com",
+      "pagesTried": [
+        "https://www.leonclerk.com/divisions/property-sales/",
+        "https://www.leonclerk.com/helpful-resources/records/records-request/",
+        "https://www.leonclerk.com/about/contact/holiday-schedule/"
+      ],
+      "contacts": [],
+      "notes": []
+    },
+    {
+      "county": "Nassau",
+      "state": "FL",
+      "site": "https://www.nassauclerk.com",
+      "pagesTried": [
+        "https://www.nassauclerk.com/190/View-Tax-Deed-Sales-and-Foreclosures",
+        "https://www.nassauclerk.com/169",
+        "https://www.nassauclerk.com/190/2006/View-Tax-Deed-Sales",
+        "https://www.nassauclerk.com/directory.aspx"
+      ],
+      "contacts": [
+        {
+          "email": "publicrecordsreq@nassauclerk.com",
+          "label": "email to Public Records Request",
+          "page": "https://www.nassauclerk.com/169",
+          "relevant": true
+        },
+        {
+          "email": "ada@nassauclerk.com",
+          "label": "Email: ADA@nassauclerk.com",
+          "page": "https://www.nassauclerk.com/directory.aspx",
+          "relevant": false
+        },
+        {
+          "email": "vab@nassauclerk.com",
+          "label": "Email VAB Clerk",
+          "page": "https://www.nassauclerk.com/directory.aspx",
+          "relevant": false
+        },
+        {
+          "email": "mikejs@coj.net",
+          "label": "Email Mike Smith",
+          "page": "https://www.nassauclerk.com/directory.aspx",
+          "relevant": false
+        },
+        {
+          "email": "paruolo@coj.net",
+          "label": "Email Vince Paruolo",
+          "page": "https://www.nassauclerk.com/directory.aspx",
+          "relevant": false
+        },
+        {
+          "email": "jcaliendo@coj.net",
+          "label": "jcaliendo@coj.net",
+          "page": "https://www.nassauclerk.com/directory.aspx",
+          "relevant": false
+        },
+        {
+          "email": "astrickland@coj.net",
+          "label": "Email: astrickland@coj.net",
+          "page": "https://www.nassauclerk.com/directory.aspx",
+          "relevant": false
+        },
+        {
+          "email": "vhester@coj.net",
+          "label": "Victoria Hester Email",
+          "page": "https://www.nassauclerk.com/directory.aspx",
+          "relevant": false
+        },
+        {
+          "email": "acollie@coj.net",
+          "label": "Amber Collie Email",
+          "page": "https://www.nassauclerk.com/directory.aspx",
+          "relevant": false
+        }
+      ],
+      "notes": []
+    },
+    {
+      "county": "Okaloosa",
+      "state": "FL",
+      "site": "https://okaloosaclerk.com",
+      "pagesTried": [
+        "https://okaloosaclerk.com/board-services/tax-deed-sales/",
+        "https://okaloosaclerk.com/about-finance-accounting/",
+        "https://okaloosaclerk.com/about-finance-accounting/county-reports/",
+        "https://okaloosaclerk.com/about-finance-accounting/clerk-reports/",
+        "https://okaloosaclerk.com/about-finance-accounting/warrants/",
+        "https://okaloosaclerk.com/contact-us/"
+      ],
+      "contacts": [],
+      "notes": []
+    },
+    {
+      "county": "Pasco",
+      "state": "FL",
+      "site": "https://www.pascoclerk.com",
+      "pagesTried": [
+        "https://www.pascoclerk.com/246/Contact-Us",
+        "https://www.pascoclerk.com/149/Comptroller-Services",
+        "https://www.pascoclerk.com/CivicAlerts.aspx"
+      ],
+      "contacts": [
+        {
+          "email": "orweb@pascoclerk.com",
+          "label": "orweb@pascoclerk.com",
+          "page": "https://www.pascoclerk.com/CivicAlerts.aspx",
+          "relevant": false
+        }
+      ],
+      "notes": []
+    },
+    {
+      "county": "Volusia",
+      "state": "FL",
+      "site": "https://www.clerk.org",
+      "pagesTried": [
+        "https://www.clerk.org/contact.aspx",
+        "https://www.clerk.org/tax-deeds.aspx",
+        "https://www.clerk.org/lands_available.aspx",
+        "https://www.clerk.org/news.aspx",
+        "https://www.clerk.org/contact-us.aspx",
+        "https://www.clerk.org/PRCustodian.aspx"
+      ],
+      "contacts": [
+        {
+          "email": "customerservice@realauction.com",
+          "label": "customerservice@realauction.com",
+          "page": "https://www.clerk.org/tax-deeds.aspx",
+          "relevant": true
+        },
+        {
+          "email": "suretybonds@clerk.org",
+          "label": "suretybonds@clerk.org",
+          "page": "https://www.clerk.org/contact.aspx",
+          "relevant": false
+        },
+        {
+          "email": "courtnotice@pd7.org",
+          "label": "courtnotice@pd7.org",
+          "page": "https://www.clerk.org/news.aspx",
+          "relevant": false
+        }
+      ],
+      "notes": []
+    }
+  ]
+}
