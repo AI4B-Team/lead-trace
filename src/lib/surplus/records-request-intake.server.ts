@@ -25,6 +25,7 @@ import { ingestDistressRecords, type RawFiling } from "../distress-feed.server";
 import { toClerkRow, type ClerkSurplusRow } from "./handlers";
 import { clerkRowToFiling } from "./clerk-primary.server";
 import { inferSurplusColumnMap, isUsableSurplusMap, matrixToRecords } from "./records-request-intake";
+import type { SurplusSourceRow } from "./handlers";
 
 type DB = SupabaseClient<Database>;
 
@@ -252,4 +253,43 @@ export async function ingestSurplusRequestFile(args: {
   }
 
   return { ...base, status: "parsed" };
+}
+
+/**
+ * Nightly pass over the counties whose only path is a public-records request.
+ *
+ * This schedules (never spams): the underlying engine keeps ONE request per
+ * agency per cadence, so a county with a contact on file gets a fresh request
+ * only when its cycle is due. A county with no confirmed records-custodian
+ * address is reported as awaiting a contact — we do not guess an email address.
+ */
+export async function sweepRecordsRequestSurplusSources(): Promise<{
+  results: Array<{ county: string; state: string; status: "scheduled" | "awaiting_contact"; reason?: string }>;
+}> {
+  const db = await admin();
+  const { data } = await db
+    .from("surplus_sources")
+    .select("*")
+    .eq("handler", "records_request")
+    .in("status", ["live", "manual"]);
+  const sources = (data ?? []) as unknown as SurplusSourceRow[];
+  const { runRecordsRequest } = await import("./handlers/records-request");
+  const results: Array<{ county: string; state: string; status: "scheduled" | "awaiting_contact"; reason?: string }> = [];
+  for (const source of sources) {
+    let reason: string | undefined;
+    try {
+      reason = (await runRecordsRequest({ source })).reason;
+    } catch (err) {
+      reason = err instanceof Error ? err.message : String(err);
+    }
+    const awaiting = /no records-request contact/i.test(reason ?? "");
+    results.push({
+      county: source.county_name,
+      state: source.state,
+      status: awaiting ? "awaiting_contact" : "scheduled",
+      ...(reason ? { reason } : {}),
+    });
+    await db.from("surplus_sources").update({ last_checked_at: new Date().toISOString() }).eq("id", source.id);
+  }
+  return { results };
 }
