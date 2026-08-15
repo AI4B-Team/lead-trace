@@ -86,11 +86,11 @@ export function parseClerkDate(v: string | null | undefined): string | null {
   const s = (v ?? "").trim();
   if (!s) return null;
   const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  if (iso) return plausible(`${iso[1]}-${iso[2]}-${iso[3]}`);
   const us = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
   if (us) {
     const year = us[3]!.length === 2 ? `20${us[3]}` : us[3]!;
-    return `${year}-${us[1]!.padStart(2, "0")}-${us[2]!.padStart(2, "0")}`;
+    return plausible(`${year.padStart(4, "0")}-${us[1]!.padStart(2, "0")}-${us[2]!.padStart(2, "0")}`);
   }
   // "November 1, 2016" / "Nov. 1 2016" — several tax commissioners spell the
   // sale date out. A month with no day (e.g. "Aug. 2024") is deliberately not
@@ -98,9 +98,46 @@ export function parseClerkDate(v: string | null | undefined): string | null {
   const named = s.match(/^([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})/);
   if (named) {
     const month = MONTHS[named[1]!.slice(0, 3).toLowerCase()];
-    if (month) return `${named[3]}-${month}-${named[2]!.padStart(2, "0")}`;
+    if (month) return plausible(`${named[3]}-${month}-${named[2]!.padStart(2, "0")}`);
   }
   return null;
+}
+
+/**
+ * Clerk lists carry typed sale dates, and a typo'd year is worse than a blank:
+ * "09/02/0025" (Newton GA, meant 2025) would sort a live 2025 surplus to the
+ * year 25 AD and break every freshness and deadline calculation downstream. A
+ * date outside a sane window is dropped, not guessed.
+ */
+function plausible(iso: string): string | null {
+  const year = Number(iso.slice(0, 4));
+  return year >= 1980 && year <= new Date().getUTCFullYear() + 2 ? iso : null;
+}
+
+/**
+ * Boilerplate several Georgia lists append to every defendant name, and the
+ * catch-all wording used when the county names no defendant at all. The first
+ * is noise around a real name; the second is not a name and must not be shown
+ * as one.
+ */
+const NAME_BOILERPLATE = /\s*and\/or\s+(his|her|their)(\s+or\s+(his|her|their))?\s+known\s+or\s+unknown\s+heirs(\s+at\s+law)?\.?\s*$/i;
+const NOT_A_NAME = /^(any\s+and\s+all\s+parties|unknown\s+(owner|heirs)|owner\s+unknown|n\/?a)\b/i;
+
+export function cleanClaimantName(raw: string | null): string | null {
+  const s = (raw ?? "").replace(/\s+/g, " ").trim();
+  if (!s || NOT_A_NAME.test(s)) return null;
+  const cleaned = s.replace(NAME_BOILERPLATE, "").replace(/[,;]\s*$/, "").trim();
+  return cleaned || null;
+}
+
+/**
+ * Addresses in these lists are assembled from parts, so a row with no street on
+ * file still prints its state ("GA", ", GA"). That is not an address.
+ */
+export function cleanAddress(raw: string | null): string | null {
+  const s = (raw ?? "").replace(/\s+/g, " ").replace(/^[\s,]+|[\s,]+$/g, "").trim();
+  if (!s) return null;
+  return /^[A-Z]{2}(\s+\d{5}(-\d{4})?)?$/i.test(s) ? null : s;
 }
 
 const CLAIM_STATUS_WORDS: Array<[RegExp, ClerkSurplusRow["claim_status"]]> = [
@@ -146,12 +183,12 @@ export function toClerkRow(
   return {
     case_number: caseNumber,
     parcel_apn: apn,
-    property_address: get("property_address"),
+    property_address: cleanAddress(get("property_address")),
     confirmed_amount: amount,
     sale_date: parseClerkDate(get("sale_date")),
     claim_deadline: parseClerkDate(get("claim_deadline")),
     claim_status: parseClaimStatus(get("claim_status")),
-    claimant_name: get("claimant_name"),
+    claimant_name: cleanClaimantName(get("claimant_name")),
     raw: cells,
   };
 }

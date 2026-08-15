@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseHtmlTable, pickTable, extractTables, extractRows, stripTags } from "./html-table";
 import { parsePdfLines } from "./pdf-list";
+import { parseXlsxMatrix } from "./xlsx-list";
 import { parseClaimStatus, parseClerkDate, parseMoney, toClerkRow } from "./types";
 
 const COLUMN_MAP = {
@@ -236,5 +237,62 @@ describe("pdf_list handler", () => {
     });
     expect(rows[1]).toMatchObject({ parcel_apn: "0503C 032 010", confirmed_amount: 1177.48 });
     expect(rows[2]).toMatchObject({ parcel_apn: "0941 000 064", confirmed_amount: 9260.93, sale_date: "2025-09-02" });
+  });
+});
+
+describe("statewide escrow workbooks (GA)", () => {
+  const COLUMNS = {
+    columnMap: {
+      "Matter Id": "case_number",
+      "Parcel No.": "parcel_apn",
+      Owner: "claimant_name",
+      Address: "property_address",
+      "Sale Date": "sale_date",
+      "Excess Funds": "confirmed_amount",
+    },
+    claimFiledWhenPresent: "Petition Filed Date",
+    defaultClaimStatus: "unclaimed" as const,
+  };
+  const HEADER = [
+    "County", "Matter Id", "Parcel No.", "Owner", "Address",
+    "Sale Date", "Petition Filed Date", "Case Number", "Excess Funds",
+  ];
+
+  it("strips heirs boilerplate, drops non-names and state-only addresses", () => {
+    const rows = parseXlsxMatrix(
+      [
+        HEADER,
+        ["Newton", "E-1", "0066A-032", "Donald L Bray and/or His or Her Known or Unknown Heirs at Law", "470 Varner St, Covington, GA, 30014", "09/02/2025", "", "", "4038.43"],
+        // The county named no defendant — that wording is not a person.
+        ["Fulton", "E-2", "14F-0109", "Any and all parties that may claim an interest in the Excess Funds", " GA ", "03/02/2021", "", "", "522.06"],
+        ["Muscogee", "E-3", "040 011 006", "Leroy Est Dixon ", "GA", "08/03/2021", "", "", "3588.97"],
+      ],
+      COLUMNS,
+    );
+    expect(rows).toHaveLength(3);
+    expect(rows[0]).toMatchObject({ claimant_name: "Donald L Bray", property_address: "470 Varner St, Covington, GA, 30014", claim_status: "unclaimed" });
+    expect(rows[1]?.claimant_name).toBeNull();
+    expect(rows[1]?.property_address).toBeNull();
+    expect(rows[2]?.property_address).toBeNull();
+  });
+
+  it("marks a filed interpleader as claim_filed, not unclaimed", () => {
+    const rows = parseXlsxMatrix(
+      [
+        HEADER,
+        ["Newton", "E-4", "00170-145", "Curtis E. Hayes", "100 Willow Shoals Dr, Covington, GA", "08/06/2025", "06/12/2026", "SUCV2026001947", "147937.58"],
+      ],
+      COLUMNS,
+    );
+    expect(rows[0]).toMatchObject({ claim_status: "claim_filed", confirmed_amount: 147937.58 });
+  });
+
+  it("drops a typo'd sale year instead of storing a year-25 sale", () => {
+    const rows = parseXlsxMatrix(
+      [HEADER, ["Newton", "E-5", "0066A-032", "Donald L Bray", "470 Varner St", "09/02/0025", "", "", "4038.43"]],
+      COLUMNS,
+    );
+    // The amount and parcel are real; only the impossible date is withheld.
+    expect(rows[0]).toMatchObject({ sale_date: null, confirmed_amount: 4038.43, parcel_apn: "0066A-032" });
   });
 });
