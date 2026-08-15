@@ -85,6 +85,18 @@ export async function robotsAllows(url: string): Promise<boolean> {
 }
 
 /**
+ * The site's robots.txt tells us not to crawl this path. That is a deliberate
+ * skip on our side, not a failed fetch, so callers record it as skipped and the
+ * source's health is not marked broken for obeying the rules.
+ */
+export class RobotsDisallowedError extends Error {
+  constructor(url: string) {
+    super(`robots.txt Disallows ${url}`);
+    this.name = "RobotsDisallowedError";
+  }
+}
+
+/**
  * Rate-limited, honestly identified fetch with exponential backoff on
  * 429/503. Throws on anything else non-OK so callers can mark the source
  * failed instead of silently returning nothing.
