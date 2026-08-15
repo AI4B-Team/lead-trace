@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { pgIlikePattern } from "@/lib/pg-filter";
 
 /**
  * Public reads (no bearer token) power the marketing pages, so they must stay
@@ -130,7 +131,9 @@ export const queryFeed = createServerFn({ method: "POST" })
     if (data.pulledAfter) q = q.gte("pulled_date", data.pulledAfter);
     if (data.view === "new" && watermark) q = q.gt("created_at", watermark);
     if (data.search) {
-      const term = `%${data.search.replace(/[%,]/g, "")}%`;
+      // Quoting keeps commas and parentheses ("Acme (FL)") literal instead of
+      // being parsed as filter syntax; strip only the ilike wildcards.
+      const term = pgIlikePattern(data.search.replace(/[%_]/g, ""));
       q = q.or(
         `owner_last.ilike.${term},owner_first.ilike.${term},company_entity.ilike.${term},property_address.ilike.${term},doc_number.ilike.${term}`,
       );

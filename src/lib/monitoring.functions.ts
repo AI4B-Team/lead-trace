@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { formatJobName } from "@/lib/job-naming";
+import { pgIlikePattern } from "@/lib/pg-filter";
 
 // Recurring-scan monitoring layer (spec §15.1) + the cumulative Leads asset
 // (spec §14). Everything here reports what the system actually did — no
@@ -51,7 +52,9 @@ export const listLeadRecords = createServerFn({ method: "GET" })
     // "Shortlist" = records a person accepted from a Lead Scout nomination.
     if (data.onlyNominated) q = q.not("nominated_at", "is", null);
     if (data.search?.trim()) {
-      const s = `%${data.search.trim()}%`;
+      // Quote the pattern: a comma or parenthesis in the search text would
+      // otherwise be read as filter syntax and fail the whole query.
+      const s = pgIlikePattern(data.search.trim());
       q = q.or(
         `full_name.ilike.${s},business_name.ilike.${s},phone.ilike.${s},email.ilike.${s},city.ilike.${s},state.ilike.${s}`,
       );
@@ -462,7 +465,7 @@ export const exportLeadRecords = createServerFn({ method: "GET" })
     if (data.multiList) q = q.gt("list_count", 1);
     if (data.onlyNominated) q = q.not("nominated_at", "is", null);
     if (data.search?.trim()) {
-      const s = `%${data.search.trim()}%`;
+      const s = pgIlikePattern(data.search.trim());
       q = q.or(
         `full_name.ilike.${s},business_name.ilike.${s},phone.ilike.${s},email.ilike.${s},city.ilike.${s},state.ilike.${s}`,
       );
