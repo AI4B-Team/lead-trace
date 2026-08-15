@@ -10,8 +10,8 @@
 
 import {
   assertBudgetAvailable,
-  isRealauctionUrl,
   realauctionFetch,
+  requiresProxy,
   REALAUCTION_USER_AGENT,
   recordVendorFetch,
 } from "./realauction-proxy";
@@ -55,7 +55,7 @@ async function disallowedPaths(origin: string): Promise<string[]> {
   let rules: string[] = [];
   try {
     const robotsUrl = `${origin}/robots.txt`;
-    const vendor = isRealauctionUrl(robotsUrl);
+    const vendor = requiresProxy(robotsUrl);
     const res = vendor
       ? await realauctionFetch(robotsUrl, { headers: { "User-Agent": REALAUCTION_USER_AGENT } })
       : await fetch(robotsUrl, { headers: { "User-Agent": BOT_USER_AGENT } });
@@ -119,7 +119,7 @@ export async function politeFetch(
   const host = new URL(url).host;
   // Vendor requests are proxied and carry a browser UA; everything else keeps
   // direct egress and the honest bot UA.
-  const vendor = isRealauctionUrl(url);
+  const vendor = requiresProxy(url);
   if (vendor) assertBudgetAvailable();
   if (attempt === 0 && !(await robotsAllows(url))) {
     throw new RobotsDisallowedError(url);
@@ -166,7 +166,7 @@ export async function politeHtml(
   });
   const html = await res.text();
   const bytes = html.length;
-  if (isRealauctionUrl(url)) recordVendorFetch(bytes, res.status);
+  if (requiresProxy(url)) recordVendorFetch(bytes, res.status);
   return { html, status: res.status, bytes };
 }
 
