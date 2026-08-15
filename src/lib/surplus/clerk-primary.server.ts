@@ -323,16 +323,32 @@ export async function ingestClerkSurplusSource(
   // "last updated" on the feed and county pages reflects tonight's list.
   // Coverage rows are keyed by state + county name (the fips column is not
   // consistently the same key style as distress_records), so match on those.
-  await db
+  const coveragePatch = {
+    last_success_at: result.fetchedAt,
+    status: "verified",
+    ...(typeof coveredRows === "number" ? { sample_row_count: coveredRows } : {}),
+  };
+  const { data: updated } = await db
     .from("source_coverage")
-    .update({
-      last_success_at: result.fetchedAt,
-      status: "verified",
-      ...(typeof coveredRows === "number" ? { sample_row_count: coveredRows } : {}),
-    })
+    .update(coveragePatch)
     .eq("state", source.state)
     .ilike("county_name", source.county_name)
-    .eq("record_type", "surplus_funds");
+    .eq("record_type", "surplus_funds")
+    .select("id");
+
+  // A newly registered county has no coverage row yet; without this insert the
+  // feed and AI Assistant would keep reporting it as uncovered even though the
+  // clerk's own rows are already stored.
+  if (!updated?.length) {
+    await db.from("source_coverage").insert({
+      state: source.state,
+      county_name: source.county_name,
+      record_type: "surplus_funds",
+      fips,
+      verified_at: result.fetchedAt,
+      ...coveragePatch,
+    });
+  }
 
   return base;
 }

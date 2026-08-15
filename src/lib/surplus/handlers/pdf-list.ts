@@ -5,6 +5,9 @@
  * a row pattern instead of selectors:
  *   { columns: ["case_number","property_address","confirmed_amount"],
  *     rowPattern?: string,   // regex with one capture group per column
+ *     groupPattern?: string, // regex whose capture 1 is a value shared by the
+ *     groupField?: string,   // rows that follow it (Osceola prints sale dates
+ *                            // as group headers, not per-row cells)
  *     skipLines?: string[] } // headers/footers to ignore
  * Without a rowPattern we do not attempt to infer columns from whitespace: a
  * misaligned split would silently attach the wrong dollar amount to a case.
@@ -25,24 +28,46 @@ export async function pdfToLines(bytes: Uint8Array): Promise<string[]> {
 
 export function parsePdfLines(
   lines: string[],
-  config: { columns?: string[]; rowPattern?: string; skipLines?: string[]; columnMap?: Record<string, string> },
+  config: {
+    columns?: string[];
+    rowPattern?: string;
+    groupPattern?: string;
+    groupField?: string;
+    skipLines?: string[];
+    columnMap?: Record<string, string>;
+  },
 ): ClerkSurplusRow[] {
   const columns = config.columns ?? [];
   if (!config.rowPattern || !columns.length) return [];
   const re = new RegExp(config.rowPattern);
+  const groupRe = config.groupPattern && config.groupField ? new RegExp(config.groupPattern) : null;
+  let groupValue: string | null = null;
   const skip = (config.skipLines ?? []).map((s) => s.toLowerCase());
   const out: ClerkSurplusRow[] = [];
   for (const line of lines) {
     if (skip.some((s) => line.toLowerCase().includes(s))) continue;
+    if (groupRe) {
+      const g = line.match(groupRe);
+      // A group header carries a value forward onto every row beneath it and is
+      // never itself a record.
+      if (g?.[1]) {
+        groupValue = g[1].trim();
+        continue;
+      }
+    }
     const m = line.match(re);
     if (!m) continue;
     const record: Record<string, string> = {};
     columns.forEach((col, i) => {
       record[col] = (m[i + 1] ?? "").trim();
     });
+    if (config.groupField && groupValue && !record[config.groupField]) {
+      record[config.groupField] = groupValue;
+    }
     // Columns are already field names here, so the map is identity unless the
     // config overrides it.
-    const map = config.columnMap ?? Object.fromEntries(columns.map((c) => [c, c]));
+    const fields = config.groupField ? [...columns, config.groupField] : columns;
+    const map = config.columnMap ?? Object.fromEntries(fields.map((c) => [c, c]));
     const row = toClerkRow(record, map);
     if (row) out.push(row);
   }
@@ -55,6 +80,8 @@ export async function runPdfList(ctx: HandlerContext): Promise<HandlerResult> {
   const config = source.fetch_config as {
     columns?: string[];
     rowPattern?: string;
+    groupPattern?: string;
+    groupField?: string;
     skipLines?: string[];
     columnMap?: Record<string, string>;
   };
