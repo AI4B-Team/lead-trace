@@ -85,6 +85,16 @@ export async function robotsAllows(url: string): Promise<boolean> {
 }
 
 /**
+ * True when the host's robots.txt is a blanket `Disallow: /` — the whole site is
+ * off limits, not just one path. Callers use this to retire a source once
+ * instead of re-discovering the same refusal county by county every night.
+ */
+export async function robotsBlocksWholeSite(origin: string): Promise<boolean> {
+  const rules = await disallowedPaths(new URL(origin).origin);
+  return rules.includes("/");
+}
+
+/**
  * The site's robots.txt tells us not to crawl this path. That is a deliberate
  * skip on our side, not a failed fetch, so callers record it as skipped and the
  * source's health is not marked broken for obeying the rules.
