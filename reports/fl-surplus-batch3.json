@@ -1,0 +1,174 @@
+{
+  "generatedAt": "2026-08-15T15:37:06.373Z",
+  "probes": [
+    {
+      "county": "Clay",
+      "url": "https://clayclerk.com/announcements/annual-unclaimed-funds-list-published/",
+      "ok": true,
+      "robotsAllowed": true,
+      "handler": "pdf_list",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [
+        "https://clayclerk.com/uploads/2026/07/Unclaimed-Funds-List-Published-July-2026.pdf"
+      ],
+      "note": "1 candidate document(s). Needs a rowPattern from the real file."
+    },
+    {
+      "county": "St. Lucie",
+      "url": "https://www.stlucieclerk.com/services/unclaimed-funds",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 1,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [
+        "https://www.stlucieclerk.com/deptforms/general/Change-of-Address-Form.pdf",
+        "https://www.stlucieclerk.com/deptforms/officialrecords/Redaction-Request-for-Confidentiality.pdf",
+        "https://www.stlucieclerk.com/deptforms/finance/Unclaimed-Monies-Affidavit.pdf",
+        "https://www.stlucieclerk.com/deptforms/finance/W-9-Blank.pdf"
+      ],
+      "note": "Page mentions surplus but publishes no list (claim instructions only)"
+    },
+    {
+      "county": "St. Lucie",
+      "url": "https://www.stlucieclerk.com/services/auctions/tax-deeds",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [
+        "https://www.stlucieclerk.com/deptforms/general/Change-of-Address-Form.pdf",
+        "https://www.stlucieclerk.com/deptforms/officialrecords/Redaction-Request-for-Confidentiality.pdf"
+      ],
+      "note": "Page mentions surplus but publishes no list (claim instructions only)"
+    },
+    {
+      "county": "Collier",
+      "url": "https://www.collierclerk.com/tax-deed-sales/",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [],
+      "note": "timeout after 25000ms (page)"
+    },
+    {
+      "county": "Collier",
+      "url": "https://www.collierclerk.com/finance/accounting/unclaimed-monies/",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [],
+      "note": "timeout after 25000ms (page)"
+    },
+    {
+      "county": "Charlotte",
+      "url": "https://www.charlotteclerk.com/departments/taxdeed/",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [
+        "https://www.charlotteclerk.com/Forms2/101-01-CHECKLIST-DOMPETITIONW-CHILD_e.pdf",
+        "https://www.flcourts.org/content/download/217367/file/geninfo.pdf",
+        "https://www.charlotteclerk.com/Forms2/VitalStatisticsForm_e.pdf",
+        "https://www.flcourts.org/content/download/685879/file_pdf/928%2011-20.pdf",
+        "https://www.flcourts.org/content/download/403026/file/900h.pdf",
+        "https://www.flcourts.org/content/download/403030/file/901b1.pdf",
+        "https://www.flcourts.org/content/download/403040/file/902d.pdf",
+        "https://www.flcourts.org/content/download/685812/file_pdf/902b%2011-20.pdf",
+        "https://www.flcourts.org/content/download/685813/file_pdf/902c%2011-20.pdf",
+        "https://www.flcourts.org/content/download/403052/file/902j.pdf",
+        "https://www.flcourts.org/content/download/403367/file/995a.pdf",
+        "https://www.flcourts.org/content/download/403369/file/995b.pdf"
+      ],
+      "note": "Page reachable, no surplus list detected"
+    },
+    {
+      "county": "Charlotte",
+      "url": "https://taxdeeds.charlotteclerk.com/",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [],
+      "note": "Source Returned HTTP 522"
+    },
+    {
+      "county": "Bay",
+      "url": "https://www.baycoclerk.com/public-records/property-sales/tax-deed-auctions/",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [
+        "https://bay-co-clerk.s3.amazonaws.com/uploads/2026/03/04142426/Claim-to-Surplus-Proceeds_ada.pdf"
+      ],
+      "note": "Page mentions surplus but publishes no list (claim instructions only)"
+    },
+    {
+      "county": "Bay",
+      "url": "https://www.baycoclerk.com/public-records/property-sales/",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [],
+      "note": "Page reachable, no surplus list detected"
+    },
+    {
+      "county": "Nassau",
+      "url": "https://www.nassauclerk.com/190/View-Tax-Deed-Sales-and-Foreclosures",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [],
+      "note": "Page reachable, no surplus list detected"
+    },
+    {
+      "county": "Nassau",
+      "url": "https://www.nassauclerk.com/190/2006/View-Tax-Deed-Sales",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [],
+      "note": "Page reachable, no surplus list detected"
+    },
+    {
+      "county": "Okaloosa",
+      "url": "https://okaloosaclerk.com/board-services/tax-deed-sales/",
+      "ok": false,
+      "robotsAllowed": true,
+      "handler": "unknown",
+      "tables": 0,
+      "headers": [],
+      "suggested": {},
+      "docLinks": [],
+      "note": "Page mentions surplus but publishes no list (claim instructions only)"
+    }
+  ]
+}
