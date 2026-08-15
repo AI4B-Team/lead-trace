@@ -502,6 +502,7 @@ function PublicRecordsPage() {
               </TableHeader>
               <TableBody>
                 {files.map((f) => (
+                  <>
                   <TableRow key={f.id}>
                     <TableCell className="font-medium">{f.filename}</TableCell>
                     <TableCell className="tabular-nums">{f.rows_total}</TableCell>
@@ -519,11 +520,34 @@ function PublicRecordsPage() {
                       >
                         {f.parse_status.replace("_", " ")}
                       </Badge>
+                      {f.parse_status === "needs_mapping" ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="ml-2 h-6 px-2 text-[11px]"
+                          onClick={() => setMappingFile(mappingFile === f.id ? null : f.id)}
+                        >
+                          {mappingFile === f.id ? "Close" : "Map Columns"}
+                        </Button>
+                      ) : null}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {new Date(f.received_at).toLocaleDateString()}
                     </TableCell>
                   </TableRow>
+                  {mappingFile === f.id ? (
+                    <TableRow key={`${f.id}-map`}>
+                      <TableCell colSpan={5} className="bg-muted/30">
+                        <ColumnMapper
+                          columns={(f.detected_columns as string[] | null) ?? []}
+                          sampleRows={(f.sample_rows as Array<Record<string, unknown>> | null) ?? []}
+                          busy={remap.isPending}
+                          onSave={(columnMap) => remap.mutate({ fileId: f.id, columnMap })}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                  </>
                 ))}
               </TableBody>
             </Table>
