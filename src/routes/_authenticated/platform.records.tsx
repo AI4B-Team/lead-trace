@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Database, FileSpreadsheet, Loader2, Mail, Radar, RefreshCw, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -74,6 +74,7 @@ function PublicRecordsPage() {
   const fetchRequestPath = useServerFn(listRequestPathSurplus);
   const saveCustodian = useServerFn(setSurplusCustodian);
   const runRequestSweep = useServerFn(sweepRequestPathSurplus);
+  const remapFile = useServerFn(remapReturnedFile);
 
   const [recordType, setRecordType] = useState<string>(DISCOVERY_RECORD_TYPES[0]);
   const reference = useReferenceData();
@@ -82,6 +83,21 @@ function PublicRecordsPage() {
   const agenciesQ = useQuery({ queryKey: ["admin-agencies"], queryFn: () => fetchAgencies() });
   const requestPathQ = useQuery({ queryKey: ["admin-request-path"], queryFn: () => fetchRequestPath() });
   const [custodianDraft, setCustodianDraft] = useState<Record<string, string>>({});
+  const [mappingFile, setMappingFile] = useState<string | null>(null);
+
+  const remap = useMutation({
+    mutationFn: (v: { fileId: string; columnMap: Record<string, string> }) => remapFile({ data: v }),
+    onSuccess: (r) => {
+      if (r.status === "parsed") {
+        toast.success(`Mapped and ingested ${r.rowsParsed} rows to ${r.distributedTo} workspaces.`);
+        setMappingFile(null);
+      } else {
+        toast.error(r.error ?? "Still could not read the file with that mapping.");
+      }
+      void qc.invalidateQueries({ queryKey: ["admin-agencies"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const addCustodian = useMutation({
     mutationFn: (v: { countyName: string; state: string; email: string }) => saveCustodian({ data: v }),
@@ -502,7 +518,7 @@ function PublicRecordsPage() {
               </TableHeader>
               <TableBody>
                 {files.map((f) => (
-                  <>
+                  <Fragment key={f.id}>
                   <TableRow key={f.id}>
                     <TableCell className="font-medium">{f.filename}</TableCell>
                     <TableCell className="tabular-nums">{f.rows_total}</TableCell>
@@ -547,7 +563,7 @@ function PublicRecordsPage() {
                       </TableCell>
                     </TableRow>
                   ) : null}
-                  </>
+                  </Fragment>
                 ))}
               </TableBody>
             </Table>
