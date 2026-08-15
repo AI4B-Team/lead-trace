@@ -150,4 +150,58 @@ describe("pdf_list handler", () => {
     expect(rows[1]).toMatchObject({ parcel_apn: "01039A000003", confirmed_amount: 105607.85, sale_date: "2024-10-01" });
     expect(rows[1]?.claim_status).toBe("unclaimed");
   });
+
+  it("skips balances the county marked REDEEMED (Henry GA)", () => {
+    const config = {
+      columns: ["parcel_apn", "owner_and_address", "sale_date", "confirmed_amount"],
+      rowPattern: "^([A-Za-z0-9][A-Za-z0-9-]{7,13}) (.+?) (\\d{1,2}/\\d{1,2}/\\d{4}) \\$?([\\d,]+\\.\\d{2})\\$?$",
+      skipLines: ["PARCEL ID OWNER"],
+      defaultClaimStatus: "unclaimed" as const,
+    };
+    const rows = parsePdfLines(
+      [
+        "PARCEL ID OWNER ADDRESS SALE DATE EXCESS FUNDS",
+        "018-01023001 PILOTO DANIA 947 BABBS MILL RD 2/4/2020 385.05$",
+        // Redeemed rows keep the figure but append REDEEMED — that money is gone.
+        "106B02019000 TOMLINSON HOWARD 78 MILLER RD 2/2/2021 39,874.68$ REDEEMED",
+        "072-01044003 SAN MARCO ISLAND TRUST 545 FOSTER DR 11/3/2020 REDEEMED REDEEMED",
+        // Some rows print the dollar sign in front instead of behind.
+        "069B05014000 CHILDERS MICHAEL 220 WAKE DR, STB 5/7/2024 $15,385.05",
+      ],
+      config,
+    );
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ parcel_apn: "018-01023001", confirmed_amount: 385.05, sale_date: "2020-02-04" });
+    expect(rows[1]).toMatchObject({ parcel_apn: "069B05014000", confirmed_amount: 15385.05, sale_date: "2024-05-07" });
+  });
+
+  it("reads owner, map number and address off one line (Troup GA)", () => {
+    const config = {
+      columns: ["sale_date", "owner_name", "parcel_apn", "property_address", "confirmed_amount"],
+      rowPattern:
+        "^(\\d{1,2}/\\d{1,2}/\\d{4}) (.+?) ?(\\d{3,5}[A-Z]?[ -]\\d{3,4}[ -]\\d{3}[A-Z]?) (.+?) \\$([\\d,]+\\.\\d{2})$",
+      skipLines: ["DATE OF", "Excess", "Funds", "OWNER MAP#"],
+      defaultClaimStatus: "unclaimed" as const,
+    };
+    const rows = parsePdfLines(
+      [
+        "DATE OF",
+        "SALE OWNER MAP# ADDRESS",
+        "7/7/2020 NELSON REMBERTO GARCIA 0943D-025-006 1003 E. 8TH ST., WEST PT $74.27",
+        "11/3/2020 WILLIE S MCCUTCHEN 0503C 032 010 300 CARVER ST., LAG $1,177.48",
+        // The PDF sometimes runs a truncated owner name straight into the map number.
+        "9/2/2025 ALVARO L ESQUIVAL & CLAUDIA R GONZA0941 000 064 7916 WEST POINT RD, WEST PT $9,260.93",
+      ],
+      config,
+    );
+    expect(rows).toHaveLength(3);
+    expect(rows[0]).toMatchObject({
+      parcel_apn: "0943D-025-006",
+      property_address: "1003 E. 8TH ST., WEST PT",
+      confirmed_amount: 74.27,
+      sale_date: "2020-07-07",
+    });
+    expect(rows[1]).toMatchObject({ parcel_apn: "0503C 032 010", confirmed_amount: 1177.48 });
+    expect(rows[2]).toMatchObject({ parcel_apn: "0941 000 064", confirmed_amount: 9260.93, sale_date: "2025-09-02" });
+  });
 });
