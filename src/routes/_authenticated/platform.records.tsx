@@ -63,6 +63,95 @@ const STATUS_LABEL: Record<string, string> = {
   policy_blocked: "Policy Blocked",
 };
 
+/** Canonical fields a returned spreadsheet can fill, in review order. */
+const MAPPABLE_FIELDS: Array<{ key: string; label: string }> = [
+  { key: "address", label: "Address" },
+  { key: "city", label: "City" },
+  { key: "state", label: "State" },
+  { key: "zip", label: "ZIP" },
+  { key: "owner", label: "Owner Or Respondent" },
+  { key: "case_id", label: "Case Number" },
+  { key: "case_date", label: "Filing Date" },
+  { key: "status", label: "Status" },
+  { key: "description", label: "Description" },
+  { key: "amount", label: "Amount" },
+];
+
+const NONE = "__none__";
+
+/**
+ * One-time manual mapping for a file we could not read. The saved mapping is
+ * remembered for the agency, so this is the only time a human sees it.
+ */
+function ColumnMapper({
+  columns,
+  sampleRows,
+  busy,
+  onSave,
+}: {
+  columns: string[];
+  sampleRows: Array<Record<string, unknown>>;
+  busy: boolean;
+  onSave: (columnMap: Record<string, string>) => void;
+}) {
+  const [draft, setDraft] = useState<Record<string, string>>({});
+
+  if (columns.length === 0) {
+    return (
+      <p className="py-2 text-xs text-muted-foreground">
+        No column headings were captured for this file — ask the agency to resend it as CSV or Excel.
+      </p>
+    );
+  }
+
+  const sample = (col: string) =>
+    sampleRows.map((r) => String(r[col] ?? "").trim()).filter(Boolean)[0] ?? "";
+
+  return (
+    <div className="space-y-3 py-2">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {MAPPABLE_FIELDS.map((f) => (
+          <div key={f.key} className="space-y-1">
+            <label className="text-[11px] font-medium text-muted-foreground">{f.label}</label>
+            <Select
+              value={draft[f.key] ?? NONE}
+              onValueChange={(v) =>
+                setDraft((d) => {
+                  const next = { ...d };
+                  if (v === NONE) delete next[f.key];
+                  else next[f.key] = v;
+                  return next;
+                })
+              }
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="Not In File" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE}>Not In File</SelectItem>
+                {columns.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                    {sample(c) ? ` — ${sample(c).slice(0, 24)}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <Button size="sm" disabled={busy || !draft.address} onClick={() => onSave(draft)}>
+          {busy ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : null} Save Mapping And Re-Ingest
+        </Button>
+        {!draft.address ? (
+          <span className="text-[11px] text-muted-foreground">An address column is required.</span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function PublicRecordsPage() {
   const qc = useQueryClient();
   const fetchSources = useServerFn(listDataSources);
@@ -558,7 +647,9 @@ function PublicRecordsPage() {
                           columns={(f.detected_columns as string[] | null) ?? []}
                           sampleRows={(f.sample_rows as Array<Record<string, unknown>> | null) ?? []}
                           busy={remap.isPending}
-                          onSave={(columnMap) => remap.mutate({ fileId: f.id, columnMap })}
+                          onSave={(columnMap: Record<string, string>) =>
+                            remap.mutate({ fileId: f.id, columnMap })
+                          }
                         />
                       </TableCell>
                     </TableRow>
