@@ -377,3 +377,48 @@ export async function saveAgencyMapping(args: {
   if (error) throw new Error(error.message);
   return { ok: true };
 }
+
+/**
+ * Fix a file that could not be auto-mapped: remember the human's mapping for
+ * the agency, then re-run the original file contents through the same ingest
+ * path so the rows land in the pipeline without asking the agency to resend.
+ */
+export async function remapAndReingestFile(args: {
+  fileId: string;
+  columnMap: FieldMap;
+  userId?: string | null;
+}): Promise<IngestResult> {
+  const db = await admin();
+  const { data: file } = await db
+    .from("records_request_files")
+    .select("id, agency_id, filename, raw_text, parse_status")
+    .eq("id", args.fileId)
+    .maybeSingle();
+  const f = file as
+    | { id: string; agency_id: string; filename: string; raw_text: string | null }
+    | null;
+  if (!f) throw new Error("File Not Found");
+  if (!f.raw_text) throw new Error("Original File Contents Are No Longer Available");
+  if (!isUsableMap(args.columnMap)) throw new Error("Mapping Needs At Least An Address Or Owner Column");
+
+  await saveAgencyMapping({
+    agencyId: f.agency_id,
+    recordType: null,
+    columnMap: args.columnMap,
+    userId: args.userId ?? null,
+  });
+
+  const result = await ingestAgencyFile({
+    agencyId: f.agency_id,
+    filename: f.filename,
+    text: f.raw_text,
+  });
+
+  // The superseded row stays for the audit trail, without its bulky payload.
+  await db
+    .from("records_request_files")
+    .update({ parse_status: "remapped", parse_error: null, raw_text: null })
+    .eq("id", f.id);
+
+  return result;
+}
