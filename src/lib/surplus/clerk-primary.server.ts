@@ -93,11 +93,17 @@ export function clerkRowToFiling(
   if (row.confirmed_amount == null || !(row.confirmed_amount > 0)) return null;
 
   // Stable, unique per clerk record. Prefer the clerk's own case/sale number,
-  // then the parcel, then a date+address fallback so a row without a case number
-  // still dedupes deterministically.
+  // then the parcel PAIRED WITH the sale date, then a date+address fallback so a
+  // row without a case number still dedupes deterministically.
+  //
+  // The sale date is part of the parcel key on purpose: the same parcel can go
+  // to tax sale more than once (Forsyth GA parcel 263 147 sold in 2021 and again
+  // in 2023, each with its own surplus). Keying on the parcel alone made the
+  // second sale overwrite the first and quietly dropped a real balance.
+  const parcel = row.parcel_apn?.trim();
   const key =
     row.case_number?.trim() ||
-    row.parcel_apn?.trim() ||
+    (parcel ? `${parcel}|${row.sale_date ?? "nodate"}` : null) ||
     `${row.sale_date ?? "nodate"}|${(row.property_address ?? "").toUpperCase()}`;
   const docNumber = `SURP-${ctx.fips}-${key}`;
 
