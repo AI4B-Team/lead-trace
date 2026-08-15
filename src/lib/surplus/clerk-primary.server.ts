@@ -295,11 +295,21 @@ export async function ingestClerkSurplusSource(
     })
     .eq("id", source.id);
 
+  const { count: coveredRows } = await db
+    .from("distress_records")
+    .select("id", { count: "exact", head: true })
+    .eq("record_type", "surplus_funds")
+    .eq("fips", fips);
+
   // Keep the coverage registry's freshness in step with the clerk pull, so
   // "last updated" on the feed and county pages reflects tonight's list.
   await db
     .from("source_coverage")
-    .update({ last_success_at: result.fetchedAt, status: "verified" })
+    .update({
+      last_success_at: result.fetchedAt,
+      status: "verified",
+      ...(typeof coveredRows === "number" ? { sample_row_count: coveredRows } : {}),
+    })
     .eq("fips", fips)
     .eq("record_type", "surplus_funds");
 
