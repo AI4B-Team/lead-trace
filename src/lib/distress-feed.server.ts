@@ -716,6 +716,10 @@ function observedSourceClass(f: RawFiling): import("./distress/reconcile.shared"
 export async function runNightlyPulls(): Promise<{
   ok: boolean;
   targets: number;
+  pulled: number;
+  failed: number;
+  skipped: number;
+  firstError?: string;
   results: Array<{
     county: string;
     recordType: string;
@@ -837,6 +841,7 @@ export async function runNightlyPulls(): Promise<{
     let found = 0;
     let added = 0;
     let failure: string | undefined;
+    let disallowed = false;
     let surplus: SurplusCounters | undefined;
     try {
       const filings = await target.pull();
@@ -857,6 +862,9 @@ export async function runNightlyPulls(): Promise<{
         vendorHalted = err.message;
         console.error(`[distress-feed] ${err.message}`);
       }
+      // Obeying robots.txt is a policy skip, not a broken source.
+      const { RobotsDisallowedError } = await import("./data-providers/scraper-policy");
+      if (err instanceof RobotsDisallowedError) disallowed = true;
     }
     const bytes = target.proxied ? proxyMod.bytesUsed() - bytesBefore : 0;
     const httpStatus = target.proxied ? proxyMod.lastVendorStatus() : null;
@@ -865,7 +873,7 @@ export async function runNightlyPulls(): Promise<{
       state: target.state.toUpperCase(),
       county: target.county,
       record_type: target.recordType,
-      status: failure ? "error" : "ok",
+      status: disallowed ? "skipped" : failure ? "error" : "ok",
       records_found: found,
       records_added: added,
       bytes_downloaded: bytes,
@@ -879,7 +887,8 @@ export async function runNightlyPulls(): Promise<{
       recordType: target.recordType,
       found,
       added,
-      error: failure,
+      error: disallowed ? undefined : failure,
+      skipped: disallowed ? failure : undefined,
       bytes,
       httpStatus,
       surplus,
@@ -888,7 +897,24 @@ export async function runNightlyPulls(): Promise<{
 
   const bytesTotal = proxyMod.endRealauctionBudget();
   console.log(`[distress-feed] RealAuction bytes downloaded this sweep: ${bytesTotal}`);
-  return { ok: results.every((r) => !r.error), targets: results.length, results, bytesUsed: bytesTotal };
+  // A single county's clerk site returning 403 or changing its markup is normal
+  // sourcing noise, not a broken schedule — flagging the whole tick as failed
+  // there keeps the cron health list permanently red and hides real outages.
+  // The tick only fails when nothing at all got through: every attempted pull
+  // errored, which points at us (egress, credentials, a bad deploy).
+  const attempted = results.filter((r) => !r.skipped);
+  const failedPulls = attempted.filter((r) => r.error);
+  const firstError = failedPulls[0]?.error;
+  return {
+    ok: attempted.length === 0 || failedPulls.length < attempted.length,
+    targets: results.length,
+    pulled: attempted.length - failedPulls.length,
+    failed: failedPulls.length,
+    skipped: results.length - attempted.length,
+    firstError,
+    results,
+    bytesUsed: bytesTotal,
+  };
 }
 
 /** Record types we are configured to pull for a county, for the county page. */
