@@ -185,7 +185,9 @@ export const listJobLeads = createServerFn({ method: "GET" })
       .limit(data.limit);
     if (data.bucket !== "all") q = q.eq("scrub_status", data.bucket);
     if (data.search?.trim()) {
-      const s = `%${data.search.trim()}%`;
+      // Quote the pattern: a comma or parenthesis in the search text would
+      // otherwise be read as filter syntax and fail the whole query.
+      const s = pgIlikePattern(data.search.trim());
       q = q.or(`full_name.ilike.${s},business_name.ilike.${s},phone.ilike.${s},email.ilike.${s},city.ilike.${s}`);
     }
     const { data: leads, error } = await q;

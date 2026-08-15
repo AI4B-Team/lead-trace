@@ -258,7 +258,8 @@ export async function sendDueRequests(limit = 25) {
 async function savedMap(agencyId: string, recordType: string | null): Promise<FieldMap | null> {
   const db = await admin();
   let q = db.from("agency_column_maps").select("column_map, record_type").eq("agency_id", agencyId);
-  if (recordType) q = q.or(`record_type.eq.${recordType},record_type.is.null`);
+  // Record types are human-entered ("Code Violation, Lien"), so quote the value.
+  if (recordType) q = q.or(`record_type.eq.${pgFilterValue(recordType)},record_type.is.null`);
   const { data } = await q.order("record_type", { ascending: true, nullsFirst: false }).limit(1);
   const row = (data ?? [])[0] as { column_map?: FieldMap } | undefined;
   return row?.column_map ?? null;
