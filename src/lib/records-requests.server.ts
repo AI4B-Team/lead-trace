@@ -222,12 +222,21 @@ export async function ingestAgencyFile(args: {
     filename: args.filename,
     file_type: args.filename.split(".").pop()?.toLowerCase() ?? null,
     rows_total: rows.length,
+    detected_columns: columns,
+    sample_rows: rows.slice(0, 5) as never,
   };
 
   if (rows.length === 0 || !isUsableMap(map)) {
     const { data: file } = await db
       .from("records_request_files")
-      .insert({ ...fileInsert, parse_status: "needs_mapping", parse_error: "Could Not Auto-Map Columns" })
+      .insert({
+        ...fileInsert,
+        parse_status: "needs_mapping",
+        parse_error: "Could Not Auto-Map Columns",
+        // Kept so a human can fix the mapping and re-ingest without asking the
+        // agency to resend the file.
+        raw_text: args.text.slice(0, 4_000_000),
+      })
       .select("id")
       .single();
     if (req) await db.from("records_requests").update({ status: "needs_mapping" }).eq("id", (req as { id: string }).id);
