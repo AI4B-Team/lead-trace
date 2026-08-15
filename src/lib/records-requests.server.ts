@@ -91,15 +91,19 @@ export async function composeAndSchedule(agencyId: string, opts: {
  * handled upstream; a suppressed recipient is a normal, non-error outcome.
  */
 async function sendEmail(to: string, subject: string, body: string): Promise<{ sent: boolean; error?: string }> {
+  const apiKey = process.env["LOVABLE_API_KEY"];
+  if (!apiKey) return { sent: false, error: "Email Sending Is Not Configured Yet" };
   try {
     const { sendLovableEmail } = await import("@lovable.dev/email-js");
-    const result = await sendLovableEmail({
-      to,
-      subject,
-      text: body,
-      from: { name: "LeadTrace Records" },
-    });
-    if (!result.sent) return { sent: false, error: `Not Delivered (${result.reason ?? "Unknown Reason"})` };
+    const html = `<pre style="font-family:inherit;white-space:pre-wrap">${body
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")}</pre>`;
+    const result = await sendLovableEmail(
+      { to, from: REQUEST_FROM, subject, text: body, html, purpose: "records_request", label: "records-request" },
+      { apiKey },
+    );
+    if (!result.success) return { sent: false, error: `Not Delivered (${result.status ?? "Unknown Reason"})` };
     return { sent: true };
   } catch (e) {
     return { sent: false, error: e instanceof Error ? e.message : "Email Send Failed" };
