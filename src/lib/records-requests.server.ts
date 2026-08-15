@@ -16,7 +16,7 @@ import {
 import { csvToRecords } from "./data-providers/bulk-file";
 import { inferFieldMap, isUsableMap, normalizeRows, type FieldMap } from "./data-providers/source-mapping";
 
-const REQUEST_FROM = "records@leadtrace.app";
+const REQUEST_FROM = "records@leadtrace.com";
 
 type AgencyRow = {
   id: string;
