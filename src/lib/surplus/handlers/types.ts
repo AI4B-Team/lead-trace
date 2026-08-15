@@ -79,6 +79,10 @@ export function parseMoney(v: string | number | null | undefined): number | null
 
 /** Dates as printed by clerks: M/D/YYYY, MM-DD-YYYY, YYYY-MM-DD. */
 export function parseClerkDate(v: string | null | undefined): string | null {
+  const MONTHS: Record<string, string> = {
+    jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06",
+    jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12",
+  };
   const s = (v ?? "").trim();
   if (!s) return null;
   const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
@@ -87,6 +91,14 @@ export function parseClerkDate(v: string | null | undefined): string | null {
   if (us) {
     const year = us[3]!.length === 2 ? `20${us[3]}` : us[3]!;
     return `${year}-${us[1]!.padStart(2, "0")}-${us[2]!.padStart(2, "0")}`;
+  }
+  // "November 1, 2016" / "Nov. 1 2016" — several tax commissioners spell the
+  // sale date out. A month with no day (e.g. "Aug. 2024") is deliberately not
+  // accepted: we do not invent a day the clerk never published.
+  const named = s.match(/^([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})/);
+  if (named) {
+    const month = MONTHS[named[1]!.slice(0, 3).toLowerCase()];
+    if (month) return `${named[3]}-${month}-${named[2]!.padStart(2, "0")}`;
   }
   return null;
 }

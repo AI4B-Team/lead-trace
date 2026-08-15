@@ -8,6 +8,9 @@
  *     groupPattern?: string, // regex whose capture 1 is a value shared by the
  *     groupField?: string,   // rows that follow it (Osceola prints sale dates
  *                            // as group headers, not per-row cells)
+ *     joinPattern?: string,  // regex a line must match to START a record; any
+ *                            // other line is a wrapped continuation of the
+ *                            // previous one (Hall wraps long buyer names)
  *     skipLines?: string[] } // headers/footers to ignore
  * Without a rowPattern we do not attempt to infer columns from whitespace: a
  * misaligned split would silently attach the wrong dollar amount to a case.
@@ -26,6 +29,24 @@ export async function pdfToLines(bytes: Uint8Array): Promise<string[]> {
     .filter(Boolean);
 }
 
+/**
+ * Rejoin rows the PDF wrapped onto a second line. `joinPattern` describes what
+ * the FIRST line of a record looks like (usually its date or case number), so
+ * anything else is glued back onto the row above instead of being dropped.
+ */
+export function joinWrappedLines(lines: string[], joinPattern: string): string[] {
+  const startRe = new RegExp(joinPattern);
+  const out: string[] = [];
+  for (const line of lines) {
+    if (out.length && !startRe.test(line)) {
+      out[out.length - 1] = `${out[out.length - 1]} ${line}`.replace(/\s+/g, " ").trim();
+    } else {
+      out.push(line);
+    }
+  }
+  return out;
+}
+
 export function parsePdfLines(
   lines: string[],
   config: {
@@ -33,6 +54,7 @@ export function parsePdfLines(
     rowPattern?: string;
     groupPattern?: string;
     groupField?: string;
+    joinPattern?: string;
     skipLines?: string[];
     columnMap?: Record<string, string>;
     defaultClaimStatus?: ClerkSurplusRow["claim_status"];
@@ -45,8 +67,9 @@ export function parsePdfLines(
   let groupValue: string | null = null;
   const skip = (config.skipLines ?? []).map((s) => s.toLowerCase());
   const out: ClerkSurplusRow[] = [];
-  for (const line of lines) {
-    if (skip.some((s) => line.toLowerCase().includes(s))) continue;
+  const kept = lines.filter((l) => !skip.some((s) => l.toLowerCase().includes(s)));
+  const logical = config.joinPattern ? joinWrappedLines(kept, config.joinPattern) : kept;
+  for (const line of logical) {
     if (groupRe) {
       const g = line.match(groupRe);
       // A group header carries a value forward onto every row beneath it and is
@@ -89,6 +112,7 @@ export async function runPdfList(ctx: HandlerContext): Promise<HandlerResult> {
     rowPattern?: string;
     groupPattern?: string;
     groupField?: string;
+    joinPattern?: string;
     skipLines?: string[];
     columnMap?: Record<string, string>;
     defaultClaimStatus?: ClerkSurplusRow["claim_status"];
