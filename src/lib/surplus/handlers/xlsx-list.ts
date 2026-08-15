@@ -25,6 +25,14 @@ export type XlsxListConfig = {
   indexUrl?: string;
   /** Regex matched against each href on indexUrl; first match wins. */
   linkPattern?: string;
+  /**
+   * Column that, when filled, means the holder has already filed an
+   * interpleader in Superior Court for that surplus (the Georgia escrow lists
+   * print a "Petition Filed Date" and case number). The money is then in the
+   * court's hands, not simply sitting unclaimed, so the row is marked
+   * claim_filed even though the list itself never uses that word.
+   */
+  claimFiledWhenPresent?: string;
 };
 
 /** Newest workbook link on a clerk index page, absolute. */
@@ -76,6 +84,15 @@ export function parseXlsxMatrix(matrix: string[][], config: XlsxListConfig): Cle
     });
     const row = toClerkRow(record, columnMap);
     if (!row) continue;
+    const filedColumn = config.claimFiledWhenPresent;
+    const filed = filedColumn
+      ? Object.entries(record).find(([k]) => k.toLowerCase().trim() === filedColumn.toLowerCase().trim())?.[1]
+      : "";
+    if (filed && filed.trim()) {
+      row.claim_status = "claim_filed";
+      out.push(row);
+      continue;
+    }
     if (row.claim_status === "unknown" && config.defaultClaimStatus) {
       row.claim_status = config.defaultClaimStatus;
     }
