@@ -141,11 +141,37 @@ export const listAgencies = createServerFn({ method: "GET" })
         .select("id, agency_id, record_types, cadence, status, last_sent_at, last_received_at, next_send_at, last_error, subject, body"),
       supabaseAdmin
         .from("records_request_files")
-        .select("id, agency_id, filename, rows_total, rows_parsed, parse_status, received_at")
+        .select(
+          "id, agency_id, filename, rows_total, rows_parsed, parse_status, parse_error, received_at, detected_columns, sample_rows",
+        )
         .order("received_at", { ascending: false })
         .limit(100),
     ]);
     return { agencies: agencies ?? [], requests: requests ?? [], files: files ?? [] };
+  });
+
+/**
+ * Apply a human's column mapping to a file we could not read, remember it for
+ * the agency, and re-ingest the stored contents.
+ */
+export const remapReturnedFile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        fileId: z.string().uuid(),
+        columnMap: z.record(z.string(), z.string()),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { remapAndReingestFile } = await import("./records-requests.server");
+    return remapAndReingestFile({
+      fileId: data.fileId,
+      columnMap: data.columnMap,
+      userId: context.userId,
+    });
   });
 
 export const upsertAgency = createServerFn({ method: "POST" })
