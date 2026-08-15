@@ -6,10 +6,18 @@ export type ExportFormat = "csv" | "xlsx" | "both";
 
 export function toCsv(rows: Array<Record<string, unknown>>) {
   if (!rows.length) return "";
-  const headers = Object.keys(rows[0]!);
+  // Columns vary per row (dynamic lead fields), so take the union of keys in
+  // first-seen order — keying off row 0 alone silently drops later columns.
+  const headers: string[] = [];
+  const seen = new Set<string>();
+  for (const r of rows) {
+    for (const k of Object.keys(r)) {
+      if (!seen.has(k)) { seen.add(k); headers.push(k); }
+    }
+  }
   const esc = (v: unknown) => {
     const s = v == null ? "" : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   return [headers.join(","), ...rows.map((r) => headers.map((h) => esc(r[h])).join(","))].join("\n");
 }
@@ -19,8 +27,14 @@ function saveBlob(name: string, blob: Blob) {
   const a = document.createElement("a");
   a.href = url;
   a.download = name;
+  a.style.display = "none";
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  // Revoking synchronously cancels the download in Firefox/Safari.
+  setTimeout(() => {
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, 0);
 }
 
 export function downloadCsv(name: string, csv: string) {
