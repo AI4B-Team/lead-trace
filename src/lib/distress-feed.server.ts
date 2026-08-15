@@ -841,6 +841,7 @@ export async function runNightlyPulls(): Promise<{
     let found = 0;
     let added = 0;
     let failure: string | undefined;
+    let disallowed = false;
     let surplus: SurplusCounters | undefined;
     try {
       const filings = await target.pull();
@@ -861,6 +862,9 @@ export async function runNightlyPulls(): Promise<{
         vendorHalted = err.message;
         console.error(`[distress-feed] ${err.message}`);
       }
+      // Obeying robots.txt is a policy skip, not a broken source.
+      const { RobotsDisallowedError } = await import("./data-providers/scraper-policy");
+      if (err instanceof RobotsDisallowedError) disallowed = true;
     }
     const bytes = target.proxied ? proxyMod.bytesUsed() - bytesBefore : 0;
     const httpStatus = target.proxied ? proxyMod.lastVendorStatus() : null;
@@ -869,7 +873,7 @@ export async function runNightlyPulls(): Promise<{
       state: target.state.toUpperCase(),
       county: target.county,
       record_type: target.recordType,
-      status: failure ? "error" : "ok",
+      status: disallowed ? "skipped" : failure ? "error" : "ok",
       records_found: found,
       records_added: added,
       bytes_downloaded: bytes,
@@ -883,7 +887,8 @@ export async function runNightlyPulls(): Promise<{
       recordType: target.recordType,
       found,
       added,
-      error: failure,
+      error: disallowed ? undefined : failure,
+      skipped: disallowed ? failure : undefined,
       bytes,
       httpStatus,
       surplus,
