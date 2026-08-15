@@ -796,6 +796,21 @@ export async function runNightlyPulls(): Promise<{
     : `proxy unavailable — ${proxy.reason ?? "unknown"}`;
   if (vendorHalted) console.error(`[distress-feed] RealAuction sweep skipped: ${vendorHalted}`);
 
+  // RealAuction serves one robots.txt across its whole platform. Since 2026-08-05
+  // it is a blanket `Disallow: /`, so every county on it is off limits. Check the
+  // vendor once per sweep rather than re-learning the same refusal on 24 hosts.
+  if (!vendorHalted && allTargets.some((t) => t.proxied)) {
+    try {
+      const { robotsBlocksWholeSite } = await import("./data-providers/scraper-policy");
+      if (await robotsBlocksWholeSite("https://broward.realforeclose.com")) {
+        vendorHalted = "vendor robots.txt disallows the whole site — crawl retired";
+        console.warn(`[distress-feed] ${vendorHalted}`);
+      }
+    } catch {
+      // robots unreachable: fall through to the per-request check as before.
+    }
+  }
+
   for (const target of allTargets) {
     if (target.path === "records_request" || !target.pull) {
       // Nothing to fetch: this county/type is supplied by the records-request agent.
