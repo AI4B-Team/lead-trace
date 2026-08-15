@@ -50,7 +50,6 @@ describe("clerkRowToFiling", () => {
   });
 
   it("produces NOTHING when the amount is missing or non-positive", () => {
-    // placeholder-free: see the surname-first case below
     expect(clerkRowToFiling(row({ confirmed_amount: null }), CTX)).toBeNull();
     expect(clerkRowToFiling(row({ confirmed_amount: 0 }), CTX)).toBeNull();
     expect(clerkRowToFiling(row({ confirmed_amount: -5 }), CTX)).toBeNull();
