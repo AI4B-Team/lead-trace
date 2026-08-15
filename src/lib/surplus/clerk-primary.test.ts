@@ -55,6 +55,20 @@ describe("clerkRowToFiling", () => {
     expect(clerkRowToFiling(row({ confirmed_amount: -5 }), CTX)).toBeNull();
   });
 
+  it("reads a surname-first clerk name in the right order (Athens-Clarke GA)", () => {
+    const f = clerkRowToFiling(row({ claimant_name: "Halliday, Katie" }), CTX);
+    expect(f!.owner_first).toBe("Katie");
+    expect(f!.owner_last).toBe("Halliday");
+    // A suffix comma is punctuation, not a second name boundary.
+    const suffixed = clerkRowToFiling(row({ claimant_name: "Walton, Wilbur, Jr" }), CTX);
+    expect(suffixed!.owner_first).toBe("Wilbur");
+    expect(suffixed!.owner_last).toBe("Walton");
+    // Entities still go to company_entity untouched.
+    const entity = clerkRowToFiling(row({ claimant_name: "Red Oak Development, Inc" }), CTX);
+    expect(entity!.company_entity).toBe("Red Oak Development, Inc");
+    expect(entity!.owner_first).toBeNull();
+  });
+
   it("uses final_judgment basis for foreclosure sales", () => {
     const f = clerkRowToFiling(row(), { ...CTX, saleKind: "foreclosure" });
     expect(f!.surplus_basis).toBe("final_judgment");

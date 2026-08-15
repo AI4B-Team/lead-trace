@@ -175,6 +175,39 @@ describe("pdf_list handler", () => {
     expect(rows[1]).toMatchObject({ parcel_apn: "069B05014000", confirmed_amount: 15385.05, sale_date: "2024-05-07" });
   });
 
+  it("splits the defendant name off both address shapes and takes the balance (Athens-Clarke GA)", () => {
+    const SUF = "(?:Ave|St|Dr|Rd|Ln|Pkwy|Ter|Ext|Way|Ct|Blvd|Cir|Pl|Hwy|Trl)";
+    const amt = "\\(?[\\d,]+\\.\\d{2}\\)?\\$";
+    const tail = `\\s+${amt}\\s+${amt}\\s+${amt}(?:\\s+${amt})?\\s+([\\d,]+\\.\\d{2})\\$$`;
+    const config = {
+      columns: ["sale_date", "claimant_name", "property_address", "confirmed_amount"],
+      rowPatterns: [
+        `^(\\d{1,2}\\/\\d{1,2}\\/\\d{4})\\s+(.+?)\\s+(\\d+\\s+[^$]*?${SUF}\\b[^$]*?)${tail}`,
+        `^(\\d{1,2}\\/\\d{1,2}\\/\\d{4})\\s+(.+[^\\s\\d](?<!\\b[NSEW])(?<!\\b(?:NE|NW|SE|SW)))\\s+((?:[NSEW]{1,2}\\s+)?[A-Z][A-Za-z]{2,}(?:\\s+[A-Z][A-Za-z]{2,})*\\s+${SUF}\\s*\\/[^$]*?)${tail}`,
+      ],
+      skipLines: ["EXCESS TAX SALE FUNDS", "SALE DATE", "TAX COMMISSIONER"],
+      defaultClaimStatus: "unclaimed" as const,
+    };
+    const rows = parsePdfLines(
+      [
+        "SALE DATE DEFENDANT IN FIFA PROPERTY DESCRIPTION BID AMT TAXES EXCESS CLAIMED BALANCE",
+        "9/7/2021 Halliday, Katie 275 Sartain Dr / 232A A009 15,000.00$ 6,278.53$ 8,721.47$ 8,721.47$",
+        // Partly claimed: the BALANCE column is what the county still holds.
+        "12/2/2025 Porter, Bobby Jean & Johnson, Geraldine 235 Marlborough Downs Rd / 044C2 B003 50,000.00$ 4,238.34$ 45,761.66$ (11,440.42)$ 34,321.24$",
+        // No house number, and a directional prefix that belongs to the street.
+        "12/7/2021 Thomas, Florine Sanders E Broad St / 172C2 E030A 6,400.00$ 3,436.29$ 2,963.71$ 2,963.71$",
+        // No house number, and a middle initial that belongs to the name.
+        "6/2/2026 McKinney, Elizabeth L Magnolia Ter / 122C1 A002 22,000.00$ 1,903.64$ 20,096.32$ 20,096.32$",
+      ],
+      config,
+    );
+    expect(rows).toHaveLength(4);
+    expect(rows[0]).toMatchObject({ claimant_name: "Halliday, Katie", property_address: "275 Sartain Dr / 232A A009", confirmed_amount: 8721.47 });
+    expect(rows[1]).toMatchObject({ confirmed_amount: 34321.24, claim_status: "unclaimed" });
+    expect(rows[2]).toMatchObject({ claimant_name: "Thomas, Florine Sanders", property_address: "E Broad St / 172C2 E030A" });
+    expect(rows[3]).toMatchObject({ claimant_name: "McKinney, Elizabeth L", property_address: "Magnolia Ter / 122C1 A002" });
+  });
+
   it("reads owner, map number and address off one line (Troup GA)", () => {
     const config = {
       columns: ["sale_date", "owner_name", "parcel_apn", "property_address", "confirmed_amount"],
