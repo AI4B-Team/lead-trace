@@ -60,9 +60,9 @@ describe("clerkRowToFiling", () => {
     expect(f!.surplus_basis).toBe("final_judgment");
   });
 
-  it("falls back to parcel, then date+address, for a stable doc_number", () => {
+  it("falls back to parcel+sale date, then date+address, for a stable doc_number", () => {
     const byParcel = clerkRowToFiling(row({ case_number: null }), CTX);
-    expect(byParcel!.doc_number).toBe("SURP-fl-marion-1814-026-017");
+    expect(byParcel!.doc_number).toBe("SURP-fl-marion-1814-026-017|2022-08-17");
 
     const byAddr = clerkRowToFiling(
       row({
@@ -74,6 +74,20 @@ describe("clerkRowToFiling", () => {
       CTX,
     );
     expect(byAddr!.doc_number).toBe("SURP-fl-marion-2024-01-02|12 OAK ST");
+  });
+
+  it("keeps two sales of the SAME parcel as two records", () => {
+    // Forsyth GA parcel 263 147 went to tax sale in 2021 and again in 2023, each
+    // with its own surplus. Keying on the parcel alone silently dropped one.
+    const first = clerkRowToFiling(
+      row({ case_number: null, parcel_apn: "263 147", sale_date: "2021-06-01", confirmed_amount: 403.61 }),
+      CTX,
+    );
+    const second = clerkRowToFiling(
+      row({ case_number: null, parcel_apn: "263 147", sale_date: "2023-06-06", confirmed_amount: 1964.35 }),
+      CTX,
+    );
+    expect(first!.doc_number).not.toBe(second!.doc_number);
   });
 
   it("carries no owner name (clerk lists omit it) without treating that as a gap", () => {
