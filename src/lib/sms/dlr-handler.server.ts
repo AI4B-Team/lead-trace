@@ -17,6 +17,20 @@ export async function handleTelnyxDlr(request: Request, raw: string): Promise<Re
     { auth: { persistSession: false } },
   );
 
+  // Telnyx retries any webhook it does not get a 2xx for, and a single message
+  // can finalize more than once. The per-number delivery counters drive
+  // auto-pause, so a replayed receipt must not be counted twice — otherwise a
+  // healthy DID can be paused off duplicate events. Read the status we already
+  // have and only count the FIRST terminal receipt for this message.
+  const { data: before } = await admin
+    .from("messages")
+    .select("id, status")
+    .eq("provider_sid", dlr.providerSid)
+    .limit(5);
+  const alreadyTerminal = (before ?? []).some(
+    (m) => m.status === "delivered" || m.status === "failed",
+  );
+
   await admin
     .from("messages")
     .update({
@@ -27,7 +41,7 @@ export async function handleTelnyxDlr(request: Request, raw: string): Promise<Re
     .eq("provider_sid", dlr.providerSid);
 
   let paused = false;
-  if (dlr.status === "delivered" || dlr.status === "failed") {
+  if (!alreadyTerminal && (dlr.status === "delivered" || dlr.status === "failed")) {
     const { recordDeliveryOutcome } = await import("@/lib/deliverability.server");
     const outcome = await recordDeliveryOutcome({
       providerSid: dlr.providerSid,
@@ -37,5 +51,5 @@ export async function handleTelnyxDlr(request: Request, raw: string): Promise<Re
     paused = outcome.paused;
   }
 
-  return Response.json({ ok: true, status: dlr.status, paused });
+  return Response.json({ ok: true, status: dlr.status, paused, duplicate: alreadyTerminal });
 }
