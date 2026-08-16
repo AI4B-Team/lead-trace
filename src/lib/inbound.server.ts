@@ -124,6 +124,10 @@ async function runBot(ctx: InboundContext): Promise<InboundOutcome["bot"]> {
   const { data: knowledgeRows } = await ctx.db
     .from("bot_knowledge")
     .select("title, content, source_type, source_url")
+    // Webhooks run with a service-role client, so RLS does not scope this —
+    // without the workspace filter another tenant's knowledge could leak into
+    // this reply whenever campaign/brand ids collide.
+    .eq("workspace_id", ctx.workspaceId)
     .or(
       campaign.brand_id
         ? `campaign_id.eq.${ctx.campaignId},brand_id.eq.${campaign.brand_id}`
