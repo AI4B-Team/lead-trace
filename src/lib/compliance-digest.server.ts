@@ -23,14 +23,19 @@ export async function runComplianceDigest(): Promise<{
   const { logActivity } = await import("./activity.server");
 
   const since = new Date(Date.now() - WINDOW_HOURS * 3600_000).toISOString();
-  const { data, error } = await supabaseAdmin
-    .from("compliance_events")
-    .select("workspace_id, reason, path")
-    .gte("created_at", since)
-    .limit(20000);
-  if (error) throw error;
-
-  const rows = (data ?? []) as Array<{ workspace_id: string; reason: string; path: string | null }>;
+  const { fetchAllPages } = await import("./pg-page.server");
+  // A single select is capped at 1000 rows, so busy days silently undercounted
+  // the digest — page through the window instead.
+  const rows = (await fetchAllPages(
+    (from, to) =>
+      supabaseAdmin
+        .from("compliance_events")
+        .select("workspace_id, reason, path")
+        .gte("created_at", since)
+        .order("created_at", { ascending: true })
+        .range(from, to),
+    20_000,
+  )) as Array<{ workspace_id: string; reason: string; path: string | null }>;
   const byWorkspace = new Map<string, Map<string, number>>();
   for (const row of rows) {
     if (!row.workspace_id) continue;
