@@ -379,16 +379,31 @@ export const getLeadsByBucket = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const { assertJobAction } = await import("./accountability.server");
     await assertJobAction(context.supabase, data.jobId, context.userId, "export_list");
-    const { data: rows, error } = await context.supabase
-      .from("leads")
-      .select("full_name, business_name, phone, phone_type, email, address, city, state, zip, scrub_status")
-      .eq("job_id", data.jobId)
-      .eq("scrub_status", data.bucket)
-      // Unverified legacy records are never exportable.
-      .in("data_provenance", TRUSTED_PROVENANCE)
-      .limit(50000);
-    if (error) throw error;
-    return { rows: rows ?? [] };
+    // The Data API caps ONE select at 1000 rows, so asking for 50k silently
+    // truncated every bucket above that — page through the whole bucket.
+    const page = (from: number, to: number) =>
+      context.supabase
+        .from("leads")
+        .select("full_name, business_name, phone, phone_type, email, address, city, state, zip, scrub_status")
+        .eq("job_id", data.jobId)
+        .eq("scrub_status", data.bucket)
+        // Unverified legacy records are never exportable.
+        .in("data_provenance", TRUSTED_PROVENANCE)
+        .order("phone", { ascending: true })
+        .range(from, to);
+
+    const MAX = 50_000;
+    const PAGE = 1000;
+    type Row = NonNullable<Awaited<ReturnType<typeof page>>["data"]>[number];
+    const rows: Row[] = [];
+    for (let from = 0; from < MAX; from += PAGE) {
+      const to = Math.min(from + PAGE, MAX) - 1;
+      const { data: chunk, error } = await page(from, to);
+      if (error) throw error;
+      rows.push(...(chunk ?? []));
+      if (!chunk || chunk.length < to - from + 1) break;
+    }
+    return { rows };
   });
 
 // Server-enforced compliance gate: creates a campaign only if the source job
