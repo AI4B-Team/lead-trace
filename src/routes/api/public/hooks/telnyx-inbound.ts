@@ -53,11 +53,15 @@ export const Route = createFileRoute("/api/public/hooks/telnyx-inbound")({
           .maybeSingle();
         if (!num) return new Response("Unknown destination", { status: 404 });
 
+        // Leads can be stored in any spelling (E.164, digits, "(312) 555-1234"),
+        // while Telnyx always reports E.164 — an exact match would miss the lead
+        // and the reply would never pause the cadence or reach the right bot.
+        const { phoneVariants } = await import("@/lib/optout.server");
         const { data: lead } = await admin
           .from("leads")
           .select("id")
           .eq("workspace_id", num.workspace_id)
-          .eq("phone", inbound.from)
+          .in("phone", phoneVariants(inbound.from))
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
