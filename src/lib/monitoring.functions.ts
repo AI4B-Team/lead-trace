@@ -478,8 +478,8 @@ export const exportLeadRecords = createServerFn({ method: "GET" })
     };
 
     const PAGE = 1000;
-    type Row = Awaited<ReturnType<ReturnType<typeof page>>>["data"];
-    const rows: NonNullable<Row> = [];
+    type Row = NonNullable<Awaited<ReturnType<typeof page>>["data"]>[number];
+    const rows: Row[] = [];
     for (let from = 0; from < data.limit; from += PAGE) {
       const to = Math.min(from + PAGE, data.limit) - 1;
       const { data: chunk, error } = await page(from, to);
