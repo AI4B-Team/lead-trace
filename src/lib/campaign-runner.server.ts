@@ -214,6 +214,10 @@ async function tickOne(campaign: {
   }
 
   const blocked: Array<{ id: string; phone: string; reason: "opted_out" | "suppressed" }> = [];
+  // Recipients skipped only because of the clock (quiet hours / after 6pm in
+  // their own timezone). They are still eligible on a later tick, so they must
+  // never count as "list exhausted".
+  let timeDeferred = 0;
   const toSend = leads
     .filter((l) => {
       if (!l.phone) return false;
@@ -230,9 +234,14 @@ async function tickOne(campaign: {
     // TCPA (authoritative): the statutory 8am–9pm window AND the campaign's
     // quiet window, both evaluated in the recipient's timezone resolved from
     // area code then property state. Unknown timezone = blocked.
-    .filter((l) => canMessageRecipient(l.phone as string, l.state, sendWindow))
-    // 6pm rule: never START a first touch after 6pm recipient local time.
-    .filter((l) => canStartNewDropForRecipient(l.phone as string, l.state))
+    .filter((l) => {
+      // 6pm rule: never START a first touch after 6pm recipient local time.
+      const ok =
+        canMessageRecipient(l.phone as string, l.state, sendWindow) &&
+        canStartNewDropForRecipient(l.phone as string, l.state);
+      if (!ok) timeDeferred += 1;
+      return ok;
+    })
     .slice(0, take);
 
   // Phone verification pre-drip: the number must be live and mobile NOW, not
@@ -350,7 +359,10 @@ async function tickOne(campaign: {
       .eq("id", activeDrop.id);
   }
 
-  if (!activeDrop && toSend.length < take) {
+  // Only finish an undropped campaign when the list is genuinely out of
+  // contactable leads — not when this tick was short because recipients are
+  // asleep in their timezone, which would end the campaign permanently.
+  if (!activeDrop && leads.length < take && timeDeferred === 0) {
     await supabaseAdmin.from("campaigns").update({ status: "completed" }).eq("id", campaign.id);
   }
 
