@@ -38,18 +38,27 @@ export async function renewPlanCredits(now: Date = new Date()) {
       const allowance = planFor(ws.billing_plan).leadCredits;
       const periodStart = ws.plan_period_start;
 
-      // Plan credits consumed during the period that just closed.
-      const { data: spendRows } = await supabaseAdmin
-        .from("credit_ledger")
-        .select("delta")
-        .eq("workspace_id", ws.id)
-        .eq("kind", "scrape")
-        .lt("delta", 0)
-        .gte("created_at", periodStart);
-      const used = (spendRows ?? []).reduce(
-        (sum, r) => sum + Math.abs((r as { delta: number }).delta),
-        0,
-      );
+      // Plan credits consumed during the period that just closed. Paged: the
+      // Data API caps a single select at 1000 rows, and an undercounted spend
+      // overstates the leftover, which would expire purchased top-up credits
+      // that are supposed to never expire.
+      let used = 0;
+      const PAGE = 1000;
+      for (let from = 0; ; from += PAGE) {
+        const { data: spendRows, error: spendErr } = await supabaseAdmin
+          .from("credit_ledger")
+          .select("delta")
+          .eq("workspace_id", ws.id)
+          .eq("kind", "scrape")
+          .lt("delta", 0)
+          .gte("created_at", periodStart)
+          .order("created_at", { ascending: true })
+          .range(from, from + PAGE - 1);
+        if (spendErr) throw new Error(spendErr.message);
+        const page = (spendRows ?? []) as Array<{ delta: number }>;
+        used += page.reduce((sum, r) => sum + Math.abs(r.delta), 0);
+        if (page.length < PAGE) break;
+      }
       const leftover = Math.max(0, ws.plan_grant_amount - used);
 
       if (leftover > 0) {
