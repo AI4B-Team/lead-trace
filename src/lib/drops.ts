@@ -29,22 +29,40 @@ export function planDrops(
   const count = Math.ceil(Math.max(0, total) / size);
   const drops: PlannedDrop[] = [];
   let remaining = total;
-  for (let i = 0; i < count; i++) {
-    if (instant && i === 0) {
-      drops.push({ drop_index: 1, scheduled_at: from.toISOString(), size: Math.min(size, remaining) });
-      remaining -= size;
-      continue;
+  // Slots are consumed in chronological order, skipping any that already passed
+  // today. Assigning a slot by index and then pushing past ones to tomorrow
+  // would put a later drop ahead of an earlier one (e.g. at 16:00 with
+  // 10/12/15/17 slots, drop 4 would send today while drops 1-3 waited a day).
+  const ordered = [...slots]
+    .map((t) => {
+      const [h, m] = t.split(":").map(Number);
+      return { h: h || 0, m: m || 0 };
+    })
+    .sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
+
+  const upcoming = (index: number): Date => {
+    // Walk forward day by day, taking only slots still in the future.
+    let seen = 0;
+    for (let day = 0; day < 400; day += 1) {
+      for (const slot of ordered) {
+        const when = new Date(from);
+        when.setDate(when.getDate() + day);
+        when.setHours(slot.h, slot.m, 0, 0);
+        if (when.getTime() <= from.getTime()) continue;
+        if (seen === index) return when;
+        seen += 1;
+      }
     }
-    const dayOffset = Math.floor(i / slots.length);
-    const [h, m] = slots[i % slots.length].split(":").map(Number);
-    const when = new Date(from);
-    when.setDate(when.getDate() + dayOffset);
-    when.setHours(h, m || 0, 0, 0);
-    // Never schedule a new drop in the past on day 0 — push it to the next slot.
-    if (when.getTime() < from.getTime()) when.setDate(when.getDate() + 1);
+    return new Date(from.getTime() + (index + 1) * 24 * 60 * 60_000);
+  };
+
+  let slotCursor = 0;
+  for (let i = 0; i < count; i++) {
+    const scheduledAt =
+      instant && i === 0 ? new Date(from.getTime()) : upcoming(slotCursor++);
     drops.push({
       drop_index: i + 1,
-      scheduled_at: when.toISOString(),
+      scheduled_at: scheduledAt.toISOString(),
       size: Math.min(size, remaining),
     });
     remaining -= size;
