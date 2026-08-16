@@ -45,7 +45,8 @@ export const getComplianceState = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ workspaceId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const [reg, runs, sup] = await Promise.all([
+    const { fetchAllPages } = await import("./pg-page.server");
+    const [reg, runs, suppression] = await Promise.all([
       supabase
         .from("registrations")
         .select("brand_status, campaign_status, updated_at")
@@ -59,14 +60,18 @@ export const getComplianceState = createServerFn({ method: "GET" })
         .eq("workspace_id", data.workspaceId)
         .order("created_at", { ascending: false })
         .limit(200),
-      supabase
-        .from("suppression")
-        .select("reason")
-        .eq("workspace_id", data.workspaceId)
-        .limit(20000),
+      // One select is capped at 1000 rows, which undercounted every suppression
+      // list bigger than that — page through the whole list.
+      fetchAllPages((from, to) =>
+        supabase
+          .from("suppression")
+          .select("reason")
+          .eq("workspace_id", data.workspaceId)
+          .order("created_at", { ascending: false })
+          .range(from, to),
+      ),
     ]);
 
-    const suppression = sup.data ?? [];
     const counts = { opt_out: 0, dnc: 0, manual: 0 };
     for (const s of suppression) counts[reasonBucket(s.reason)]++;
 
@@ -173,13 +178,16 @@ export const listSuppression = createServerFn({ method: "GET" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { data: rows, error } = await context.supabase
-      .from("suppression")
-      .select("phone, reason, note, source, created_at")
-      .eq("workspace_id", data.workspaceId)
-      .order("created_at", { ascending: false })
-      .limit(20000);
-    if (error) throw error;
+    const { fetchAllPages } = await import("./pg-page.server");
+    const rows = await fetchAllPages((from, to) =>
+      context.supabase
+        .from("suppression")
+        .select("phone, reason, note, source, created_at")
+        .eq("workspace_id", data.workspaceId)
+        .order("created_at", { ascending: false })
+        .range(from, to),
+      20_000,
+    );
 
     const q = digitsOnly(data.query);
     const textQ = data.query.trim().toLowerCase();
