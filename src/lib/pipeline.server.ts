@@ -555,12 +555,11 @@ async function runPipelineBody(
   // Workspace suppression: opt-outs and uploaded exclusion files never come back.
   const suppressed = new Set<string>();
   {
-    const { data: sup } = await supabase
-      .from("suppression")
-      .select("phone")
-      .eq("workspace_id", workspaceId)
-      .limit(50000);
-    for (const row of sup ?? []) {
+    const { fetchAllPages } = await import("./pg-page.server");
+    const sup = await fetchAllPages((from, to) =>
+      supabase.from("suppression").select("phone").eq("workspace_id", workspaceId).order("phone").range(from, to),
+    );
+    for (const row of sup) {
       const d = digits((row as { phone: string }).phone);
       if (d) suppressed.add(d);
     }
@@ -569,22 +568,30 @@ async function runPipelineBody(
   const priorIds = opts.priorRunJobIds ?? [];
   if (priorIds.length) {
     // Net-new engine: everything an earlier run of this list already delivered.
-    const { data: prior } = await supabase
-      .from("leads")
-      .select("phone, email, business_name, full_name, address, city, state")
-      .in("job_id", priorIds)
-      .limit(50000);
-    for (const row of prior ?? []) for (const k of leadKeys(row)) priorRunKeys.add(k);
+    const { fetchAllPages } = await import("./pg-page.server");
+    const prior = await fetchAllPages((from, to) =>
+      supabase
+        .from("leads")
+        .select("phone, email, business_name, full_name, address, city, state")
+        .in("job_id", priorIds)
+        .order("id")
+        .range(from, to),
+    );
+    for (const row of prior) for (const k of leadKeys(row)) priorRunKeys.add(k);
   }
 
   if (dedupe) {
-    const { data: existing } = await supabase
-      .from("leads")
-      .select("phone")
-      .eq("workspace_id", workspaceId)
-      .not("phone", "is", null)
-      .limit(50000);
-    for (const row of existing ?? []) {
+    const { fetchAllPages } = await import("./pg-page.server");
+    const existing = await fetchAllPages((from, to) =>
+      supabase
+        .from("leads")
+        .select("phone")
+        .eq("workspace_id", workspaceId)
+        .not("phone", "is", null)
+        .order("phone")
+        .range(from, to),
+    );
+    for (const row of existing) {
       const d = digits(row.phone);
       if (d) seen.add(`p:${d}`);
     }
