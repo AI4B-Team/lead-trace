@@ -446,33 +446,47 @@ export const exportLeadRecords = createServerFn({ method: "GET" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    let q = context.supabase
-      .from("lead_records")
-      .select(
-        "full_name, business_name, phone, phone_type, email, address, city, state, zip, website, handle, platform, followers, engagement, disposition, source_types, record_types, list_count, first_seen_at, last_seen_at, nominated_at, nominated_score, nominated_reason",
-      )
-      .eq("workspace_id", data.workspaceId)
-      .order("last_seen_at", { ascending: false })
-      .limit(data.limit);
+    // The Data API caps ONE select at 1000 rows, so a single query silently
+    // truncated every export above that — page through the filtered set instead.
+    const page = (from: number, to: number) => {
+      let q = context.supabase
+        .from("lead_records")
+        .select(
+          "full_name, business_name, phone, phone_type, email, address, city, state, zip, website, handle, platform, followers, engagement, disposition, source_types, record_types, list_count, first_seen_at, last_seen_at, nominated_at, nominated_score, nominated_reason",
+        )
+        .eq("workspace_id", data.workspaceId)
+        .order("last_seen_at", { ascending: false })
+        .order("phone", { ascending: true })
+        .range(from, to);
 
-    if (data.disposition !== "all") q = q.eq("disposition", data.disposition);
-    if (data.lineType !== "all") q = q.eq("phone_type", data.lineType);
-    if (data.channel === "phone") q = q.not("phone", "is", null);
-    if (data.channel === "email") q = q.not("email", "is", null);
-    if (data.channel === "address") q = q.not("address", "is", null);
-    if (data.sourceType !== "all") q = q.contains("source_types", [data.sourceType]);
-    if (data.onlyNew) q = q.eq("is_new", true);
-    if (data.multiList) q = q.gt("list_count", 1);
-    if (data.onlyNominated) q = q.not("nominated_at", "is", null);
-    if (data.search?.trim()) {
-      const s = pgIlikePattern(data.search.trim());
-      q = q.or(
-        `full_name.ilike.${s},business_name.ilike.${s},phone.ilike.${s},email.ilike.${s},city.ilike.${s},state.ilike.${s}`,
-      );
+      if (data.disposition !== "all") q = q.eq("disposition", data.disposition);
+      if (data.lineType !== "all") q = q.eq("phone_type", data.lineType);
+      if (data.channel === "phone") q = q.not("phone", "is", null);
+      if (data.channel === "email") q = q.not("email", "is", null);
+      if (data.channel === "address") q = q.not("address", "is", null);
+      if (data.sourceType !== "all") q = q.contains("source_types", [data.sourceType]);
+      if (data.onlyNew) q = q.eq("is_new", true);
+      if (data.multiList) q = q.gt("list_count", 1);
+      if (data.onlyNominated) q = q.not("nominated_at", "is", null);
+      if (data.search?.trim()) {
+        const s = pgIlikePattern(data.search.trim());
+        q = q.or(
+          `full_name.ilike.${s},business_name.ilike.${s},phone.ilike.${s},email.ilike.${s},city.ilike.${s},state.ilike.${s}`,
+        );
+      }
+      return q;
+    };
+
+    const PAGE = 1000;
+    type Row = Awaited<ReturnType<ReturnType<typeof page>>>["data"];
+    const rows: NonNullable<Row> = [];
+    for (let from = 0; from < data.limit; from += PAGE) {
+      const to = Math.min(from + PAGE, data.limit) - 1;
+      const { data: chunk, error } = await page(from, to);
+      if (error) throw error;
+      rows.push(...(chunk ?? []));
+      if (!chunk || chunk.length < to - from + 1) break;
     }
-
-    const { data: rows, error } = await q;
-    if (error) throw error;
 
     const out = (rows ?? []).map((r) => ({
       full_name: r.full_name ?? "",
