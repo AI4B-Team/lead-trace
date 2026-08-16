@@ -32,10 +32,27 @@ export const Route = createFileRoute("/api/public/hooks/telnyx-call")({
         const to = String(payload["to"] ?? "");
         if (!from || !to) return new Response("Missing fields", { status: 400 });
 
+        // A hangup fires at the end of EVERY call, including ones we answered —
+        // logging those as "missed" put a bogus missed-call item on the thread
+        // right after the answered one. Only unanswered causes are missed calls.
+        const hangupCause = String(payload["hangup_cause"] ?? "").toLowerCase();
+        const MISSED_CAUSES = [
+          "no_answer",
+          "timeout",
+          "busy",
+          "originator_cancel",
+          "call_rejected",
+          "unallocated_number",
+        ];
+        const isHangup = eventType.includes("hangup");
+        if (isHangup && hangupCause && !MISSED_CAUSES.includes(hangupCause)) {
+          return new Response("ok");
+        }
+
         const callEvent =
           eventType.includes("recording") || eventType.includes("transcription")
             ? "voicemail"
-            : eventType.includes("hangup")
+            : isHangup
               ? "missed"
               : eventType.includes("answered")
                 ? "answered"
@@ -54,11 +71,13 @@ export const Route = createFileRoute("/api/public/hooks/telnyx-call")({
           .maybeSingle();
         if (!num) return new Response("Unknown destination", { status: 404 });
 
+        // Leads may be stored in any phone spelling; Telnyx always sends E.164.
+        const { phoneVariants } = await import("@/lib/optout.server");
         const { data: lead } = await admin
           .from("leads")
           .select("id")
           .eq("workspace_id", num.workspace_id)
-          .eq("phone", from)
+          .in("phone", phoneVariants(from))
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
