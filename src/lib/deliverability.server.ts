@@ -32,12 +32,12 @@ export async function recordDeliveryOutcome(args: {
     .from("messages")
     .select("id, workspace_id, sending_number_id, carrier")
     .eq("provider_sid", args.providerSid)
-    .maybeSingle();
-  const msg = message as {
+    .limit(1);
+  const msg = ((message ?? []) as unknown[])[0] as {
     workspace_id: string;
     sending_number_id: string | null;
     carrier: string | null;
-  } | null;
+  } | undefined;
   if (!msg?.sending_number_id) return { ok: false, paused: false };
 
   const carrier = args.carrier ?? msg.carrier ?? "unknown";
