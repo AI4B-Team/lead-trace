@@ -78,9 +78,13 @@ export const Route = createFileRoute("/api/public/v1/jobs")({
         if (error || !job) return jsonResponse({ error: error?.message ?? "Create failed" }, 500);
 
         if (body.run) {
-          const { runJob } = await import("@/lib/pipeline.functions");
+          // Run the pipeline directly. The interactive `runJob` server function
+          // requires a Supabase bearer token (requireSupabaseAuth), which an
+          // API-key caller never has, so routing through it made every
+          // API-created run fail with "Unauthorized" and stay queued forever.
+          const { executePipeline } = await import("@/lib/pipeline.server");
           try {
-            await runJob({ data: { jobId: job.id } });
+            await executePipeline(admin as never, job.id);
           } catch (err) {
             return jsonResponse(
               { job_id: job.id, status: "queued", run_error: err instanceof Error ? err.message : "Run failed" },
