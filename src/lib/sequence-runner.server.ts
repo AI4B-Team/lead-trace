@@ -296,6 +296,16 @@ export async function runSequenceTick(workspaceId?: string): Promise<{
   const numberCache = new Map<string, Array<{ id: string; phone: string; sentToday: number; cap: number }>>();
 
   let sent = 0, completed = 0, deferred = 0, failed = 0;
+  // Rows we cannot act on right now must be pushed out of the due window,
+  // otherwise they stay permanently overdue and — because the batch is ordered
+  // by next_send_at and capped at BATCH_SIZE — they starve every genuinely due
+  // touch behind them on every tick.
+  const parkFor = async (rowId: string, minutes: number) => {
+    await db
+      .from("lead_sequence_state")
+      .update({ next_send_at: new Date(Date.now() + minutes * 60_000).toISOString() })
+      .eq("id", rowId);
+  };
 
   for (const row of rows) {
     // Campaign must still be live.
@@ -308,7 +318,13 @@ export async function runSequenceTick(workspaceId?: string): Promise<{
       campaignCache.set(row.campaign_id, data ?? null);
     }
     const campaign = campaignCache.get(row.campaign_id);
-    if (!campaign || !["sending", "active"].includes(campaign.status)) { deferred += 1; continue; }
+    if (!campaign || !["sending", "active"].includes(campaign.status)) {
+      // Paused/draft campaigns can resume later, so keep the row active but
+      // out of the way for an hour.
+      await parkFor(row.id, 60);
+      deferred += 1;
+      continue;
+    }
     const sendWindow = (campaign.send_window ?? null) as SendWindow | null;
 
     // Steps for this campaign.
@@ -418,7 +434,11 @@ export async function runSequenceTick(workspaceId?: string): Promise<{
     }
 
     const variants = step.message_variants ?? [];
-    if (!variants.length) { deferred += 1; continue; }
+    if (!variants.length) {
+      await parkFor(row.id, 60);
+      deferred += 1;
+      continue;
+    }
     const template = variants[Math.floor(Math.random() * variants.length)];
     const first_name = (lead.full_name ?? "").trim().split(/\s+/)[0] || "there";
     const body = renderTemplate(template, { ...lead, first_name });
