@@ -235,6 +235,221 @@ async function probeFirm(firm: Firm) {
   console.log(`wrote ${path}`);
 }
 
+// ---------------------------------------------------------------------------
+// PORTALS — a hosted platform many county offices publish through.
+//
+// GovtWindow ("It's Your Money") runs the Tax Commissioner site for ~143 Georgia
+// counties. The county fronts (<slug>.governmentwindow.com) all answer our bot
+// UA with a Cloudflare managed challenge, which we never solve — but the
+// platform serves every document from a public, listable object store, and that
+// store IS the multi-county index: resources/sites/<slug>/docs/<file>.
+//
+// Unlike Weissman, the counties do NOT share one layout — the platform only
+// shares the host. So each county is still one config row (handler + confirmed
+// columnMap / rowPattern), never a scraper, and every column below was read off
+// the live document's own header by hand.
+// ---------------------------------------------------------------------------
+
+const GOVTWINDOW_DOCS = "https://images-governmentwindow.s3.us-east-1.amazonaws.com";
+
+type PortalCounty =
+  | { county: string; slug: string; docKey: string; handler: "xlsx_list"; layout: XlsxListConfig; confirmedColumns: string[] }
+  | { county: string; slug: string; docKey: string; handler: "pdf_list"; layout: PdfListConfig; confirmedColumns: string[] };
+
+type Portal = { key: string; name: string; state: string; index: string; saleKind: "tax_deed"; counties: PortalCounty[] };
+
+export const PORTALS: Portal[] = [
+  {
+    key: "govtwindow",
+    name: "GovtWindow / It's Your Money hosted Tax Commissioner portal",
+    state: "GA",
+    index: `${GOVTWINDOW_DOCS}/?list-type=2&delimiter=/&prefix=resources/sites/`,
+    saleKind: "tax_deed",
+    counties: [
+      {
+        county: "Carroll",
+        slug: "carrollcountyga",
+        docKey: "resources/sites/carrollcountyga/docs/EXCESS_FUNDS_LIST.xls",
+        handler: "xlsx_list",
+        confirmedColumns: ["MAP & PARCEL", "NAME", "PROPERTY ADDRESS", "EXCESS FUNDS"],
+        layout: {
+          headerRow: 8,
+          columnMap: {
+            "MAP & PARCEL": "parcel_apn",
+            NAME: "claimant_name",
+            "PROPERTY ADDRESS": "property_address",
+            "EXCESS FUNDS": "confirmed_amount",
+          },
+          // The sheet ends with two grand totals whose identifier cells are blank.
+          requirePresent: "MAP & PARCEL",
+          defaultClaimStatus: "unclaimed",
+        },
+      },
+      {
+        county: "Meriwether",
+        slug: "meriwethercountyga",
+        docKey: "resources/sites/meriwethercountyga/docs/website excess funds list.xlsx",
+        handler: "xlsx_list",
+        confirmedColumns: ["PID", "OWNER", "DATE OF SALE", "PURCHASER", "TAX AMOUNT DUE", "PURCHASE PRICE", "EXCESS FUNDS"],
+        layout: {
+          columnMap: {
+            PID: "parcel_apn",
+            OWNER: "claimant_name",
+            "DATE OF SALE": "sale_date",
+            "EXCESS FUNDS": "confirmed_amount",
+          },
+          defaultClaimStatus: "unclaimed",
+        },
+      },
+      {
+        county: "Coweta",
+        slug: "cowetacountyga",
+        docKey: "resources/sites/cowetacountyga/docs/EXCESS FUNDS LIST 1.pdf",
+        handler: "pdf_list",
+        confirmedColumns: ["Sale Date", "Map #", "Property Owner", "Buyer", "Minimum", "Sale Amt", "Overage", "Status"],
+        layout: {
+          // Owner and buyer print as one run of text with no separator, so the
+          // pair is kept in raw rather than split into a wrong owner name.
+          columns: ["sale_date", "parcel_apn", "owner_and_buyer", "minimum_due", "sale_amount", "confirmed_amount", "claim_status"],
+          rowPattern:
+            "^(\\d{1,2}\\/\\d{1,2}\\/\\d{4}) (\\S+) (.+?) \\$ ?([\\d,]+\\.\\d{2}) \\$ ?([\\d,]+\\.\\d{2}) \\$ ?([\\d,]+\\.\\d{2})(.*)$",
+          skipLines: ["Sale Date Map #"],
+          defaultClaimStatus: "unclaimed",
+        },
+      },
+      {
+        county: "Decatur",
+        slug: "decaturcountyga",
+        docKey: "resources/sites/decaturcountyga/docs/Web Excess funds 12312024.pdf",
+        handler: "pdf_list",
+        confirmedColumns: [
+          "PURCHASER",
+          "DATE OF SALE",
+          "PARCEL ID",
+          "ACCOUNT #",
+          "DEFENDANT IN FIFA + address",
+          "PURCHASE PRICE",
+          "EXCESS FUNDS",
+          "TAX YRS DUE",
+        ],
+        layout: {
+          columns: [
+            "purchaser",
+            "sale_date",
+            "parcel_apn",
+            "account_no",
+            "defendant_and_address",
+            "purchase_price",
+            "confirmed_amount",
+            "tax_years",
+          ],
+          rowPattern:
+            "^(.+?) (\\d{1,2}\\/\\d{1,2}\\/\\d{4}) (.+?) (\\d{5,7}) (.+?) ([\\d,]+\\.\\d{2})\\$ ([\\d,]+\\.\\d{2})\\$ ([\\d-]+)$",
+          skipLines: ["EXCESS FUNDS LIST", "PURCHASER DATE OF SALE"],
+          defaultClaimStatus: "unclaimed",
+        },
+      },
+      {
+        county: "Walton",
+        slug: "waltoncountyga",
+        docKey: "resources/sites/waltoncountyga/docs/Excess_funds.pdf",
+        handler: "pdf_list",
+        confirmedColumns: ["NAME", "MAP/PARCEL", "bid", "SALE DATE", "TAXES DUE", "EXCESS FUNDS"],
+        layout: {
+          // The printed row order is name, parcel, winning bid, sale date, taxes
+          // due, excess — the header prints SALE DATE before the bid column.
+          columns: ["claimant_name", "parcel_apn", "sale_amount", "sale_date", "taxes_due", "confirmed_amount"],
+          rowPattern:
+            "^(.+?) ([A-Z0-9][A-Z0-9/-]*\\d[A-Z0-9/-]*) ([\\d,]+\\.\\d{2})\\$ (\\d{1,2}\\/\\d{1,2}\\/\\d{4}) ([\\d,]+\\.\\d{2})\\$ ([\\d,]+\\.\\d{2})\\$$",
+          skipLines: ["NAME MAP/PARCEL", "WALTON COUNTY EXCESS"],
+          defaultClaimStatus: "unclaimed",
+        },
+      },
+    ],
+  },
+];
+
+/** Absolute URL for one object in the portal's document store. */
+export function portalDocUrl(key: string): string {
+  return `${GOVTWINDOW_DOCS}/${key.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+/**
+ * Every excess-funds document the portal hosts for a county, newest first. Used
+ * to find candidates; nothing is parsed until a human confirms the layout.
+ */
+export async function listPortalExcessDocs(slug: string): Promise<Array<{ key: string; lastModified: string; size: number }>> {
+  const out: Array<{ key: string; lastModified: string; size: number }> = [];
+  let token = "";
+  for (let page = 0; page < 20; page++) {
+    const url =
+      `${GOVTWINDOW_DOCS}/?list-type=2&prefix=resources/sites/${slug}/&max-keys=1000` +
+      (token ? `&continuation-token=${encodeURIComponent(token)}` : "");
+    const res = await politeFetch(url);
+    const xml = await res.text();
+    for (const m of xml.matchAll(/<Key>([^<]+)<\/Key><LastModified>([^<]+)<\/LastModified><ETag>[^<]*<\/ETag><Size>(\d+)/g)) {
+      if (/excess|surplus|overage/i.test(m[1]!)) out.push({ key: m[1]!, lastModified: m[2]!, size: Number(m[3]) });
+    }
+    const next = xml.match(/<NextContinuationToken>([^<]+)/);
+    if (!xml.includes("<IsTruncated>true</IsTruncated>") || !next) break;
+    token = next[1]!;
+  }
+  return out.sort((a, b) => b.lastModified.localeCompare(a.lastModified));
+}
+
+async function probePortal(portal: Portal) {
+  console.log(`${portal.name}: ${portal.counties.length} counties with a human-confirmed layout`);
+  const results: Array<Record<string, unknown>> = [];
+  for (const c of portal.counties) {
+    const url = portalDocUrl(c.docKey);
+    try {
+      const res = await politeFetch(url);
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      const rows =
+        c.handler === "xlsx_list"
+          ? parseXlsxMatrix(await sheetToMatrix(bytes, c.layout.sheet), c.layout)
+          : parsePdfLines(await pdfToLines(bytes), c.layout);
+      const total = rows.reduce((s, r) => s + (r.confirmed_amount ?? 0), 0);
+      results.push({
+        county: c.county,
+        slug: c.slug,
+        url,
+        handler: c.handler,
+        confirmedColumns: c.confirmedColumns,
+        moneyRows: rows.length,
+        claimFiled: rows.filter((r) => r.claim_status === "claim_filed").length,
+        withSaleDate: rows.filter((r) => r.sale_date).length,
+        withParcel: rows.filter((r) => r.parcel_apn).length,
+        totalHeld: Number(total.toFixed(2)),
+        ok: rows.length > 0,
+      });
+      console.log(`  ${c.county.padEnd(12)} ${c.handler.padEnd(10)} ${String(rows.length).padStart(4)} rows  $${total.toFixed(2)}`);
+    } catch (err) {
+      results.push({ county: c.county, slug: c.slug, url, handler: c.handler, ok: false, error: String(err).slice(0, 200) });
+      console.log(`  ${c.county.padEnd(12)} FAILED ${String(err).slice(0, 120)}`);
+    }
+  }
+  const path = `reports/${portal.state.toLowerCase()}-aggregator-${portal.key}.json`;
+  writeFileSync(
+    path,
+    JSON.stringify(
+      {
+        portal: portal.name,
+        state: portal.state,
+        index: portal.index,
+        probedAt: new Date().toISOString(),
+        saleKind: portal.saleKind,
+        note: "The portal shares a host, not a layout — every columnMap/rowPattern below was confirmed by hand against the live document header.",
+        ruledOut: RULED_OUT.filter((r) => r.state === portal.state),
+        counties: results,
+      },
+      null,
+      2,
+    ),
+  );
+  console.log(`wrote ${path}`);
+}
+
 async function main() {
   mkdirSync("reports", { recursive: true });
   const wanted = process.argv.slice(2).map((a) => a.toLowerCase());
