@@ -73,6 +73,13 @@ export const FIRMS: Firm[] = [
  * reports/aggregator-sweep-tx-sc-nc-2026-08-17.md for the evidence.
  */
 export const RULED_OUT: Array<{ state: string; candidate: string; reason: string }> = [
+  { state: "GA", candidate: "itsyourmoney.us", reason: "Texas accounting firm — unrelated to the GA tax commissioner portal" },
+  { state: "GA", candidate: "<county>.governmentwindow.com county fronts", reason: "every county front answers our bot UA with a Cloudflare managed challenge; the portal's own public document store (images-governmentwindow S3) is used instead" },
+  { state: "GA", candidate: "GovtWindow portal — Catoosa", reason: "paid-out ledger: Balance vs 'Excess Received' split across a two-line header, and every printed row already carries a payment date — which column is money still held cannot be confirmed" },
+  { state: "GA", candidate: "GovtWindow portal — Polk", reason: "excess list is a block layout (one field per line), not a table; no confirmable row shape" },
+  { state: "GA", candidate: "GovtWindow portal — Mitchell, Union", reason: "newest excess PDFs carry no extractable text (scanned images)" },
+  { state: "GA", candidate: "GovtWindow portal — Jones, Lumpkin", reason: "excess list published only as .doc, which no handler parses" },
+  { state: "GA", candidate: "GovtWindow portal — Hart, Jackson", reason: "only list on the portal is explicitly marked OLD (Hart) or dated 2009-2018 (Jackson) — stale, not the current held-funds list" },
   { state: "TX", candidate: "lgbs.com (Linebarger Goggan Blair & Sampson)", reason: "publishes sale schedules only — no held-excess-proceeds list" },
   { state: "TX", candidate: "pbfcm.com (Perdue Brandon Fielder Collins & Mott)", reason: "sale notices only; excess proceeds stay with the district clerk" },
   { state: "TX", candidate: "mvbalaw.com", reason: "sale calendars only, no money-held tables" },
