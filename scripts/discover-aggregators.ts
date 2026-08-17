@@ -67,6 +67,23 @@ export const FIRMS: Firm[] = [
   },
 ];
 
+/**
+ * Candidate indexes checked and RULED OUT, so a later sweep does not spend time
+ * re-probing them. Verified 2026-08-17 — see
+ * reports/aggregator-sweep-tx-sc-nc-2026-08-17.md for the evidence.
+ */
+export const RULED_OUT: Array<{ state: string; candidate: string; reason: string }> = [
+  { state: "TX", candidate: "lgbs.com (Linebarger Goggan Blair & Sampson)", reason: "publishes sale schedules only — no held-excess-proceeds list" },
+  { state: "TX", candidate: "pbfcm.com (Perdue Brandon Fielder Collins & Mott)", reason: "sale notices only; excess proceeds stay with the district clerk" },
+  { state: "TX", candidate: "mvbalaw.com", reason: "sale calendars only, no money-held tables" },
+  { state: "TX", candidate: "overageslist.com and similar SaaS", reason: "resale/lead-gen paywall, not a public-records holder index" },
+  { state: "TX", candidate: "odysseyreport.<county>tx.gov ExcessProceedsFromTaxSale.pdf", reason: "shared Tyler Odyssey layout exists per county, but every host times out on direct TCP from our egress and returns 403 through the residential proxy — unretrievable, so nothing can be verified or promoted" },
+  { state: "SC", candidate: "state association / county-directory sites", reason: "directories only; overages are held per county by the delinquent tax collector" },
+  { state: "SC", candidate: "orangeburgcounty.org overage PDF", reason: "genuine machine-readable overage list, but the host answers our bot UA with a Cloudflare managed challenge" },
+  { state: "NC", candidate: "Zacchaeus Legal Services, Kania Law Firm", reason: "tax-foreclosure counsel; no multi-county surplus table published" },
+  { state: "NC", candidate: "per-county Clerk of Superior Court", reason: "surplus sits with each clerk under a separate special proceeding — no shared index or layout" },
+];
+
 /** Every county workbook on a firm index: link text is the county name. */
 export function enumerateCountyWorkbooks(html: string, base: string): Array<{ county: string; url: string }> {
   const out = new Map<string, { county: string; url: string }>();
