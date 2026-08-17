@@ -1,8 +1,10 @@
 {
-  "firm": "weissman.law",
+  "firm": "Weissman PC (weissman.law)",
+  "state": "GA",
   "index": "https://www.weissman.law/specialties/excess-tax-funds/",
+  "probedAt": "2026-08-17T15:49:00.665Z",
+  "handler": "xlsx_list",
   "layout": {
-    "handler": "xlsx_list",
     "columnMap": {
       "Matter Id": "case_number",
       "Parcel No.": "parcel_apn",
@@ -17,279 +19,762 @@
   "counties": [
     {
       "county": "Athens-Clarke",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Athens-Clarke.xlsx"
+      "countyInFile": "Athens-Clarke",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Athens-Clarke.xlsx",
+      "dataRows": 1,
+      "moneyRows": 1,
+      "claimFiled": 1,
+      "withSaleDate": 1,
+      "totalHeld": 73936.55,
+      "ok": true
     },
     {
       "county": "Baldwin",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Baldwin.xlsx"
+      "countyInFile": "Baldwin",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Baldwin.xlsx",
+      "dataRows": 9,
+      "moneyRows": 9,
+      "claimFiled": 5,
+      "withSaleDate": 9,
+      "totalHeld": 179171.64,
+      "ok": true
     },
     {
       "county": "Banks",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Banks.xlsx"
+      "countyInFile": "Banks",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Banks.xlsx",
+      "dataRows": 1,
+      "moneyRows": 1,
+      "claimFiled": 0,
+      "withSaleDate": 1,
+      "totalHeld": 52474.17,
+      "ok": true
     },
     {
       "county": "Barrow",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Barrow.xlsx"
+      "countyInFile": "Barrow",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Barrow.xlsx",
+      "dataRows": 15,
+      "moneyRows": 15,
+      "claimFiled": 4,
+      "withSaleDate": 15,
+      "totalHeld": 91500.44,
+      "ok": true
     },
     {
       "county": "Brooks",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Brooks.xlsx"
+      "countyInFile": "Brooks",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Brooks.xlsx",
+      "dataRows": 27,
+      "moneyRows": 27,
+      "claimFiled": 5,
+      "withSaleDate": 27,
+      "totalHeld": 126803.26,
+      "ok": true
     },
     {
       "county": "Bryan",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Bryan.xlsx"
+      "countyInFile": "Bryan",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Bryan.xlsx",
+      "dataRows": 12,
+      "moneyRows": 12,
+      "claimFiled": 1,
+      "withSaleDate": 12,
+      "totalHeld": 64450.67,
+      "ok": true
     },
     {
       "county": "Bulloch",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Bulloch.xlsx"
+      "countyInFile": "Bulloch",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Bulloch.xlsx",
+      "dataRows": 59,
+      "moneyRows": 59,
+      "claimFiled": 2,
+      "withSaleDate": 59,
+      "totalHeld": 331253.57,
+      "ok": true
     },
     {
       "county": "Burke",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Burke.xlsx"
+      "countyInFile": "Burke",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Burke.xlsx",
+      "dataRows": 84,
+      "moneyRows": 84,
+      "claimFiled": 2,
+      "withSaleDate": 84,
+      "totalHeld": 549788.83,
+      "ok": true
     },
     {
       "county": "Charlton",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Charlton.xlsx"
+      "countyInFile": "Charlton",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Charlton.xlsx",
+      "dataRows": 20,
+      "moneyRows": 20,
+      "claimFiled": 6,
+      "withSaleDate": 20,
+      "totalHeld": 87798.82,
+      "ok": true
     },
     {
       "county": "Cherokee",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Cherokee.xlsx"
+      "countyInFile": "Cherokee",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Cherokee.xlsx",
+      "dataRows": 80,
+      "moneyRows": 80,
+      "claimFiled": 2,
+      "withSaleDate": 80,
+      "totalHeld": 870064.34,
+      "ok": true
     },
     {
       "county": "City of Lyons",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/City-of-Lyons.xlsx"
+      "countyInFile": "City of Lyons",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/City-of-Lyons.xlsx",
+      "dataRows": 2,
+      "moneyRows": 2,
+      "claimFiled": 0,
+      "withSaleDate": 2,
+      "totalHeld": 956.69,
+      "ok": true
     },
     {
       "county": "City of Wrens",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/City-of-Wrens.xlsx"
+      "countyInFile": "City of Wrens",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/City-of-Wrens.xlsx",
+      "dataRows": 4,
+      "moneyRows": 4,
+      "claimFiled": 0,
+      "withSaleDate": 4,
+      "totalHeld": 5652.24,
+      "ok": true
     },
     {
       "county": "Clay",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Clay.xlsx"
+      "countyInFile": "Clay",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Clay.xlsx",
+      "dataRows": 11,
+      "moneyRows": 11,
+      "claimFiled": 2,
+      "withSaleDate": 11,
+      "totalHeld": 26363.31,
+      "ok": true
     },
     {
       "county": "Coffee",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Coffee.xlsx"
+      "countyInFile": "Coffee",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Coffee.xlsx",
+      "dataRows": 9,
+      "moneyRows": 9,
+      "claimFiled": 0,
+      "withSaleDate": 8,
+      "totalHeld": 15766.37,
+      "ok": true
     },
     {
       "county": "Columbia",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Columbia.xlsx"
+      "countyInFile": "Columbia",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Columbia.xlsx",
+      "dataRows": 8,
+      "moneyRows": 8,
+      "claimFiled": 2,
+      "withSaleDate": 8,
+      "totalHeld": 55336.59,
+      "ok": true
     },
     {
       "county": "Cook",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Cook.xlsx"
+      "countyInFile": "Cook",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Cook.xlsx",
+      "dataRows": 14,
+      "moneyRows": 14,
+      "claimFiled": 7,
+      "withSaleDate": 14,
+      "totalHeld": 78743.98,
+      "ok": true
     },
     {
       "county": "Crisp",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Crisp.xlsx"
+      "countyInFile": "Crisp",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Crisp.xlsx",
+      "dataRows": 5,
+      "moneyRows": 5,
+      "claimFiled": 0,
+      "withSaleDate": 5,
+      "totalHeld": 10572.55,
+      "ok": true
     },
     {
       "county": "Dade",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Dade.xlsx"
+      "countyInFile": "Dade",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Dade.xlsx",
+      "dataRows": 15,
+      "moneyRows": 15,
+      "claimFiled": 1,
+      "withSaleDate": 15,
+      "totalHeld": 45006.5,
+      "ok": true
     },
     {
       "county": "Dawson",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Dawson.xlsx"
+      "countyInFile": "Dawson",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Dawson.xlsx",
+      "dataRows": 8,
+      "moneyRows": 8,
+      "claimFiled": 2,
+      "withSaleDate": 8,
+      "totalHeld": 61467.42,
+      "ok": true
     },
     {
       "county": "Early",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Early.xlsx"
+      "countyInFile": "Early",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Early.xlsx",
+      "dataRows": 37,
+      "moneyRows": 37,
+      "claimFiled": 2,
+      "withSaleDate": 37,
+      "totalHeld": 120483.76,
+      "ok": true
     },
     {
       "county": "Effingham",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Effingham.xlsx"
+      "countyInFile": "Effingham",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Effingham.xlsx",
+      "dataRows": 44,
+      "moneyRows": 44,
+      "claimFiled": 2,
+      "withSaleDate": 44,
+      "totalHeld": 126837.89,
+      "ok": true
     },
     {
       "county": "Emanuel",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Emanuel.xlsx"
+      "countyInFile": "Emanuel",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Emanuel.xlsx",
+      "dataRows": 3,
+      "moneyRows": 3,
+      "claimFiled": 0,
+      "withSaleDate": 0,
+      "totalHeld": 205.16,
+      "ok": true
     },
     {
       "county": "Fannin",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Fannin.xlsx"
+      "countyInFile": "Fannin",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Fannin.xlsx",
+      "dataRows": 8,
+      "moneyRows": 8,
+      "claimFiled": 1,
+      "withSaleDate": 7,
+      "totalHeld": 20263.81,
+      "ok": true
     },
     {
       "county": "Forsyth",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Forsyth.xlsx"
+      "countyInFile": "Forsyth",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Forsyth.xlsx",
+      "dataRows": 1,
+      "moneyRows": 1,
+      "claimFiled": 1,
+      "withSaleDate": 1,
+      "totalHeld": 57664.91,
+      "ok": true
     },
     {
       "county": "Fulton",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Fulton.xlsx"
+      "countyInFile": "Fulton",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Fulton.xlsx",
+      "dataRows": 31,
+      "moneyRows": 31,
+      "claimFiled": 5,
+      "withSaleDate": 31,
+      "totalHeld": 681712.43,
+      "ok": true
     },
     {
       "county": "Gilmer",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Gilmer.xlsx"
+      "countyInFile": "Gilmer",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Gilmer.xlsx",
+      "dataRows": 103,
+      "moneyRows": 103,
+      "claimFiled": 3,
+      "withSaleDate": 103,
+      "totalHeld": 323717.5,
+      "ok": true
     },
     {
       "county": "Green",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Green.xlsx"
+      "countyInFile": "Greene",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Green.xlsx",
+      "dataRows": 25,
+      "moneyRows": 25,
+      "claimFiled": 0,
+      "withSaleDate": 25,
+      "totalHeld": 68942.55,
+      "ok": true
     },
     {
       "county": "Greene",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Greene.xlsx"
+      "countyInFile": "Greene",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Greene.xlsx",
+      "dataRows": 28,
+      "moneyRows": 28,
+      "claimFiled": 4,
+      "withSaleDate": 28,
+      "totalHeld": 97002.2,
+      "ok": true
     },
     {
       "county": "Habersham",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Habersham.xlsx"
+      "countyInFile": "Habersham",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Habersham.xlsx",
+      "dataRows": 1,
+      "moneyRows": 1,
+      "claimFiled": 0,
+      "withSaleDate": 1,
+      "totalHeld": 116720.09,
+      "ok": true
     },
     {
       "county": "Harris",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Harris.xlsx"
+      "countyInFile": "Harris",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Harris.xlsx",
+      "dataRows": 47,
+      "moneyRows": 47,
+      "claimFiled": 0,
+      "withSaleDate": 47,
+      "totalHeld": 90367.66,
+      "ok": true
     },
     {
       "county": "Henry",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Henry.xlsx"
+      "countyInFile": "Henry",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Henry.xlsx",
+      "dataRows": 19,
+      "moneyRows": 19,
+      "claimFiled": 3,
+      "withSaleDate": 19,
+      "totalHeld": 75650.06,
+      "ok": true
     },
     {
       "county": "Jackson",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Jackson.xlsx"
+      "countyInFile": "Jackson",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Jackson.xlsx",
+      "dataRows": 27,
+      "moneyRows": 27,
+      "claimFiled": 2,
+      "withSaleDate": 27,
+      "totalHeld": 673085.42,
+      "ok": true
     },
     {
       "county": "Jeff Davis",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Jeff-Davis.xlsx"
+      "countyInFile": "Jeff Davis",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Jeff-Davis.xlsx",
+      "dataRows": 38,
+      "moneyRows": 38,
+      "claimFiled": 3,
+      "withSaleDate": 38,
+      "totalHeld": 163005.77,
+      "ok": true
     },
     {
       "county": "Jeff",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Jeff.xlsx"
+      "countyInFile": "Jeff Davis",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Jeff.xlsx",
+      "dataRows": 31,
+      "moneyRows": 31,
+      "claimFiled": 1,
+      "withSaleDate": 31,
+      "totalHeld": 127032.96,
+      "ok": true
     },
     {
       "county": "Jefferson",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Jefferson.xlsx"
+      "countyInFile": "Jefferson",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Jefferson.xlsx",
+      "dataRows": 65,
+      "moneyRows": 65,
+      "claimFiled": 1,
+      "withSaleDate": 65,
+      "totalHeld": 97950.29,
+      "ok": true
     },
     {
       "county": "Liberty",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Liberty.xlsx"
+      "countyInFile": "Liberty",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Liberty.xlsx",
+      "dataRows": 125,
+      "moneyRows": 125,
+      "claimFiled": 20,
+      "withSaleDate": 118,
+      "totalHeld": 770299.84,
+      "ok": true
     },
     {
       "county": "Long",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Long.xlsx"
+      "countyInFile": "Long",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Long.xlsx",
+      "dataRows": 23,
+      "moneyRows": 23,
+      "claimFiled": 7,
+      "withSaleDate": 23,
+      "totalHeld": 114416.34,
+      "ok": true
     },
     {
       "county": "Lowndes",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Lowndes.xlsx"
+      "countyInFile": "Lowndes",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Lowndes.xlsx",
+      "dataRows": 181,
+      "moneyRows": 181,
+      "claimFiled": 25,
+      "withSaleDate": 173,
+      "totalHeld": 1172334.45,
+      "ok": true
     },
     {
       "county": "McDuffie",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/McDuffie.xlsx"
+      "countyInFile": "McDuffie",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/McDuffie.xlsx",
+      "dataRows": 19,
+      "moneyRows": 19,
+      "claimFiled": 6,
+      "withSaleDate": 19,
+      "totalHeld": 88935.66,
+      "ok": true
     },
     {
       "county": "Miller",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Miller.xlsx"
+      "countyInFile": "Miller",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Miller.xlsx",
+      "dataRows": 5,
+      "moneyRows": 5,
+      "claimFiled": 0,
+      "withSaleDate": 5,
+      "totalHeld": 7720.95,
+      "ok": true
     },
     {
       "county": "Mitchell",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Mitchell.xlsx"
+      "countyInFile": "Mitchell",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Mitchell.xlsx",
+      "dataRows": 43,
+      "moneyRows": 43,
+      "claimFiled": 4,
+      "withSaleDate": 43,
+      "totalHeld": 155267.45,
+      "ok": true
     },
     {
       "county": "Montgomery",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Montgomery.xlsx"
+      "countyInFile": "Montgomery",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Montgomery.xlsx",
+      "dataRows": 10,
+      "moneyRows": 10,
+      "claimFiled": 0,
+      "withSaleDate": 10,
+      "totalHeld": 11205.38,
+      "ok": true
     },
     {
       "county": "Muscogee",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Muscogee.xlsx"
+      "countyInFile": "Muscogee",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Muscogee.xlsx",
+      "dataRows": 48,
+      "moneyRows": 48,
+      "claimFiled": 6,
+      "withSaleDate": 48,
+      "totalHeld": 153142.74,
+      "ok": true
     },
     {
       "county": "Newton",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Newton.xlsx"
+      "countyInFile": "Newton",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Newton.xlsx",
+      "dataRows": 124,
+      "moneyRows": 124,
+      "claimFiled": 39,
+      "withSaleDate": 112,
+      "totalHeld": 2668426.81,
+      "ok": true
     },
     {
       "county": "Oconee",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Oconee.xlsx"
+      "countyInFile": "Oconee",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Oconee.xlsx",
+      "dataRows": 3,
+      "moneyRows": 3,
+      "claimFiled": 0,
+      "withSaleDate": 3,
+      "totalHeld": 4261.29,
+      "ok": true
     },
     {
       "county": "Peach",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Peach.xlsx"
+      "countyInFile": "Peach",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Peach.xlsx",
+      "dataRows": 107,
+      "moneyRows": 107,
+      "claimFiled": 0,
+      "withSaleDate": 107,
+      "totalHeld": 842459.65,
+      "ok": true
     },
     {
       "county": "Pickens",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Pickens.xlsx"
+      "countyInFile": "Pickens",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Pickens.xlsx",
+      "dataRows": 33,
+      "moneyRows": 33,
+      "claimFiled": 1,
+      "withSaleDate": 33,
+      "totalHeld": 121447.93,
+      "ok": true
     },
     {
       "county": "Pierce",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Pierce.xlsx"
+      "countyInFile": "Pierce",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Pierce.xlsx",
+      "dataRows": 1,
+      "moneyRows": 1,
+      "claimFiled": 0,
+      "withSaleDate": 1,
+      "totalHeld": 29219.73,
+      "ok": true
     },
     {
       "county": "Polk",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Polk.xlsx"
+      "countyInFile": "Polk",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Polk.xlsx",
+      "dataRows": 55,
+      "moneyRows": 55,
+      "claimFiled": 0,
+      "withSaleDate": 55,
+      "totalHeld": 115660.81,
+      "ok": true
     },
     {
       "county": "Putnam",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Putnam.xlsx"
+      "countyInFile": "Putnam",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Putnam.xlsx",
+      "dataRows": 17,
+      "moneyRows": 17,
+      "claimFiled": 1,
+      "withSaleDate": 17,
+      "totalHeld": 58974.68,
+      "ok": true
     },
     {
       "county": "Quitman",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Quitman.xlsx"
+      "countyInFile": "Quitman",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Quitman.xlsx",
+      "dataRows": 29,
+      "moneyRows": 29,
+      "claimFiled": 2,
+      "withSaleDate": 29,
+      "totalHeld": 95931.18,
+      "ok": true
     },
     {
       "county": "Rabun",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Rabun.xlsx"
+      "countyInFile": "Rabun",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Rabun.xlsx",
+      "dataRows": 7,
+      "moneyRows": 7,
+      "claimFiled": 2,
+      "withSaleDate": 7,
+      "totalHeld": 30720.91,
+      "ok": true
     },
     {
       "county": "Screven",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Screven.xlsx"
+      "countyInFile": "Screven",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Screven.xlsx",
+      "dataRows": 40,
+      "moneyRows": 40,
+      "claimFiled": 0,
+      "withSaleDate": 40,
+      "totalHeld": 52980.38,
+      "ok": true
     },
     {
       "county": "Seminole",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Seminole.xlsx"
+      "countyInFile": "Seminole",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Seminole.xlsx",
+      "dataRows": 20,
+      "moneyRows": 20,
+      "claimFiled": 0,
+      "withSaleDate": 20,
+      "totalHeld": 29800.91,
+      "ok": true
     },
     {
       "county": "Spalding",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Spalding.xlsx"
+      "countyInFile": "Spalding",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Spalding.xlsx",
+      "dataRows": 3,
+      "moneyRows": 3,
+      "claimFiled": 1,
+      "withSaleDate": 3,
+      "totalHeld": 13313.94,
+      "ok": true
     },
     {
       "county": "Stephens",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Stephens.xlsx"
+      "countyInFile": "Stephens",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Stephens.xlsx",
+      "dataRows": 23,
+      "moneyRows": 23,
+      "claimFiled": 1,
+      "withSaleDate": 22,
+      "totalHeld": 228156.31,
+      "ok": true
     },
     {
       "county": "Sumter",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Sumter.xlsx"
+      "countyInFile": "Sumter",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Sumter.xlsx",
+      "dataRows": 82,
+      "moneyRows": 82,
+      "claimFiled": 3,
+      "withSaleDate": 82,
+      "totalHeld": 276555.96,
+      "ok": true
     },
     {
       "county": "Thomas",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Thomas.xlsx"
+      "countyInFile": "Thomas",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Thomas.xlsx",
+      "dataRows": 133,
+      "moneyRows": 133,
+      "claimFiled": 20,
+      "withSaleDate": 133,
+      "totalHeld": 623763.66,
+      "ok": true
     },
     {
       "county": "Toombs",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Toombs.xlsx"
+      "countyInFile": "Toombs",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Toombs.xlsx",
+      "dataRows": 49,
+      "moneyRows": 49,
+      "claimFiled": 0,
+      "withSaleDate": 47,
+      "totalHeld": 190358.78,
+      "ok": true
     },
     {
       "county": "Towns",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Towns.xlsx"
+      "countyInFile": "Towns",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Towns.xlsx",
+      "dataRows": 10,
+      "moneyRows": 10,
+      "claimFiled": 0,
+      "withSaleDate": 10,
+      "totalHeld": 23350.52,
+      "ok": true
     },
     {
       "county": "Treutlen",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Treutlen.xlsx"
+      "countyInFile": "Treutlen",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Treutlen.xlsx",
+      "dataRows": 13,
+      "moneyRows": 13,
+      "claimFiled": 1,
+      "withSaleDate": 13,
+      "totalHeld": 46898.48,
+      "ok": true
     },
     {
       "county": "Walker",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Walker.xlsx"
+      "countyInFile": "Walker",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Walker.xlsx",
+      "dataRows": 79,
+      "moneyRows": 79,
+      "claimFiled": 22,
+      "withSaleDate": 79,
+      "totalHeld": 894271.77,
+      "ok": true
     },
     {
       "county": "Washington",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Washington.xlsx"
+      "countyInFile": "Washington",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Washington.xlsx",
+      "dataRows": 52,
+      "moneyRows": 52,
+      "claimFiled": 0,
+      "withSaleDate": 34,
+      "totalHeld": 128533.88,
+      "ok": true
     },
     {
       "county": "Wayne",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Wayne.xlsx"
+      "countyInFile": "Wayne",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Wayne.xlsx",
+      "dataRows": 150,
+      "moneyRows": 150,
+      "claimFiled": 19,
+      "withSaleDate": 119,
+      "totalHeld": 542247.32,
+      "ok": true
     },
     {
       "county": "Webster",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Webster.xlsx"
+      "countyInFile": "Webster",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Webster.xlsx",
+      "dataRows": 3,
+      "moneyRows": 3,
+      "claimFiled": 0,
+      "withSaleDate": 2,
+      "totalHeld": 62578.36,
+      "ok": true
     },
     {
       "county": "White",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/White.xlsx"
+      "countyInFile": "White",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/White.xlsx",
+      "dataRows": 1,
+      "moneyRows": 1,
+      "claimFiled": 1,
+      "withSaleDate": 1,
+      "totalHeld": 66065.33,
+      "ok": true
     },
     {
       "county": "Wilkes",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Wilkes.xlsx"
+      "countyInFile": "Wilkes",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Wilkes.xlsx",
+      "dataRows": 1,
+      "moneyRows": 1,
+      "claimFiled": 0,
+      "withSaleDate": 1,
+      "totalHeld": 2520.24,
+      "ok": true
     },
     {
       "county": "Wilkinson",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Wilkinson.xlsx"
+      "countyInFile": "Wilkinson",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Wilkinson.xlsx",
+      "dataRows": 103,
+      "moneyRows": 103,
+      "claimFiled": 4,
+      "withSaleDate": 93,
+      "totalHeld": 195086.92,
+      "ok": true
     },
     {
       "county": "Worth",
-      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Worth.xlsx"
+      "countyInFile": "Worth",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Worth.xlsx",
+      "dataRows": 9,
+      "moneyRows": 9,
+      "claimFiled": 1,
+      "withSaleDate": 9,
+      "totalHeld": 42178.15,
+      "ok": true
     }
   ]
 }
