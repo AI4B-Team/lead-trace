@@ -49,13 +49,39 @@ const COUNTIES: Array<{ county: string; roots: string[] }> = [
   { county: "Tulare", roots: ["https://tularecounty.ca.gov/treasurertaxcollector/", "https://tularecounty.ca.gov/"] },
 ];
 
+/**
+ * Two hops from the entry page. California tax collectors bury the excess
+ * proceeds listing one level below an "Unclaimed Funds" / "Tax Sale" page, so a
+ * homepage-only sweep reports a miss on counties that do publish a list.
+ */
 async function findExcessPages(roots: string[]): Promise<{ hits: Hit[]; note: string }> {
   for (const root of roots) {
     if (!(await robotsAllows(root).catch(() => false))) return { hits: [], note: `robots.txt disallows ${root}` };
     try {
       const { html } = await politeHtml(root);
-      const hits = links(html, root);
-      if (hits.length) return { hits, note: `via ${root}` };
+      const first = links(html, root);
+      if (!first.length) continue;
+      const seen = new Set(first.map((h) => h.href));
+      const deep: Hit[] = [];
+      for (const h of first.slice(0, 3)) {
+        try {
+          const page = await politeHtml(h.href);
+          for (const d of links(page.html, h.href)) {
+            if (!seen.has(d.href)) {
+              seen.add(d.href);
+              deep.push(d);
+            }
+          }
+        } catch {
+          // one dead child page never sinks the county
+        }
+      }
+      // Pages whose own wording names excess proceeds are the likeliest to carry
+      // the listing, so they are probed before the generic unclaimed-funds page.
+      const ranked = [...first, ...deep].sort(
+        (a, b) => rank(b) - rank(a),
+      );
+      return { hits: ranked, note: `via ${root}` };
     } catch (err) {
       if (root === roots[roots.length - 1]) {
         return { hits: [], note: `${root}: ${err instanceof Error ? err.message : String(err)}` };
@@ -63,6 +89,10 @@ async function findExcessPages(roots: string[]): Promise<{ hits: Hit[]; note: st
     }
   }
   return { hits: [], note: "reachable, no excess-proceeds link found on the entry pages" };
+}
+
+function rank(h: Hit): number {
+  return /excess/i.test(`${h.text} ${h.href}`) ? 2 : /tax.?(sale|defaulted|deed)/i.test(`${h.text} ${h.href}`) ? 1 : 0;
 }
 
 async function main() {
@@ -75,7 +105,7 @@ async function main() {
       continue;
     }
     let best: Record<string, unknown> | null = null;
-    for (const h of hits.slice(0, 3)) {
+    for (const h of hits.slice(0, 5)) {
       const p = await probe(c.county, h.href);
       if (!best || (p.ok && !best.ok)) best = p;
       if (p.ok) break;

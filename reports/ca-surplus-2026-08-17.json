@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-17T17:01:03.353Z",
+  "generatedAt": "2026-08-17T17:10:51.788Z",
   "state": "CA",
   "probes": [
     {
@@ -15,6 +15,10 @@
         {
           "text": "UNCLAIMED FUNDS",
           "href": "https://ttc.lacounty.gov/unclaimed-funds/"
+        },
+        {
+          "text": "Tenants Unclaimed Property Inventory Report",
+          "href": "https://ttc.lacounty.gov/wp-content/uploads/2026/08/Tenants-Unclaimed-Property-Inventory-Report.pdf"
         }
       ],
       "probe": {
@@ -41,6 +45,22 @@
         {
           "text": "Unclaimed Money",
           "href": "https://www.sdttc.com/content/ttc/en/tax-collection/Unclaimed-Money.html"
+        },
+        {
+          "text": "",
+          "href": "https://www.sdttc.com/content/ttc/en/tax-collection/county-wide-unclaimed-monies.html"
+        },
+        {
+          "text": "Unclaimed Monies - Abandoned Properties",
+          "href": "https://www.sdttc.com/content/ttc/en/tax-collection/Unclaimed-Money/unclaimed-monies-abandoned-properties.html"
+        },
+        {
+          "text": "Unclaimed Monies - Estates of Deceased without Heir",
+          "href": "https://www.sdttc.com/content/ttc/en/tax-collection/Unclaimed-Money/unclaimed-monies-estates-of-deceased-without-heir.html"
+        },
+        {
+          "text": "Unclaimed Monies - Estates of Deceased with Heir",
+          "href": "https://www.sdttc.com/content/ttc/en/tax-collection/Unclaimed-Money/unclaimed-monies-estates-of-deceased-with-heir.html"
         }
       ],
       "probe": {
@@ -59,9 +79,13 @@
     {
       "county": "Orange",
       "state": "CA",
-      "ok": false,
+      "ok": true,
       "note": "via https://octreasurer.gov/",
       "links": [
+        {
+          "text": "Link to Tax Auction Page Containing Excess Proceeds Lists",
+          "href": "https://octreasurer.gov/proptax/pta"
+        },
         {
           "text": "Unclaimed Funds",
           "href": "https://octreasurer.gov/unclaimedfunds"
@@ -69,31 +93,63 @@
         {
           "text": "State Unclaimed Funds",
           "href": "https://www.sco.ca.gov/upd_msg.html"
+        },
+        {
+          "text": "Deposit Instructions For Deceased Estates Funds",
+          "href": "https://octreasurer.gov/online-payments-eservices/unclaimed-funds/deposit-instructions-deceased-estates-funds"
+        },
+        {
+          "text": "Claiming Instructions for Deceased Estates",
+          "href": "https://octreasurer.gov/online-payments-eservices/unclaimed-funds/claiming-instructions-deceased-estates"
+        },
+        {
+          "text": "Surplus Funds",
+          "href": "https://octreasurer.gov/sites/ttc/files/2022-10/02_AUG_2022%20Posting.pdf"
+        },
+        {
+          "text": "Claim Form",
+          "href": "https://www.octreasurer.gov/Forms#LanlordUnclaimedFundsForm"
+        },
+        {
+          "text": "Surplus Funds",
+          "href": "https://octreasurer.gov/sites/ttc/files/2022-10/02_AUG_2022%20Commercial%20Posting.pdf"
+        },
+        {
+          "text": "Unclaimed Funds Instructions",
+          "href": "https://www.octreasurer.gov/Forms#UnclaimedFundsForm"
+        },
+        {
+          "text": "www.unclaimed.org",
+          "href": "http://www.unclaimed.org/"
+        },
+        {
+          "text": "Share this page to Facebook",
+          "href": "https://www.facebook.com/sharer/sharer.php?kid_directed_site=0&amp;u=https://octreasurer.gov/unclaimedfunds&amp;display=popup&amp;ref=plugin&amp;src=share_button"
+        },
+        {
+          "text": "Share this page to Twitter",
+          "href": "https://twitter.com/share?text=Unclaimed%20Funds&amp;url=https://octreasurer.gov/unclaimedfunds&amp;hashtags="
+        },
+        {
+          "text": "Share this page to Linkedin",
+          "href": "https://www.linkedin.com/sharing/share-offsite/?url=https://octreasurer.gov/unclaimedfunds"
         }
       ],
       "probe": {
         "county": "Orange",
-        "url": "https://octreasurer.gov/unclaimedfunds",
-        "ok": false,
+        "url": "https://octreasurer.gov/proptax/pta",
+        "ok": true,
         "robotsAllowed": true,
-        "handler": "unknown",
-        "tables": 0,
+        "handler": "pdf_list",
+        "tables": 2,
         "headers": [],
         "suggested": {},
         "docLinks": [
-          "https://octreasurer.gov/sites/ttc/files/2021-01/Understanding_the_Real_Estate_Tax_Deduction.pdf",
-          "https://octreasurer.gov/sites/ttc/files/2021-01/giftbanordinance.pdf",
-          "https://octreasurer.gov/sites/ttc/files/2025-03/2025%20EEO%20Commitment%20Letter%20TTC.pdf",
-          "https://www.octreasurer.gov/sites/ttc/files/import/data/files/7516.pdf",
-          "https://octreasurer.gov/sites/ttc/files/2022-02/Tax%20Dollar%20Slide.pdf",
-          "https://www.octreasurer.gov/sites/ttc/files/2026-04/Deceased%20Estates%20Web%20Posting%20Ledger%20FY25-26%20EFFECTIVE%2003-31-2026.pdf",
-          "https://octreasurer.gov/sites/ttc/files/import/data/files/76102.pdf",
-          "https://octreasurer.gov/sites/ttc/files/2021-09/Sample_Court_Order.pdf",
-          "https://octreasurer.gov/sites/ttc/files/import/data/files/64653.pdf",
-          "https://octreasurer.gov/sites/ttc/files/2022-10/02_AUG_2022%20Posting.pdf",
-          "https://octreasurer.gov/sites/ttc/files/2022-10/02_AUG_2022%20Commercial%20Posting.pdf"
+          "https://www.octreasurer.gov/sites/ttc/files/2025-11/Excess%20Proceeds%20Timeshare%20Re-Offer%20Auction%201398.pdf",
+          "https://octreasurer.gov/sites/ttc/files/2021-10/Excess%20Proceeds%20-%20Internet%20Auction%20%231397.pdf",
+          "https://octreasurer.gov/sites/ttc/files/2021-02/Copy_of_Excess_Proceeds-Timeshare_Re-Offer_Auction_1395.pdf"
         ],
-        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+        "note": "3 candidate document(s). Needs a rowPattern from the real file."
       }
     },
     {
@@ -141,6 +197,34 @@
         {
           "text": "Unclaimed Funds",
           "href": "https://finance.saccounty.gov/content/finance/us/en/auditor-controller/unclaimed-funds.html"
+        },
+        {
+          "text": "View the Unclaimed Warrant Listing",
+          "href": "https://data.saccounty.gov/datasets/7eba7c39e6dd47afbf26d7be27625b43_0/explore"
+        },
+        {
+          "text": "Unclaimed Warrant Affidavit for an Individual",
+          "href": "https://finance.saccounty.gov/content/dam/finance/docs/a-c/general/unclaimed-warrant-affidavit-individual.pdf"
+        },
+        {
+          "text": "Unclaimed Warrant Affidavit for Multiple Payees",
+          "href": "https://finance.saccounty.gov/content/dam/finance/docs/a-c/general/unclaimed-warrant-affidavit-multi.pdf"
+        },
+        {
+          "text": "Unclaimed Warrant Affidavit for a Business",
+          "href": "https://finance.saccounty.gov/content/dam/finance/docs/a-c/general/unclaimed-warrant-affidavit-business.pdf"
+        },
+        {
+          "text": "Unclaimed Previous Addresses",
+          "href": "https://finance.saccounty.gov/content/dam/finance/docs/a-c/general/unclaimed-previous-addresses.pdf"
+        },
+        {
+          "text": "Unclaimed Warrant Staff",
+          "href": "https://saccounty.wufoo.com/forms/online-request-form-unclaimed-warrant/"
+        },
+        {
+          "text": "View the List of Unclaimed Funds",
+          "href": "https://data.saccounty.gov/datasets/sacramentocounty::county-unclaimed-funds/explore"
         }
       ],
       "probe": {
@@ -172,6 +256,14 @@
         {
           "text": "Unclaimed Money",
           "href": "https://www.kcttc.co.kern.ca.us/index.cfm?fuseaction=kcttcinternet.showUnclaimedMoney"
+        },
+        {
+          "text": "Unclaimed Money There is no charge to file a claim for Unclaimed Money",
+          "href": "https://liveauctions.govease.com/PublicPortal/RegistrationDetail?AuctionID=1348&Edit=False/"
+        },
+        {
+          "text": "Claim Instructions and Information",
+          "href": "https://www.kcttc.co.kern.ca.us/index.cfm?fuseaction=kcttcinternet.showUnclaimedMoneyInstructions"
         }
       ],
       "probe": {
@@ -198,6 +290,10 @@
         {
           "text": "Unclaimed Property Lookup",
           "href": "https://www.fresnocountyca.gov/Departments/Auditor-Controller-Treasurer-Tax-Collector/Unclaimed-Property-Lookup"
+        },
+        {
+          "text": "English Select this as your preferred language",
+          "href": "https://www.fresnocountyca.gov/Departments/Auditor-Controller-Treasurer-Tax-Collector/Auditor-ControllerTreasurer-Tax-Collectors-Publications/Unclaimed-Property-Lookup?oc_lang=en-US"
         }
       ],
       "probe": {
@@ -232,27 +328,52 @@
     {
       "county": "San Joaquin",
       "state": "CA",
-      "ok": false,
+      "ok": true,
       "note": "via https://www.sjgov.org/department/ttcnew/",
       "links": [
         {
+          "text": "San Joaquin County Excess Proceeds",
+          "href": "https://www.sjgov.org/department/ttc/tax/redemption/public-auction"
+        },
+        {
           "text": "paid Unclaimed Funds",
           "href": "https://www.sjgov.org/department/ttc/tax/general-tax/unclaimed-property-tax-refunds"
+        },
+        {
+          "text": "Unclaimed Property Tax Refund Form 210 KB &bull; pdf &bull; April 17, ",
+          "href": "https://www.sjgov.org/docs/default-source/treasurer---tax-collector-documents/unclaimed-funds/unclaimed-property-tax-refund-form.pdf?sfvrsn=db1acb12_3"
+        },
+        {
+          "text": "San Joaquin County Unclaimed Warrants",
+          "href": "https://www.sjgov.org/department/aud/program-services/unclaimed-warrants"
+        },
+        {
+          "text": "Unclaimed Property | California State Controller",
+          "href": "https://ucpi.sco.ca.gov/"
+        },
+        {
+          "text": "Other States Unclaimed Funds",
+          "href": "https://unclaimed.org/"
+        },
+        {
+          "text": "Federal/Other Agencies Unclaimed Funds",
+          "href": "https://www.usa.gov/unclaimed-money"
         }
       ],
       "probe": {
         "county": "San Joaquin",
-        "url": "https://www.sjgov.org/department/ttc/tax/general-tax/unclaimed-property-tax-refunds",
-        "ok": false,
+        "url": "https://www.sjgov.org/department/ttc/tax/redemption/public-auction",
+        "ok": true,
         "robotsAllowed": true,
-        "handler": "unknown",
-        "tables": 0,
+        "handler": "pdf_list",
+        "tables": 1,
         "headers": [],
         "suggested": {},
         "docLinks": [
-          "https://www.sjgov.org/docs/default-source/treasurer---tax-collector-documents/unclaimed-funds/unclaimed-property-tax-refund-form.pdf?sfvrsn=db1acb12_3"
+          "https://www.sjgov.org/docs/default-source/treasurer---tax-collector-documents/excess-proceeds/excess-proceeds-march-2026.pdf?sfvrsn=1f82eec3_21",
+          "https://www.sjgov.org/docs/default-source/treasurer---tax-collector-documents/excess-proceeds/excess-proceeds-may-2025.pdf?sfvrsn=f5b919a5_8"
         ],
-        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+        "note": "2 candidate document(s). Needs a rowPattern from the real file."
       }
     },
     {
