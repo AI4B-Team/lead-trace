@@ -242,6 +242,10 @@ async function main() {
     ? FIRMS.filter((f) => wanted.includes(f.key.toLowerCase()) || wanted.includes(f.state.toLowerCase()))
     : FIRMS;
   for (const firm of firms) await probeFirm(firm);
+  const portals = wanted.length
+    ? PORTALS.filter((p) => wanted.includes(p.key.toLowerCase()) || wanted.includes(p.state.toLowerCase()))
+    : PORTALS;
+  for (const portal of portals) await probePortal(portal);
 }
 
 if (import.meta.main) await main();
