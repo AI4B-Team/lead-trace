@@ -143,7 +143,9 @@ export function cleanAddress(raw: string | null): string | null {
 const CLAIM_STATUS_WORDS: Array<[RegExp, ClerkSurplusRow["claim_status"]]> = [
   [/escheat/i, "escheated"],
   [/disburs|paid|released|distributed/i, "disbursed"],
-  [/claim\s*(filed|submitted|pending)|pending\s*claim/i, "claim_filed"],
+  // "Interpleader filed 11/21/24" (Coweta GA): the tax commissioner has already
+  // handed the money to Superior Court, so a claim is on file.
+  [/claim\s*(filed|submitted|pending)|pending\s*claim|interplead/i, "claim_filed"],
   [/unclaimed|available|held|outstanding/i, "unclaimed"],
 ];
 
