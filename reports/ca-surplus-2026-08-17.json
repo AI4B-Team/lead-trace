@@ -1,0 +1,283 @@
+{
+  "generatedAt": "2026-08-17T17:01:03.353Z",
+  "state": "CA",
+  "probes": [
+    {
+      "county": "Los Angeles",
+      "state": "CA",
+      "ok": true,
+      "note": "via https://ttc.lacounty.gov/",
+      "links": [
+        {
+          "text": "Notice of Excess Proceeds",
+          "href": "https://ttc.lacounty.gov/notice-of-excess-proceeds/"
+        },
+        {
+          "text": "UNCLAIMED FUNDS",
+          "href": "https://ttc.lacounty.gov/unclaimed-funds/"
+        }
+      ],
+      "probe": {
+        "county": "Los Angeles",
+        "url": "https://ttc.lacounty.gov/unclaimed-funds/",
+        "ok": true,
+        "robotsAllowed": true,
+        "handler": "pdf_list",
+        "tables": 5,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [
+          "https://ttc.lacounty.gov/wp-content/uploads/2026/08/Tenants-Unclaimed-Property-Inventory-Report.pdf"
+        ],
+        "note": "1 candidate document(s). Needs a rowPattern from the real file."
+      }
+    },
+    {
+      "county": "San Diego",
+      "state": "CA",
+      "ok": false,
+      "note": "via https://www.sdttc.com/",
+      "links": [
+        {
+          "text": "Unclaimed Money",
+          "href": "https://www.sdttc.com/content/ttc/en/tax-collection/Unclaimed-Money.html"
+        }
+      ],
+      "probe": {
+        "county": "San Diego",
+        "url": "https://www.sdttc.com/content/ttc/en/tax-collection/Unclaimed-Money.html",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 0,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [],
+        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+      }
+    },
+    {
+      "county": "Orange",
+      "state": "CA",
+      "ok": false,
+      "note": "via https://octreasurer.gov/",
+      "links": [
+        {
+          "text": "Unclaimed Funds",
+          "href": "https://octreasurer.gov/unclaimedfunds"
+        },
+        {
+          "text": "State Unclaimed Funds",
+          "href": "https://www.sco.ca.gov/upd_msg.html"
+        }
+      ],
+      "probe": {
+        "county": "Orange",
+        "url": "https://octreasurer.gov/unclaimedfunds",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 0,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [
+          "https://octreasurer.gov/sites/ttc/files/2021-01/Understanding_the_Real_Estate_Tax_Deduction.pdf",
+          "https://octreasurer.gov/sites/ttc/files/2021-01/giftbanordinance.pdf",
+          "https://octreasurer.gov/sites/ttc/files/2025-03/2025%20EEO%20Commitment%20Letter%20TTC.pdf",
+          "https://www.octreasurer.gov/sites/ttc/files/import/data/files/7516.pdf",
+          "https://octreasurer.gov/sites/ttc/files/2022-02/Tax%20Dollar%20Slide.pdf",
+          "https://www.octreasurer.gov/sites/ttc/files/2026-04/Deceased%20Estates%20Web%20Posting%20Ledger%20FY25-26%20EFFECTIVE%2003-31-2026.pdf",
+          "https://octreasurer.gov/sites/ttc/files/import/data/files/76102.pdf",
+          "https://octreasurer.gov/sites/ttc/files/2021-09/Sample_Court_Order.pdf",
+          "https://octreasurer.gov/sites/ttc/files/import/data/files/64653.pdf",
+          "https://octreasurer.gov/sites/ttc/files/2022-10/02_AUG_2022%20Posting.pdf",
+          "https://octreasurer.gov/sites/ttc/files/2022-10/02_AUG_2022%20Commercial%20Posting.pdf"
+        ],
+        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+      }
+    },
+    {
+      "county": "Riverside",
+      "state": "CA",
+      "ok": false,
+      "note": "https://countytreasurer.org/: Source Returned HTTP 403",
+      "links": [],
+      "probe": null
+    },
+    {
+      "county": "San Bernardino",
+      "state": "CA",
+      "ok": false,
+      "note": "reachable, no excess-proceeds link found on the entry pages",
+      "links": [],
+      "probe": null
+    },
+    {
+      "county": "Santa Clara",
+      "state": "CA",
+      "ok": false,
+      "note": "https://tax.sccgov.org/: Was there a typo in the url or port?",
+      "links": [],
+      "probe": null
+    },
+    {
+      "county": "Alameda",
+      "state": "CA",
+      "ok": false,
+      "note": "reachable, no excess-proceeds link found on the entry pages",
+      "links": [],
+      "probe": null
+    },
+    {
+      "county": "Sacramento",
+      "state": "CA",
+      "ok": false,
+      "note": "via https://finance.saccounty.gov/",
+      "links": [
+        {
+          "text": "Unclaimed County Warrants",
+          "href": "https://finance.saccounty.gov/content/finance/us/en/auditor-controller/unclaimed-warrants.html"
+        },
+        {
+          "text": "Unclaimed Funds",
+          "href": "https://finance.saccounty.gov/content/finance/us/en/auditor-controller/unclaimed-funds.html"
+        }
+      ],
+      "probe": {
+        "county": "Sacramento",
+        "url": "https://finance.saccounty.gov/content/finance/us/en/auditor-controller/unclaimed-warrants.html",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 0,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [
+          "https://finance.saccounty.gov/content/dam/finance/docs/archive/a-c/misc/cumulative-triple-flip-sales-tax-vlf-swap.pdf",
+          "https://finance.saccounty.gov/content/dam/finance/docs/a-c/tax-acct/direct-levy-instructions.pdf",
+          "https://finance.saccounty.gov/content/dam/finance/docs/a-c/general/unclaimed-warrant-affidavit-individual.pdf",
+          "https://finance.saccounty.gov/content/dam/finance/docs/a-c/general/unclaimed-warrant-affidavit-multi.pdf",
+          "https://finance.saccounty.gov/content/dam/finance/docs/a-c/general/unclaimed-warrant-affidavit-business.pdf",
+          "https://finance.saccounty.gov/content/dam/finance/docs/a-c/general/unclaimed-previous-addresses.pdf"
+        ],
+        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+      }
+    },
+    {
+      "county": "Kern",
+      "state": "CA",
+      "ok": false,
+      "note": "via https://www.kcttc.co.kern.ca.us/",
+      "links": [
+        {
+          "text": "Unclaimed Money",
+          "href": "https://www.kcttc.co.kern.ca.us/index.cfm?fuseaction=kcttcinternet.showUnclaimedMoney"
+        }
+      ],
+      "probe": {
+        "county": "Kern",
+        "url": "https://www.kcttc.co.kern.ca.us/index.cfm?fuseaction=kcttcinternet.showUnclaimedMoney",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 3,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [
+          "https://www.kcttc.co.kern.ca.us/Forms/claimfrm.pdf"
+        ],
+        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+      }
+    },
+    {
+      "county": "Fresno",
+      "state": "CA",
+      "ok": false,
+      "note": "via https://www.fresnocountyca.gov/Departments/Auditor-Controller-Treasurer-Tax-Collector",
+      "links": [
+        {
+          "text": "Unclaimed Property Lookup",
+          "href": "https://www.fresnocountyca.gov/Departments/Auditor-Controller-Treasurer-Tax-Collector/Unclaimed-Property-Lookup"
+        }
+      ],
+      "probe": {
+        "county": "Fresno",
+        "url": "https://www.fresnocountyca.gov/Departments/Auditor-Controller-Treasurer-Tax-Collector/Unclaimed-Property-Lookup",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 1,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [],
+        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+      }
+    },
+    {
+      "county": "Contra Costa",
+      "state": "CA",
+      "ok": false,
+      "note": "reachable, no excess-proceeds link found on the entry pages",
+      "links": [],
+      "probe": null
+    },
+    {
+      "county": "Ventura",
+      "state": "CA",
+      "ok": false,
+      "note": "reachable, no excess-proceeds link found on the entry pages",
+      "links": [],
+      "probe": null
+    },
+    {
+      "county": "San Joaquin",
+      "state": "CA",
+      "ok": false,
+      "note": "via https://www.sjgov.org/department/ttcnew/",
+      "links": [
+        {
+          "text": "paid Unclaimed Funds",
+          "href": "https://www.sjgov.org/department/ttc/tax/general-tax/unclaimed-property-tax-refunds"
+        }
+      ],
+      "probe": {
+        "county": "San Joaquin",
+        "url": "https://www.sjgov.org/department/ttc/tax/general-tax/unclaimed-property-tax-refunds",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 0,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [
+          "https://www.sjgov.org/docs/default-source/treasurer---tax-collector-documents/unclaimed-funds/unclaimed-property-tax-refund-form.pdf?sfvrsn=db1acb12_3"
+        ],
+        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+      }
+    },
+    {
+      "county": "Stanislaus",
+      "state": "CA",
+      "ok": false,
+      "note": "https://www.stancounty.com/: Unable to connect. Is the computer able to access the url?",
+      "links": [],
+      "probe": null
+    },
+    {
+      "county": "Sonoma",
+      "state": "CA",
+      "ok": false,
+      "note": "reachable, no excess-proceeds link found on the entry pages",
+      "links": [],
+      "probe": null
+    },
+    {
+      "county": "Tulare",
+      "state": "CA",
+      "ok": false,
+      "note": "https://tularecounty.ca.gov/: Source Returned HTTP 403",
+      "links": [],
+      "probe": null
+    }
+  ]
+}
