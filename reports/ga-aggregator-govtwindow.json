@@ -1,0 +1,150 @@
+{
+  "portal": "GovtWindow / It's Your Money hosted Tax Commissioner portal",
+  "state": "GA",
+  "index": "https://images-governmentwindow.s3.us-east-1.amazonaws.com/?list-type=2&delimiter=/&prefix=resources/sites/",
+  "probedAt": "2026-08-17T18:30:35.261Z",
+  "saleKind": "tax_deed",
+  "note": "The portal shares a host, not a layout — every columnMap/rowPattern below was confirmed by hand against the live document header.",
+  "ruledOut": [
+    {
+      "state": "GA",
+      "candidate": "itsyourmoney.us",
+      "reason": "Texas accounting firm — unrelated to the GA tax commissioner portal"
+    },
+    {
+      "state": "GA",
+      "candidate": "<county>.governmentwindow.com county fronts",
+      "reason": "every county front answers our bot UA with a Cloudflare managed challenge; the portal's own public document store (images-governmentwindow S3) is used instead"
+    },
+    {
+      "state": "GA",
+      "candidate": "GovtWindow portal — Catoosa",
+      "reason": "paid-out ledger: Balance vs 'Excess Received' split across a two-line header, and every printed row already carries a payment date — which column is money still held cannot be confirmed"
+    },
+    {
+      "state": "GA",
+      "candidate": "GovtWindow portal — Polk",
+      "reason": "excess list is a block layout (one field per line), not a table; no confirmable row shape"
+    },
+    {
+      "state": "GA",
+      "candidate": "GovtWindow portal — Mitchell, Union",
+      "reason": "newest excess PDFs carry no extractable text (scanned images)"
+    },
+    {
+      "state": "GA",
+      "candidate": "GovtWindow portal — Jones, Lumpkin",
+      "reason": "excess list published only as .doc, which no handler parses"
+    },
+    {
+      "state": "GA",
+      "candidate": "GovtWindow portal — Hart, Jackson",
+      "reason": "only list on the portal is explicitly marked OLD (Hart) or dated 2009-2018 (Jackson) — stale, not the current held-funds list"
+    }
+  ],
+  "counties": [
+    {
+      "county": "Carroll",
+      "slug": "carrollcountyga",
+      "url": "https://images-governmentwindow.s3.us-east-1.amazonaws.com/resources/sites/carrollcountyga/docs/EXCESS_FUNDS_LIST.xls",
+      "handler": "xlsx_list",
+      "confirmedColumns": [
+        "MAP & PARCEL",
+        "NAME",
+        "PROPERTY ADDRESS",
+        "EXCESS FUNDS"
+      ],
+      "moneyRows": 133,
+      "claimFiled": 0,
+      "withSaleDate": 0,
+      "withParcel": 133,
+      "totalHeld": 603603.92,
+      "ok": true
+    },
+    {
+      "county": "Meriwether",
+      "slug": "meriwethercountyga",
+      "url": "https://images-governmentwindow.s3.us-east-1.amazonaws.com/resources/sites/meriwethercountyga/docs/website%20excess%20funds%20list.xlsx",
+      "handler": "xlsx_list",
+      "confirmedColumns": [
+        "PID",
+        "OWNER",
+        "DATE OF SALE",
+        "PURCHASER",
+        "TAX AMOUNT DUE",
+        "PURCHASE PRICE",
+        "EXCESS FUNDS"
+      ],
+      "moneyRows": 85,
+      "claimFiled": 0,
+      "withSaleDate": 0,
+      "withParcel": 85,
+      "totalHeld": 342367.08,
+      "ok": true
+    },
+    {
+      "county": "Coweta",
+      "slug": "cowetacountyga",
+      "url": "https://images-governmentwindow.s3.us-east-1.amazonaws.com/resources/sites/cowetacountyga/docs/EXCESS%20FUNDS%20LIST%201.pdf",
+      "handler": "pdf_list",
+      "confirmedColumns": [
+        "Sale Date",
+        "Map #",
+        "Property Owner",
+        "Buyer",
+        "Minimum",
+        "Sale Amt",
+        "Overage",
+        "Status"
+      ],
+      "moneyRows": 27,
+      "claimFiled": 2,
+      "withSaleDate": 27,
+      "withParcel": 27,
+      "totalHeld": 201556.57,
+      "ok": true
+    },
+    {
+      "county": "Decatur",
+      "slug": "decaturcountyga",
+      "url": "https://images-governmentwindow.s3.us-east-1.amazonaws.com/resources/sites/decaturcountyga/docs/Web%20Excess%20funds%2012312024.pdf",
+      "handler": "pdf_list",
+      "confirmedColumns": [
+        "PURCHASER",
+        "DATE OF SALE",
+        "PARCEL ID",
+        "ACCOUNT #",
+        "DEFENDANT IN FIFA + address",
+        "PURCHASE PRICE",
+        "EXCESS FUNDS",
+        "TAX YRS DUE"
+      ],
+      "moneyRows": 83,
+      "claimFiled": 0,
+      "withSaleDate": 83,
+      "withParcel": 83,
+      "totalHeld": 440026.65,
+      "ok": true
+    },
+    {
+      "county": "Walton",
+      "slug": "waltoncountyga",
+      "url": "https://images-governmentwindow.s3.us-east-1.amazonaws.com/resources/sites/waltoncountyga/docs/Excess_funds.pdf",
+      "handler": "pdf_list",
+      "confirmedColumns": [
+        "NAME",
+        "MAP/PARCEL",
+        "bid",
+        "SALE DATE",
+        "TAXES DUE",
+        "EXCESS FUNDS"
+      ],
+      "moneyRows": 11,
+      "claimFiled": 0,
+      "withSaleDate": 11,
+      "withParcel": 11,
+      "totalHeld": 47859.46,
+      "ok": true
+    }
+  ]
+}

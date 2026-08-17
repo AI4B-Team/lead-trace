@@ -33,6 +33,20 @@ export type XlsxListConfig = {
    * claim_filed even though the list itself never uses that word.
    */
   claimFiledWhenPresent?: string;
+  /**
+   * Column that MUST carry a value for the row to be a record. Tax commissioner
+   * workbooks print a grand total in the money column with every identifier
+   * blank (Carroll GA prints two), and a total stored as a record invents a
+   * $603,603.92 "surplus" nobody can claim.
+   */
+  requirePresent?: string;
+  /**
+   * Column that, when filled, means the money has already left the office —
+   * Pickens GA stamps its "PAID" column with PAID (disbursed to the claimant) or
+   * STATE (escheated to unclaimed property). Either way it is not available, so
+   * the row is dropped rather than shown as claimable.
+   */
+  skipWhenPresent?: string;
 };
 
 /** Newest workbook link on a clerk index page, absolute. */
@@ -76,18 +90,22 @@ export function parseXlsxMatrix(matrix: string[][], config: XlsxListConfig): Cle
   if (headerIndex < 0 || headerIndex >= matrix.length) return [];
   const names = (matrix[headerIndex] ?? []).map((h) => h.trim());
   const out: ClerkSurplusRow[] = [];
+  const cellFor = (record: Record<string, string>, column?: string): string =>
+    column
+      ? (Object.entries(record).find(([k]) => k.toLowerCase().trim() === column.toLowerCase().trim())?.[1] ?? "").trim()
+      : "";
   for (const cells of matrix.slice(headerIndex + 1)) {
     if (!cells.some((c) => c)) continue;
     const record: Record<string, string> = {};
     names.forEach((name, i) => {
       if (name) record[name] = cells[i] ?? "";
     });
+    if (config.requirePresent && !cellFor(record, config.requirePresent)) continue;
+    if (config.skipWhenPresent && cellFor(record, config.skipWhenPresent)) continue;
     const row = toClerkRow(record, columnMap);
     if (!row) continue;
     const filedColumn = config.claimFiledWhenPresent;
-    const filed = filedColumn
-      ? Object.entries(record).find(([k]) => k.toLowerCase().trim() === filedColumn.toLowerCase().trim())?.[1]
-      : "";
+    const filed = cellFor(record, filedColumn);
     if (filed && filed.trim()) {
       row.claim_status = "claim_filed";
       out.push(row);
