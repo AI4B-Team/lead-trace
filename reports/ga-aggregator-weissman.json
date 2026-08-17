@@ -1,0 +1,295 @@
+{
+  "firm": "weissman.law",
+  "index": "https://www.weissman.law/specialties/excess-tax-funds/",
+  "layout": {
+    "handler": "xlsx_list",
+    "columnMap": {
+      "Matter Id": "case_number",
+      "Parcel No.": "parcel_apn",
+      "Owner": "claimant_name",
+      "Address": "property_address",
+      "Sale Date": "sale_date",
+      "Excess Funds": "confirmed_amount"
+    },
+    "claimFiledWhenPresent": "Petition Filed Date",
+    "defaultClaimStatus": "unclaimed"
+  },
+  "counties": [
+    {
+      "county": "Athens-Clarke",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Athens-Clarke.xlsx"
+    },
+    {
+      "county": "Baldwin",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Baldwin.xlsx"
+    },
+    {
+      "county": "Banks",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Banks.xlsx"
+    },
+    {
+      "county": "Barrow",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Barrow.xlsx"
+    },
+    {
+      "county": "Brooks",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Brooks.xlsx"
+    },
+    {
+      "county": "Bryan",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Bryan.xlsx"
+    },
+    {
+      "county": "Bulloch",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Bulloch.xlsx"
+    },
+    {
+      "county": "Burke",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Burke.xlsx"
+    },
+    {
+      "county": "Charlton",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Charlton.xlsx"
+    },
+    {
+      "county": "Cherokee",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Cherokee.xlsx"
+    },
+    {
+      "county": "City of Lyons",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/City-of-Lyons.xlsx"
+    },
+    {
+      "county": "City of Wrens",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/City-of-Wrens.xlsx"
+    },
+    {
+      "county": "Clay",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Clay.xlsx"
+    },
+    {
+      "county": "Coffee",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Coffee.xlsx"
+    },
+    {
+      "county": "Columbia",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Columbia.xlsx"
+    },
+    {
+      "county": "Cook",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Cook.xlsx"
+    },
+    {
+      "county": "Crisp",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Crisp.xlsx"
+    },
+    {
+      "county": "Dade",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Dade.xlsx"
+    },
+    {
+      "county": "Dawson",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Dawson.xlsx"
+    },
+    {
+      "county": "Early",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Early.xlsx"
+    },
+    {
+      "county": "Effingham",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Effingham.xlsx"
+    },
+    {
+      "county": "Emanuel",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Emanuel.xlsx"
+    },
+    {
+      "county": "Fannin",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Fannin.xlsx"
+    },
+    {
+      "county": "Forsyth",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Forsyth.xlsx"
+    },
+    {
+      "county": "Fulton",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Fulton.xlsx"
+    },
+    {
+      "county": "Gilmer",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Gilmer.xlsx"
+    },
+    {
+      "county": "Green",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Green.xlsx"
+    },
+    {
+      "county": "Greene",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Greene.xlsx"
+    },
+    {
+      "county": "Habersham",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Habersham.xlsx"
+    },
+    {
+      "county": "Harris",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Harris.xlsx"
+    },
+    {
+      "county": "Henry",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Henry.xlsx"
+    },
+    {
+      "county": "Jackson",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Jackson.xlsx"
+    },
+    {
+      "county": "Jeff Davis",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Jeff-Davis.xlsx"
+    },
+    {
+      "county": "Jeff",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Jeff.xlsx"
+    },
+    {
+      "county": "Jefferson",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Jefferson.xlsx"
+    },
+    {
+      "county": "Liberty",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Liberty.xlsx"
+    },
+    {
+      "county": "Long",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Long.xlsx"
+    },
+    {
+      "county": "Lowndes",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Lowndes.xlsx"
+    },
+    {
+      "county": "McDuffie",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/McDuffie.xlsx"
+    },
+    {
+      "county": "Miller",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Miller.xlsx"
+    },
+    {
+      "county": "Mitchell",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Mitchell.xlsx"
+    },
+    {
+      "county": "Montgomery",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Montgomery.xlsx"
+    },
+    {
+      "county": "Muscogee",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Muscogee.xlsx"
+    },
+    {
+      "county": "Newton",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Newton.xlsx"
+    },
+    {
+      "county": "Oconee",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Oconee.xlsx"
+    },
+    {
+      "county": "Peach",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Peach.xlsx"
+    },
+    {
+      "county": "Pickens",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Pickens.xlsx"
+    },
+    {
+      "county": "Pierce",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Pierce.xlsx"
+    },
+    {
+      "county": "Polk",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Polk.xlsx"
+    },
+    {
+      "county": "Putnam",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Putnam.xlsx"
+    },
+    {
+      "county": "Quitman",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Quitman.xlsx"
+    },
+    {
+      "county": "Rabun",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Rabun.xlsx"
+    },
+    {
+      "county": "Screven",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Screven.xlsx"
+    },
+    {
+      "county": "Seminole",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Seminole.xlsx"
+    },
+    {
+      "county": "Spalding",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Spalding.xlsx"
+    },
+    {
+      "county": "Stephens",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Stephens.xlsx"
+    },
+    {
+      "county": "Sumter",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Sumter.xlsx"
+    },
+    {
+      "county": "Thomas",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Thomas.xlsx"
+    },
+    {
+      "county": "Toombs",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Toombs.xlsx"
+    },
+    {
+      "county": "Towns",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Towns.xlsx"
+    },
+    {
+      "county": "Treutlen",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Treutlen.xlsx"
+    },
+    {
+      "county": "Walker",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Walker.xlsx"
+    },
+    {
+      "county": "Washington",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Washington.xlsx"
+    },
+    {
+      "county": "Wayne",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Wayne.xlsx"
+    },
+    {
+      "county": "Webster",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Webster.xlsx"
+    },
+    {
+      "county": "White",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/White.xlsx"
+    },
+    {
+      "county": "Wilkes",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Wilkes.xlsx"
+    },
+    {
+      "county": "Wilkinson",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Wilkinson.xlsx"
+    },
+    {
+      "county": "Worth",
+      "url": "https://www.weissman.law/wp-content/uploads/2026/08/Worth.xlsx"
+    }
+  ]
+}
