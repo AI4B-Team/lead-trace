@@ -1,0 +1,506 @@
+{
+  "generatedAt": "2026-08-17T14:44:14.525Z",
+  "probes": [
+    {
+      "county": "Brevard",
+      "ok": false,
+      "note": "via https://www.brevardclerk.us/",
+      "links": [
+        {
+          "text": "Unclaimed Funds",
+          "href": "https://www.brevardclerk.us/unclaimed-funds"
+        },
+        {
+          "text": "Tax Deeds / Auctions",
+          "href": "https://www.brevardclerk.us/tax-deeds"
+        }
+      ],
+      "probe": {
+        "county": "Brevard",
+        "url": "https://www.brevardclerk.us/unclaimed-funds",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 0,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [
+          "https://flcourts18.org/docs/cir/2026_Official_Holiday_Schedule.pdf",
+          "http://flcourts18.org/docs/cir/Judgepublic.pdf"
+        ],
+        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+      }
+    },
+    {
+      "county": "Volusia",
+      "ok": false,
+      "note": "via https://www.clerk.org/",
+      "links": [
+        {
+          "text": "TAX DEEDS",
+          "href": "https://www.clerk.org/tax-deeds.aspx"
+        },
+        {
+          "text": "TAX DEEDS/LANDS AVAILABLE",
+          "href": "https://www.clerk.org/lands_available.aspx"
+        },
+        {
+          "text": "2026 Unclaimed Payments Notice",
+          "href": "https://www.clerk.org/news.aspx"
+        }
+      ],
+      "probe": {
+        "county": "Volusia",
+        "url": "https://www.clerk.org/tax-deeds.aspx",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 0,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [],
+        "note": "Page reachable, no surplus list detected"
+      }
+    },
+    {
+      "county": "Manatee",
+      "ok": true,
+      "note": "via https://www.manateeclerk.com/",
+      "links": [
+        {
+          "text": "Unclaimed Funds List now",
+          "href": "https://www.manateeclerk.com/media/2793/unclaimed-funds-2026.pdf"
+        },
+        {
+          "text": "Read More",
+          "href": "https://www.manateeclerk.com/clerks-news/is-your-name-on-the-list-manatee-clerk-holds-37k-in-unclaimed-checks/"
+        },
+        {
+          "text": "Tax Deed Sales",
+          "href": "https://www.manateeclerk.com/departments/tax-deeds/"
+        }
+      ],
+      "probe": {
+        "county": "Manatee",
+        "url": "https://www.manateeclerk.com/clerks-news/is-your-name-on-the-list-manatee-clerk-holds-37k-in-unclaimed-checks/",
+        "ok": true,
+        "robotsAllowed": true,
+        "handler": "pdf_list",
+        "tables": 0,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [
+          "https://www.manateeclerk.com/media/2793/unclaimed-funds-2026.pdf"
+        ],
+        "note": "1 candidate document(s). Needs a rowPattern from the real file."
+      }
+    },
+    {
+      "county": "Sarasota",
+      "ok": false,
+      "note": "via https://www.sarasotaclerk.com/",
+      "links": [
+        {
+          "text": "Tax Deed Records",
+          "href": "https://www.sarasotaclerk.com/Records/Property-and-Land-Records/Tax-Deed-Records"
+        },
+        {
+          "text": "Tax Deeds",
+          "href": "https://www.sarasotaclerk.com/Home-and-Property/Tax-Deeds"
+        },
+        {
+          "text": "Tax Deed Records",
+          "href": "https://www.sarasotaclerk.com/Home-and-Property/Tax-Deeds/Tax-Deed-Records"
+        },
+        {
+          "text": "Tax Deed Auctions",
+          "href": "https://www.sarasotaclerk.com/Home-and-Property/Tax-Deeds/Tax-Deed-Auctions"
+        },
+        {
+          "text": "Surplus Funds from Tax Deed Sale",
+          "href": "https://www.sarasotaclerk.com/Home-and-Property/Tax-Deeds/Surplus-Funds-from-Tax-Deed-Sale"
+        },
+        {
+          "text": "List of Lands Available",
+          "href": "https://www.sarasotaclerk.com/Home-and-Property/Tax-Deeds/List-of-Lands-Available"
+        },
+        {
+          "text": "Tax Deed Auctions",
+          "href": "https://www.sarasotaclerk.com/Home-and-Property/Property-Auctions/Tax-Deed-Auctions"
+        },
+        {
+          "text": "Comptroller FAQs for Unclaimed Property",
+          "href": "https://www.sarasotaclerk.com/Comptroller/County-Comptroller-and-Treasurer/Comptroller-FAQs-for-Unclaimed-Property"
+        },
+        {
+          "text": "Comptroller FAQs for Unclaimed Property",
+          "href": "https://www.sarasotaclerk.com/About-Us/Finance/Comptroller-FAQs-for-Unclaimed-Property"
+        },
+        {
+          "text": "Tax Deed Sale",
+          "href": "https://www.sarasotaclerk.com/Home-and-Property/Tax-Deeds/Tax-Deed-Auctions/Tax-Deed-Sale"
+        },
+        {
+          "text": "Tax Deed Auction FAQs",
+          "href": "https://www.sarasotaclerk.com/Home-and-Property/Tax-Deeds/Tax-Deed-Auctions/Tax-Deed-Auction-FAQs"
+        },
+        {
+          "text": "Property Auction Calendars Disclaimer",
+          "href": "https://www.sarasotaclerk.com/Home-and-Property/Tax-Deeds/Tax-Deed-Auctions/Property-Auction-Calendars-Disclaimer"
+        }
+      ],
+      "probe": {
+        "county": "Sarasota",
+        "url": "https://www.sarasotaclerk.com/Records/Property-and-Land-Records/Tax-Deed-Records",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 0,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [],
+        "note": "Source Returned HTTP 403"
+      }
+    },
+    {
+      "county": "Osceola",
+      "ok": true,
+      "note": "via https://www.osceolaclerk.com/",
+      "links": [
+        {
+          "text": "Outstanding Checks &#038; Unclaimed Funds",
+          "href": "https://osceolaclerk.com/outstanding-checks-unclaimed-monies/"
+        },
+        {
+          "text": "Tax Deed Records &#038; Sales",
+          "href": "https://osceolaclerk.com/tax-deeds/"
+        },
+        {
+          "text": "",
+          "href": "https://osceolaclerk.com/july-2021-list-of-unclaimed-funds-available/"
+        },
+        {
+          "text": "",
+          "href": "https://osceolaclerk.com/july-2021-list-of-unclaimed-funds-available-copy/"
+        }
+      ],
+      "probe": {
+        "county": "Osceola",
+        "url": "https://osceolaclerk.com/outstanding-checks-unclaimed-monies/",
+        "ok": true,
+        "robotsAllowed": true,
+        "handler": "html_table",
+        "tables": 5,
+        "headers": [
+          "Home About Meet Clerk &#038; Comptroller Kelvin Soto, Esq. Meet the Clerk &#038; Comptroller’s Team Work With Us Our Values &#038; Impact Clerks in the Community Clerk Holiday Schedule Latest News Contact Us &#038; Department Listing Locations Court Services Search Case Information Payment Options Appeals Circuit Civil Court Foreclosure Sales Historical Foreclosure Filings Upcoming Foreclosure Sales County Civil Court Landlord/Tenant/Evictions Small Claims Court Records Registration Criminal Court Bail Bonds Bonds E-Notify, Know Your Court Date Felony Misdemeanor Seal &#038; Expunge Pre-Trial Release Register Domestic Relations Child Support Dissolution of Marriage Injunctions for Protection Name Change E-Certify E-File A Case Fee Distribution Schedule Guardianship Juror Information Juvenile Court Mental Health Orders to Seal Operation Green Light Probate Reports Animal Cruelty Reports Daily Arrest Reports Traffic Citations Financial Services County Auditor Clerk Finance About Clerk Finance Funding &#038; Budgets Procurement Financial Audits County Comptroller County Financial Reports How Do I Report Fraud, Waste, and Abuse Outstanding Checks &#038; Unclaimed Funds Official Records Search Official Records Property Fraud Alert eRecording Confidentiality Requests Historical Records Index Recording FAQs Other Services Request a Public Record Passports Marriage Licenses &#038; Ceremonies Domestic Partnerships Clerk of the Board Value Adjustment Board Tax Deed Records &#038; Sales Fee Schedule Forms &#038; Packets How Do I Pay Court Costs, Fines &#038; Fees Traffic Tickets Search Court Records Official Records E-File A Case Get A Marriage License Passport Request Court Records Court Records Registration Driving Records Start Here Kelvin Soto, Esq. 2 Courthouse Square Kissimmee, Florida 34741",
+          "Abandoned Monies Before May 1 st each year, Clerk’s Finance is required by Florida Statute Chapter 717 to remit unclaimed funds to the Florida Department of Financial Services. This listing includes but is not limited to monies from the court registry, refunds from foreclosure and tax deed sales and overpayments above $10.00. These funds are presumed unclaimed during the previous calendar year after due diligence was performed to locate the owner. Citizens can visit fltreasurehunt.gov to see if their name is on the list and make a claim through the Department of Financial Services. Once the monies are remitted to the State, the Clerk no longer has access to the funds. Unclaimed Checks In addition, Clerk’s Finance publishes a list of unclaimed checks each July, in accordance with Florida Statute 116.21. Many of these are for uncashed jury service checks and other court-related checks. If a claim is not received by September 1 st , the money is remitted to the State of Florida’s fine and forfeiture fund and is no longer available to the owner. Claim Form-2026 July-Unclaimed-Letter-2026",
+          "Kelvin Soto, Esq."
+        ],
+        "suggested": {
+          "Home About Meet Clerk &#038; Comptroller Kelvin Soto, Esq. Meet the Clerk &#038; Comptroller’s Team Work With Us Our Values &#038; Impact Clerks in the Community Clerk Holiday Schedule Latest News Contact Us &#038; Department Listing Locations Court Services Search Case Information Payment Options Appeals Circuit Civil Court Foreclosure Sales Historical Foreclosure Filings Upcoming Foreclosure Sales County Civil Court Landlord/Tenant/Evictions Small Claims Court Records Registration Criminal Court Bail Bonds Bonds E-Notify, Know Your Court Date Felony Misdemeanor Seal &#038; Expunge Pre-Trial Release Register Domestic Relations Child Support Dissolution of Marriage Injunctions for Protection Name Change E-Certify E-File A Case Fee Distribution Schedule Guardianship Juror Information Juvenile Court Mental Health Orders to Seal Operation Green Light Probate Reports Animal Cruelty Reports Daily Arrest Reports Traffic Citations Financial Services County Auditor Clerk Finance About Clerk Finance Funding &#038; Budgets Procurement Financial Audits County Comptroller County Financial Reports How Do I Report Fraud, Waste, and Abuse Outstanding Checks &#038; Unclaimed Funds Official Records Search Official Records Property Fraud Alert eRecording Confidentiality Requests Historical Records Index Recording FAQs Other Services Request a Public Record Passports Marriage Licenses &#038; Ceremonies Domestic Partnerships Clerk of the Board Value Adjustment Board Tax Deed Records &#038; Sales Fee Schedule Forms &#038; Packets How Do I Pay Court Costs, Fines &#038; Fees Traffic Tickets Search Court Records Official Records E-File A Case Get A Marriage License Passport Request Court Records Court Records Registration Driving Records Start Here Kelvin Soto, Esq. 2 Courthouse Square Kissimmee, Florida 34741": "case_number",
+          "Abandoned Monies Before May 1 st each year, Clerk’s Finance is required by Florida Statute Chapter 717 to remit unclaimed funds to the Florida Department of Financial Services. This listing includes but is not limited to monies from the court registry, refunds from foreclosure and tax deed sales and overpayments above $10.00. These funds are presumed unclaimed during the previous calendar year after due diligence was performed to locate the owner. Citizens can visit fltreasurehunt.gov to see if their name is on the list and make a claim through the Department of Financial Services. Once the monies are remitted to the State, the Clerk no longer has access to the funds. Unclaimed Checks In addition, Clerk’s Finance publishes a list of unclaimed checks each July, in accordance with Florida Statute 116.21. Many of these are for uncashed jury service checks and other court-related checks. If a claim is not received by September 1 st , the money is remitted to the State of Florida’s fine and forfeiture fund and is no longer available to the owner. Claim Form-2026 July-Unclaimed-Letter-2026": "claim_status"
+        },
+        "docLinks": [
+          "https://courts.osceolaclerk.com/reports/CivilMortgageForeclosuresWeb.pdf",
+          "https://courts.osceolaclerk.com/reports/AnimalCrueltyReportWeb.pdf",
+          "https://osceolaclerk.com/wp-content/uploads/Claim-Form-2026.pdf",
+          "https://osceolaclerk.com/wp-content/uploads/Holiday-Schedule-2022.pdf",
+          "https://familylawfla.org/wp-content/uploads/2024/01/Family-Law-Handbook-2023.pdf"
+        ],
+        "note": "Candidate table. Confirm every column before promoting."
+      }
+    },
+    {
+      "county": "Sumter",
+      "ok": false,
+      "note": "via https://www.sumterclerk.com/",
+      "links": [
+        {
+          "text": "Tax Deeds",
+          "href": "https://www.sumterclerk.com/public-records/tax-deeds/"
+        },
+        {
+          "text": "Surplus Funds",
+          "href": "https://www.sumterclerk.com/comptroller-services/surplus-funds/"
+        },
+        {
+          "text": "Tax Deeds",
+          "href": "https://www.sumterclerk.com/forms/#tax-deeds"
+        }
+      ],
+      "probe": {
+        "county": "Sumter",
+        "url": "https://www.sumterclerk.com/public-records/tax-deeds/",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 1,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [
+          "https://documents.myflcourtaccess.com/uploads/2021/08/PDF_FAQS_Apr_2021-2.pdf",
+          "https://sumter-clerk.s3.amazonaws.com/uploads/2026/06/09165021/AC015A7DA533A16E7E2F335E6ED26249.surplus-td-affidavit.pdf"
+        ],
+        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+      }
+    },
+    {
+      "county": "Martin",
+      "ok": false,
+      "note": "via https://www.martinclerk.com/",
+      "links": [
+        {
+          "text": "Tax Deed Sales",
+          "href": "https://www.martinclerk.com/258/Tax-Deeds"
+        }
+      ],
+      "probe": {
+        "county": "Martin",
+        "url": "https://www.martinclerk.com/258/Tax-Deeds",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 0,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [],
+        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+      }
+    },
+    {
+      "county": "Monroe",
+      "ok": false,
+      "note": "https://monroe-clerk.com/: unable to verify the first certificate",
+      "links": [],
+      "probe": null
+    },
+    {
+      "county": "Flagler",
+      "ok": false,
+      "note": "https://flaglerclerk.com/: Source Returned HTTP 403",
+      "links": [],
+      "probe": null
+    },
+    {
+      "county": "Citrus",
+      "ok": false,
+      "note": "via https://www.citrusclerk.org/",
+      "links": [
+        {
+          "text": "Tax Deeds",
+          "href": "https://www.citrusclerk.org/207/Tax-Deeds"
+        }
+      ],
+      "probe": {
+        "county": "Citrus",
+        "url": "https://www.citrusclerk.org/207/Tax-Deeds",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 0,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [
+          "https://www.irs.gov/pub/irs-pdf/f8300.pdf",
+          "https://www.irs.gov/pub/irs-pdf/fw9.pdf",
+          "https://www.irs.gov/pub/irs-pdf/fw8ben.pdf"
+        ],
+        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+      }
+    },
+    {
+      "county": "Hernando",
+      "ok": false,
+      "note": "via https://www.hernandoclerk.com/",
+      "links": [
+        {
+          "text": "Tax Deeds",
+          "href": "https://hernandoclerk.com/additional-services/tax-deeds/"
+        }
+      ],
+      "probe": {
+        "county": "Hernando",
+        "url": "https://hernandoclerk.com/additional-services/tax-deeds/",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 0,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [
+          "https://hernandoclerk.com/wp-content/uploads/_Documents/About%20Us/2026%20-%202025%20Holiday%20Schedule.pdf",
+          "https://hernandoclerk.com/wp-content/uploads/_Documents/About%20Us/org_chart.pdf"
+        ],
+        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+      }
+    },
+    {
+      "county": "St. Johns",
+      "ok": false,
+      "note": "via https://www.stjohnsclerk.com/",
+      "links": [
+        {
+          "text": "Tax Deeds",
+          "href": "https://stjohnsclerk.com/foreclosure/tax-deeds-2/"
+        },
+        {
+          "text": "Tax Deed Frequently Asked Questions",
+          "href": "https://stjohnsclerk.com/foreclosure/tax-deeds-2/frequently-asked-questions/"
+        },
+        {
+          "text": "Tax Deed Search",
+          "href": "https://apps.stjohnsclerk.com/TaxSmart"
+        }
+      ],
+      "probe": {
+        "county": "St. Johns",
+        "url": "https://stjohnsclerk.com/foreclosure/tax-deeds-2/",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 1,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [],
+        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+      }
+    },
+    {
+      "county": "Santa Rosa",
+      "ok": true,
+      "note": "via https://www.santarosaclerk.com/",
+      "links": [
+        {
+          "text": "Foreclosures & Tax Deeds",
+          "href": "https://santarosaclerk.com/foreclosures-tax-deeds/"
+        }
+      ],
+      "probe": {
+        "county": "Santa Rosa",
+        "url": "https://santarosaclerk.com/foreclosures-tax-deeds/",
+        "ok": true,
+        "robotsAllowed": true,
+        "handler": "pdf_list",
+        "tables": 0,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [
+          "http://santarosaclerk.com/uploads/2026/07/santa-rosa-county-tax-deed-surplus-rev-04-30-2026_ADA.pdf"
+        ],
+        "note": "1 candidate document(s). Needs a rowPattern from the real file."
+      }
+    },
+    {
+      "county": "Marion",
+      "ok": false,
+      "note": "via https://www.marioncountyclerk.org/",
+      "links": [
+        {
+          "text": "Tax Deeds & Lands Available for Taxes",
+          "href": "https://www.marioncountyclerk.org/departments/records-recording/tax-deeds-and-lands-available-for-taxes/"
+        },
+        {
+          "text": "Land Available for Taxes Information",
+          "href": "https://www.marioncountyclerk.org/departments/records-recording/tax-deeds-and-lands-available-for-taxes/land-available-for-taxes-information/"
+        },
+        {
+          "text": "Tax Deed Sales",
+          "href": "https://www.marioncountyclerk.org/departments/records-recording/tax-deeds-and-lands-available-for-taxes/tax-deed-sales/"
+        },
+        {
+          "text": "Unclaimed Funds",
+          "href": "https://www.marioncountyclerk.org/departments/records-recording/tax-deeds-and-lands-available-for-taxes/unclaimed-funds/"
+        }
+      ],
+      "probe": {
+        "county": "Marion",
+        "url": "https://www.marioncountyclerk.org/departments/records-recording/tax-deeds-and-lands-available-for-taxes/",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 0,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [
+          "https://www.marioncountyclerk.org/uploads/2026/03/2021_IA-Tri-Fold-1.pdf"
+        ],
+        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+      }
+    },
+    {
+      "county": "Putnam",
+      "ok": false,
+      "note": "via https://www.putnamclerk.com/",
+      "links": [
+        {
+          "text": "Tax Deed Sales",
+          "href": "https://putnamclerk.com/tax-deed-sales/"
+        },
+        {
+          "text": "Tax Deed Auctions",
+          "href": "https://putnam.realtaxdeed.com/"
+        },
+        {
+          "text": "Lands Available for Taxes",
+          "href": "https://apps.putnam-fl.com/coc/taxdeeds/public/public_LAFT.php"
+        }
+      ],
+      "probe": {
+        "county": "Putnam",
+        "url": "https://putnamclerk.com/tax-deed-sales/",
+        "ok": false,
+        "robotsAllowed": true,
+        "handler": "unknown",
+        "tables": 2,
+        "headers": [],
+        "suggested": {},
+        "docLinks": [
+          "https://putnamclerk.com/wp-content/uploads/Putnam-Fee-Schedule-January-1-2023-1.pdf",
+          "https://putnamclerk.com/wp-content/uploads/Recording-fees.pdf",
+          "https://putnamclerk.com/wp-content/uploads/PAYMENT-PLAN.pdf",
+          "https://putnamclerk.com/wp-content/uploads/OCRS-Online-Registration-Form_External.pdf",
+          "https://putnamclerk.com/wp-content/uploads/Family-Law-Handbook-2023.pdf",
+          "https://putnamclerk.com/wp-content/uploads/REQUEST-REDACT-Exempt-Personal-Information-1.pdf",
+          "https://putnamclerk.com/wp-content/uploads/RELEASE-REDACTION-PROTECTED-PARTY-1.pdf",
+          "https://putnamclerk.com/wp-content/uploads/RECORDING-INFO-1.pdf"
+        ],
+        "note": "Page mentions surplus but publishes no list (claim instructions only)"
+      }
+    },
+    {
+      "county": "Indian River",
+      "ok": false,
+      "note": "https://indian-river.org/: Was there a typo in the url or port?",
+      "links": [],
+      "probe": null
+    },
+    {
+      "county": "Highlands",
+      "ok": false,
+      "note": "https://hcclerk.org/sitemap.xml: Source Returned HTTP 404",
+      "links": [],
+      "probe": null
+    },
+    {
+      "county": "Lake",
+      "ok": false,
+      "note": "https://lakecountyclerk.org/: Source Returned HTTP 403",
+      "links": [],
+      "probe": null
+    },
+    {
+      "county": "Lee",
+      "ok": false,
+      "note": "https://leeclerk.org/sitemap.xml: Source Returned HTTP 504",
+      "links": [],
+      "probe": null
+    },
+    {
+      "county": "Escambia",
+      "ok": false,
+      "note": "https://escambiaclerk.com/: Source Returned HTTP 403",
+      "links": [],
+      "probe": null
+    }
+  ]
+}
