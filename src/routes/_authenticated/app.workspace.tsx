@@ -9,6 +9,7 @@ import { SettingsShell } from "@/components/app/settings-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { getTeamSize } from "@/lib/team-count.functions";
 import { useWorkspaceId } from "@/hooks/use-workspace";
 import { ActivityList, useActivity } from "@/components/app/activity-feed";
 
@@ -45,7 +46,9 @@ function useWorkspaceAdmin(workspaceId: string | null) {
       const [
         members, numbers, agents, lists, campaigns, leads, knowledge, hooks,
       ] = await Promise.all([
-        count("workspace_members", id),
+        // The roster is admin-only at the row level; the seat total comes from
+        // a membership-checked server function instead of a client row count.
+        getTeamSize({ data: { workspaceId: id } }).then((r) => r.size),
         count("sending_numbers", id),
         count("brands", id),
         count("jobs", id),
