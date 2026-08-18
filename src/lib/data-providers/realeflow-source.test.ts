@@ -44,9 +44,9 @@ describe("filter config → request body", () => {
 
 describe("entitlement handling", () => {
   it("treats a 400 'not available on this account' as an entitlement state", () => {
-    expect(isEntitlementError(400, "Realeflow 400: PRE_FORECLOSURE not available on this account")).toBe(
-      true,
-    );
+    expect(
+      isEntitlementError(400, "Realeflow 400: PRE_FORECLOSURE not available on this account"),
+    ).toBe(true);
   });
 
   it("does not swallow ordinary failures", () => {
@@ -63,7 +63,11 @@ describe("doc_number derivation", () => {
 
   it("falls back to the normalized address when no hash is returned", () => {
     expect(
-      docNumberFor(probate, { address_number: "15125", address_street: "DAUGHTRY LN", address_zip: "33610" }),
+      docNumberFor(probate, {
+        address_number: "15125",
+        address_street: "DAUGHTRY LN",
+        address_zip: "33610",
+      }),
     ).toBe("PRB-15125 DAUGHTRY LN|33610");
   });
 
@@ -91,7 +95,12 @@ describe("source precedence", () => {
     const filing = propertyToFiling(
       probate,
       "Hillsborough",
-      { address_hash: "h1", address_number: "902", address_street: "21ST ST SE", owner_std_name1_full: "JOHN SMITH" },
+      {
+        address_hash: "h1",
+        address_number: "902",
+        address_street: "21ST ST SE",
+        owner_std_name1_full: "JOHN SMITH",
+      },
       splitOwner,
     )!;
     expect(filing.raw["source_class"]).toBe("licensed_api");

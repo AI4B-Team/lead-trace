@@ -107,7 +107,8 @@ export function sliceCounties(args: {
   );
   // A cursor past the end (list shrank, or a previous wrap was not stored) simply
   // restarts the cycle rather than skipping the whole sweep.
-  const start = Number.isFinite(args.cursor) && args.cursor > 0 ? Math.floor(args.cursor) % total : 0;
+  const start =
+    Number.isFinite(args.cursor) && args.cursor > 0 ? Math.floor(args.cursor) % total : 0;
   const end = Math.min(start + max, total);
   const slice = args.counties.slice(start, end);
   const wrapped = end >= total;
@@ -193,7 +194,11 @@ export function propertyToFiling(
   config: RealeflowLeadConfig,
   county: string,
   p: RfProperty,
-  splitOwner: (name: string) => { first: string | null; last: string | null; entity: string | null },
+  splitOwner: (name: string) => {
+    first: string | null;
+    last: string | null;
+    entity: string | null;
+  },
 ): RealeflowFiling | null {
   const doc = docNumberFor(config, p);
   if (!doc) return null;

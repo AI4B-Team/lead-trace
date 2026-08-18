@@ -44,18 +44,16 @@ async function readCursor(): Promise<{ position: number; cycles: number }> {
 
 async function writeCursor(position: number, cycles: number, label: string | null): Promise<void> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  await supabaseAdmin
-    .from("sourcing_cursors")
-    .upsert(
-      {
-        key: CURSOR_KEY,
-        position,
-        cycles,
-        last_label: label,
-        updated_at: new Date().toISOString(),
-      } as never,
-      { onConflict: "key" },
-    );
+  await supabaseAdmin.from("sourcing_cursors").upsert(
+    {
+      key: CURSOR_KEY,
+      position,
+      cycles,
+      last_label: label,
+      updated_at: new Date().toISOString(),
+    } as never,
+    { onConflict: "key" },
+  );
 }
 
 function entitlementKey(recordType: string): string {
@@ -165,7 +163,10 @@ async function recordCoverage(args: {
   query = sourceId ? query.eq("source_id", sourceId) : query.is("source_id", null);
   const { data: existing } = await query.maybeSingle();
   if (existing?.id) {
-    await supabaseAdmin.from("source_coverage").update(coverage as never).eq("id", existing.id);
+    await supabaseAdmin
+      .from("source_coverage")
+      .update(coverage as never)
+      .eq("id", existing.id);
   } else {
     await supabaseAdmin.from("source_coverage").insert(coverage as never);
   }
@@ -215,12 +216,14 @@ export type RealeflowSourcingReport = {
  * wall clock. Passing an explicit `counties` list (demos, manual refreshes) runs
  * those counties synchronously in one call and never touches the cursor.
  */
-export async function runRealeflowSourcing(options: {
-  counties?: string[];
-  recordTypes?: string[];
-  countyBudget?: number;
-  maxCountiesPerTick?: number;
-} = {}): Promise<RealeflowSourcingReport> {
+export async function runRealeflowSourcing(
+  options: {
+    counties?: string[];
+    recordTypes?: string[];
+    countyBudget?: number;
+    maxCountiesPerTick?: number;
+  } = {},
+): Promise<RealeflowSourcingReport> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { countyKey } = await import("../distress-feed.shared");
   const { ingestDistressRecords, splitOwner } = await import("../distress-feed.server");
