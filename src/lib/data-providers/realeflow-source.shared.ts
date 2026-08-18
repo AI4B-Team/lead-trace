@@ -71,6 +71,49 @@ export const REALEFLOW_LEAD_CONFIGS: readonly RealeflowLeadConfig[] = [
 export const REALEFLOW_PAGE_SIZE = 100;
 export const REALEFLOW_COUNTY_BUDGET = 200;
 
+/**
+ * Counties processed per cron tick. The sweep is sequential with a ≥1s polite
+ * delay per request, so the full 67-county × 3-type matrix cannot finish inside
+ * one invocation — the 2026-08-18 run died after ~13 counties and left every
+ * county past "Columbia" stale. The sweep therefore walks a bounded slice per
+ * tick and resumes from a persisted cursor, cycling through the whole list over
+ * successive runs. Budgets and page size are untouched.
+ */
+export const REALEFLOW_COUNTIES_PER_TICK = 6;
+
+export type CountySlice = {
+  /** Counties this tick should process, in list order. */
+  slice: string[];
+  /** Where the next tick resumes (0 once the matrix has been fully covered). */
+  nextCursor: number;
+  /** True when this tick reached the end of the county list. */
+  wrapped: boolean;
+};
+
+/**
+ * Bounded, resumable slice of the ordered county list. Pure so the resume /
+ * bound / wrap behaviour is unit-testable without network or database.
+ */
+export function sliceCounties(args: {
+  counties: readonly string[];
+  cursor: number;
+  maxCounties?: number;
+}): CountySlice {
+  const total = args.counties.length;
+  if (!total) return { slice: [], nextCursor: 0, wrapped: true };
+  const max = Math.min(
+    Math.max(Math.floor(args.maxCounties ?? REALEFLOW_COUNTIES_PER_TICK), 1),
+    total,
+  );
+  // A cursor past the end (list shrank, or a previous wrap was not stored) simply
+  // restarts the cycle rather than skipping the whole sweep.
+  const start = Number.isFinite(args.cursor) && args.cursor > 0 ? Math.floor(args.cursor) % total : 0;
+  const end = Math.min(start + max, total);
+  const slice = args.counties.slice(start, end);
+  const wrapped = end >= total;
+  return { slice, nextCursor: wrapped ? 0 : end, wrapped };
+}
+
 /** The proven request shape: a FIPS-anchored place plus the type's filter. */
 export function buildSearchBody(args: {
   fips: string;
