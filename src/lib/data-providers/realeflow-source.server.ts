@@ -11,12 +11,14 @@
 import { FL_COUNTY_FIPS } from "../fl-counties";
 import {
   REALEFLOW_COUNTY_BUDGET,
+  REALEFLOW_COUNTIES_PER_TICK,
   REALEFLOW_LEAD_CONFIGS,
   REALEFLOW_PAGE_SIZE,
   buildSearchBody,
   isEntitlementError,
   isMailingOptedOut,
   propertyToFiling,
+  sliceCounties,
   type RealeflowLeadConfig,
 } from "./realeflow-source.shared";
 
@@ -24,8 +26,37 @@ const DOMAIN = "api.realeflow.com";
 const PLATFORM = "realeflow";
 const SOURCE_CLASS = "licensed_api";
 const POLITE_DELAY_MS = 1_000;
+const CURSOR_KEY = "realeflow-fl-counties";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Where the last tick stopped in the ordered county list. */
+async function readCursor(): Promise<{ position: number; cycles: number }> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin
+    .from("sourcing_cursors")
+    .select("position, cycles")
+    .eq("key", CURSOR_KEY)
+    .maybeSingle();
+  const row = data as { position?: number; cycles?: number } | null;
+  return { position: Number(row?.position ?? 0) || 0, cycles: Number(row?.cycles ?? 0) || 0 };
+}
+
+async function writeCursor(position: number, cycles: number, label: string | null): Promise<void> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await supabaseAdmin
+    .from("sourcing_cursors")
+    .upsert(
+      {
+        key: CURSOR_KEY,
+        position,
+        cycles,
+        last_label: label,
+        updated_at: new Date().toISOString(),
+      } as never,
+      { onConflict: "key" },
+    );
+}
 
 function entitlementKey(recordType: string): string {
   return `entitlement:${recordType}`;
