@@ -1,12 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { isWorkspaceMember } from "./access-checks";
 
 export const getBilling = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ workspaceId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
+    // The roster is admin-only at the row level, so the seat total is counted
+    // with trusted server credentials after confirming the caller's membership.
+    if (!(await isWorkspaceMember(supabase, data.workspaceId, context.userId))) {
+      throw new Error("Forbidden");
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [
       { data: balances },
       { data: ledger },
@@ -27,7 +34,7 @@ export const getBilling = createServerFn({ method: "GET" })
         .from("sending_numbers")
         .select("id", { count: "exact", head: true })
         .eq("workspace_id", data.workspaceId),
-      supabase
+      supabaseAdmin
         .from("workspace_members")
         .select("user_id", { count: "exact", head: true })
         .eq("workspace_id", data.workspaceId),
