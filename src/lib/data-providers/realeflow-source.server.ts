@@ -11,12 +11,14 @@
 import { FL_COUNTY_FIPS } from "../fl-counties";
 import {
   REALEFLOW_COUNTY_BUDGET,
+  REALEFLOW_COUNTIES_PER_TICK,
   REALEFLOW_LEAD_CONFIGS,
   REALEFLOW_PAGE_SIZE,
   buildSearchBody,
   isEntitlementError,
   isMailingOptedOut,
   propertyToFiling,
+  sliceCounties,
   type RealeflowLeadConfig,
 } from "./realeflow-source.shared";
 
@@ -24,8 +26,35 @@ const DOMAIN = "api.realeflow.com";
 const PLATFORM = "realeflow";
 const SOURCE_CLASS = "licensed_api";
 const POLITE_DELAY_MS = 1_000;
+const CURSOR_KEY = "realeflow-fl-counties";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Where the last tick stopped in the ordered county list. */
+async function readCursor(): Promise<{ position: number; cycles: number }> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin
+    .from("sourcing_cursors")
+    .select("position, cycles")
+    .eq("key", CURSOR_KEY)
+    .maybeSingle();
+  const row = data as { position?: number; cycles?: number } | null;
+  return { position: Number(row?.position ?? 0) || 0, cycles: Number(row?.cycles ?? 0) || 0 };
+}
+
+async function writeCursor(position: number, cycles: number, label: string | null): Promise<void> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await supabaseAdmin.from("sourcing_cursors").upsert(
+    {
+      key: CURSOR_KEY,
+      position,
+      cycles,
+      last_label: label,
+      updated_at: new Date().toISOString(),
+    } as never,
+    { onConflict: "key" },
+  );
+}
 
 function entitlementKey(recordType: string): string {
   return `entitlement:${recordType}`;
@@ -134,7 +163,10 @@ async function recordCoverage(args: {
   query = sourceId ? query.eq("source_id", sourceId) : query.is("source_id", null);
   const { data: existing } = await query.maybeSingle();
   if (existing?.id) {
-    await supabaseAdmin.from("source_coverage").update(coverage as never).eq("id", existing.id);
+    await supabaseAdmin
+      .from("source_coverage")
+      .update(coverage as never)
+      .eq("id", existing.id);
   } else {
     await supabaseAdmin.from("source_coverage").insert(coverage as never);
   }
@@ -154,6 +186,15 @@ export type RealeflowSourcingReport = {
   requests: number;
   results: RealeflowPullResult[];
   awaitingEntitlement: Array<{ recordType: string; reason: string }>;
+  /** Cursor bookkeeping — absent when an explicit county list was passed. */
+  cursor?: {
+    from: number;
+    to: number;
+    total: number;
+    counties: string[];
+    wrapped: boolean;
+    cycles: number;
+  };
   byRecordType: Array<{
     recordType: string;
     countiesPulled: number;
@@ -165,14 +206,24 @@ export type RealeflowSourcingReport = {
 };
 
 /**
- * Sweep every FL county for every enabled lead-type config. Sequential with a
- * ≥1s delay; a per-county page budget keeps the nightly request count bounded.
+ * Sweep FL counties for every enabled lead-type config. Sequential with a ≥1s
+ * delay; a per-county page budget keeps the request count bounded.
+ *
+ * The default (cron) path is RESUMABLE: one tick processes a bounded slice of the
+ * ordered county list starting from a persisted cursor, then advances it and
+ * wraps at the end, so the full 67-county × 3-type matrix is covered over
+ * successive runs instead of being truncated mid-alphabet by the invocation's
+ * wall clock. Passing an explicit `counties` list (demos, manual refreshes) runs
+ * those counties synchronously in one call and never touches the cursor.
  */
-export async function runRealeflowSourcing(options: {
-  counties?: string[];
-  recordTypes?: string[];
-  countyBudget?: number;
-} = {}): Promise<RealeflowSourcingReport> {
+export async function runRealeflowSourcing(
+  options: {
+    counties?: string[];
+    recordTypes?: string[];
+    countyBudget?: number;
+    maxCountiesPerTick?: number;
+  } = {},
+): Promise<RealeflowSourcingReport> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { countyKey } = await import("../distress-feed.shared");
   const { ingestDistressRecords, splitOwner } = await import("../distress-feed.server");
@@ -197,7 +248,34 @@ export async function runRealeflowSourcing(options: {
     return true;
   });
 
-  const counties = (options.counties ?? Object.keys(FL_COUNTY_FIPS)).filter((c) => FL_COUNTY_FIPS[c]);
+  const explicit = Boolean(options.counties?.length);
+  const allCounties = (options.counties ?? Object.keys(FL_COUNTY_FIPS)).filter(
+    (c) => FL_COUNTY_FIPS[c],
+  );
+
+  let counties = allCounties;
+  let cursorReport: RealeflowSourcingReport["cursor"];
+  let start = 0;
+  let cycles = 0;
+  if (!explicit) {
+    const stored = await readCursor();
+    start = stored.position;
+    cycles = stored.cycles;
+    const sliced = sliceCounties({
+      counties: allCounties,
+      cursor: start,
+      maxCounties: options.maxCountiesPerTick ?? REALEFLOW_COUNTIES_PER_TICK,
+    });
+    counties = sliced.slice;
+    cursorReport = {
+      from: start % (allCounties.length || 1),
+      to: sliced.nextCursor,
+      total: allCounties.length,
+      counties: sliced.slice,
+      wrapped: sliced.wrapped,
+      cycles: sliced.wrapped ? cycles + 1 : cycles,
+    };
+  }
   const budget = Math.min(Math.max(options.countyBudget ?? REALEFLOW_COUNTY_BUDGET, 1), 500);
   const results: RealeflowPullResult[] = [];
   let requests = 0;
@@ -288,5 +366,22 @@ export async function runRealeflowSourcing(options: {
     };
   });
 
-  return { ok: results.every((r) => !r.error), requests, results, awaitingEntitlement, byRecordType };
+  // Advance the cursor even when a county errored: a permanently failing county
+  // must never stall the rest of the matrix behind it.
+  if (cursorReport) {
+    await writeCursor(
+      cursorReport.to,
+      cursorReport.cycles,
+      cursorReport.counties[cursorReport.counties.length - 1] ?? null,
+    );
+  }
+
+  return {
+    ok: results.every((r) => !r.error),
+    requests,
+    results,
+    awaitingEntitlement,
+    ...(cursorReport ? { cursor: cursorReport } : {}),
+    byRecordType,
+  };
 }

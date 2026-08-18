@@ -7,6 +7,7 @@ import {
   isEntitlementError,
   isMailingOptedOut,
   propertyToFiling,
+  sliceCounties,
 } from "./realeflow-source.shared";
 
 const probate = REALEFLOW_LEAD_CONFIGS.find((c) => c.recordType === "probate")!;
@@ -43,9 +44,9 @@ describe("filter config → request body", () => {
 
 describe("entitlement handling", () => {
   it("treats a 400 'not available on this account' as an entitlement state", () => {
-    expect(isEntitlementError(400, "Realeflow 400: PRE_FORECLOSURE not available on this account")).toBe(
-      true,
-    );
+    expect(
+      isEntitlementError(400, "Realeflow 400: PRE_FORECLOSURE not available on this account"),
+    ).toBe(true);
   });
 
   it("does not swallow ordinary failures", () => {
@@ -62,7 +63,11 @@ describe("doc_number derivation", () => {
 
   it("falls back to the normalized address when no hash is returned", () => {
     expect(
-      docNumberFor(probate, { address_number: "15125", address_street: "DAUGHTRY LN", address_zip: "33610" }),
+      docNumberFor(probate, {
+        address_number: "15125",
+        address_street: "DAUGHTRY LN",
+        address_zip: "33610",
+      }),
     ).toBe("PRB-15125 DAUGHTRY LN|33610");
   });
 
@@ -90,10 +95,53 @@ describe("source precedence", () => {
     const filing = propertyToFiling(
       probate,
       "Hillsborough",
-      { address_hash: "h1", address_number: "902", address_street: "21ST ST SE", owner_std_name1_full: "JOHN SMITH" },
+      {
+        address_hash: "h1",
+        address_number: "902",
+        address_street: "21ST ST SE",
+        owner_std_name1_full: "JOHN SMITH",
+      },
       splitOwner,
     )!;
     expect(filing.raw["source_class"]).toBe("licensed_api");
     expect(filing.property_address).toBe("902 21ST ST SE");
+  });
+});
+describe("resumable county slicing", () => {
+  const counties = ["a", "b", "c", "d", "e"];
+
+  it("resumes from the stored cursor", () => {
+    expect(sliceCounties({ counties, cursor: 2, maxCounties: 2 })).toEqual({
+      slice: ["c", "d"],
+      nextCursor: 4,
+      wrapped: false,
+    });
+  });
+
+  it("respects the slice bound", () => {
+    expect(sliceCounties({ counties, cursor: 0, maxCounties: 3 }).slice).toHaveLength(3);
+  });
+
+  it("wraps to the start once the list is covered", () => {
+    const last = sliceCounties({ counties, cursor: 4, maxCounties: 2 });
+    expect(last.slice).toEqual(["e"]);
+    expect(last.wrapped).toBe(true);
+    expect(last.nextCursor).toBe(0);
+  });
+
+  it("restarts rather than skipping when the cursor is past the end", () => {
+    expect(sliceCounties({ counties, cursor: 11, maxCounties: 2 }).slice).toEqual(["b", "c"]);
+  });
+
+  it("covers every county over successive ticks", () => {
+    const seen: string[] = [];
+    let cursor = 0;
+    for (let tick = 0; tick < 3; tick += 1) {
+      const s = sliceCounties({ counties, cursor, maxCounties: 2 });
+      seen.push(...s.slice);
+      cursor = s.nextCursor;
+    }
+    expect(seen).toEqual(counties);
+    expect(cursor).toBe(0);
   });
 });

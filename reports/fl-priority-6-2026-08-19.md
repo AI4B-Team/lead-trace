@@ -116,3 +116,60 @@ Pinellas got its one legitimate attempt through the residential proxy path
 **Outcome: Pinellas stays on `records_request`.** The block is an
 unconditional 403 (not a solvable challenge), so there is nothing to read
 without bypassing the WAF — which we do not do. No source row created.
+
+## Pasco — landed in the feed (2026-08-19, second pass)
+
+The source row was already `live` / `xlsx_list`, and the sweep does **not**
+cadence-gate, so the truncation was a parse failure, not a skip: the pinned
+`headerRow: 5` does not match the live workbook. Each monthly tab carries a
+different amount of letterhead — the current `JUL 26` tab puts
+`DATE RECEIVED | TDA # | ORIGINAL OWNER | PARCEL ID # | ACTUAL BALANCE | DATE PAID
+| AMOUNT PAID | BALANCE` on **row 17** — so any pinned number breaks when the
+clerk appends the next month. Dry run before the fix:
+`parsed 0 / bytes 454930 / "Workbook fetched but no row matched the configured columns"`.
+
+Fix: drop `headerRow` and let `xlsx_list` locate the header from the configured
+column names. No column meaning changed. Live ingest through the production path:
+**73 found / 73 with amount / 73 written / $592,789.59 held**, `sheetMode: 'last'`
+still landing on `JUL 26`, `indexUrl` + `linkPattern` still resolving
+`Unclaimed Tax Deed Surplus 20260731.xlsx`.
+
+`surplus_records_visible`, FL, straight from the view after the run — no regression:
+
+| County | Rows | Held |
+|---|---|---|
+| Hillsborough | 49 | $2,996,094.47 |
+| Manatee | 8 | $256,689.43 |
+| Marion | 718 | $7,741,668.43 |
+| Osceola | 140 | $782,056.61 |
+| **Pasco** | **73** | **$592,789.59** |
+| Santa Rosa | 19 | $270,673.75 |
+
+## Santa Rosa — sealed
+
+Santa Rosa was live in the database but had no migration, so a DB reset dropped
+it. A new migration now reproduces its confirmed config exactly (`pdf_list`,
+`resolveLatestFrom` the stable `foreclosures-tax-deeds` landing page,
+`linkMatch`/`rowPattern`/`joinPattern`/`skipLines`/`columns` as confirmed on
+2026-08-17), guarded by `WHERE NOT EXISTS (state='FL', county_name='Santa Rosa',
+sale_kind='tax_deed')` plus an idempotent UPDATE that lifts a placeholder row to
+the live config. Its 19 rows / $270,673.75 were not touched.
+
+## RealeFlow nightly sweep — chunked across ticks
+
+`runRealeflowSourcing()` walked all 67 counties in one invocation, so the
+2026-08-18 run died after ~13 (Alachua → Columbia) and everything later stayed
+stale from 2026-08-07. The default (cron) path is now resumable: a
+`sourcing_cursors` row (`key = 'realeflow-fl-counties'`) stores the position in the
+ordered county list, each tick processes `REALEFLOW_COUNTIES_PER_TICK = 6`
+counties from there, then advances and wraps at the end so every county stays
+fresh on a rolling basis. The cursor advances even when a county errors, so one
+bad county cannot stall the matrix.
+
+Unchanged: `REALEFLOW_LEAD_CONFIGS` enabled filter, `REALEFLOW_COUNTY_BUDGET`,
+`REALEFLOW_PAGE_SIZE`, the ≥1s polite delay, and entitlement auto-disable
+(`pre_foreclosure` / `tax_delinquent` still report as awaiting entitlement).
+`runRealeflowSourcing({ counties: [...] })` still runs an explicit list
+synchronously in one call and never touches the cursor. `sliceCounties()` is pure
+and unit-tested for resume-from-cursor, slice bound, wrap-around, out-of-range
+cursor and full coverage over successive ticks.

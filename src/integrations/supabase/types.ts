@@ -3718,6 +3718,30 @@ export type Database = {
           },
         ]
       }
+      sourcing_cursors: {
+        Row: {
+          cycles: number
+          key: string
+          last_label: string | null
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          cycles?: number
+          key: string
+          last_label?: string | null
+          position?: number
+          updated_at?: string
+        }
+        Update: {
+          cycles?: number
+          key?: string
+          last_label?: string | null
+          position?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       state_guides: {
         Row: {
           created_at: string
