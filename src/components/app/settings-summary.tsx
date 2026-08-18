@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { getBilling } from "@/lib/billing.functions";
 import { getComplianceState } from "@/lib/compliance.functions";
 import { computeCompliance } from "@/lib/compliance.shared";
-import { supabase } from "@/integrations/supabase/client";
+import { getTeamSize } from "@/lib/team-count.functions";
 import { useWorkspaceId } from "@/hooks/use-workspace";
 
 const CREDITS: Array<{ key: "scrape" | "skip_trace" | "sms"; label: string }> = [
@@ -25,6 +25,7 @@ export function SettingsSummary({ ownerName }: { ownerName: string }) {
   const { workspaceId, workspaceName } = useWorkspaceId();
   const fetchBilling = useServerFn(getBilling);
   const fetchCompliance = useServerFn(getComplianceState);
+  const fetchTeamSize = useServerFn(getTeamSize);
 
   const { data: billing } = useQuery({
     queryKey: ["billing", workspaceId],
@@ -40,13 +41,7 @@ export function SettingsSummary({ ownerName }: { ownerName: string }) {
 
   const { data: teamSize } = useQuery({
     queryKey: ["team-size", workspaceId],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("workspace_members")
-        .select("user_id", { count: "exact", head: true })
-        .eq("workspace_id", workspaceId!);
-      return count ?? 1;
-    },
+    queryFn: async () => (await fetchTeamSize({ data: { workspaceId: workspaceId! } })).size,
     enabled: !!workspaceId,
   });
 
