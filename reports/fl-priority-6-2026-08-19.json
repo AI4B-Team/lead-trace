@@ -1,0 +1,385 @@
+{
+  "generatedAt": "2026-08-18T17:00:52.334Z",
+  "counties": [
+    {
+      "county": "Orange",
+      "discoveryNotes": [
+        "https://www.occompt.com/: 2 relevant link(s)",
+        "https://www.occompt.com/sitemap.xml: 5 relevant link(s)",
+        "https://myorangeclerk.com/: 2 relevant link(s)",
+        "robots.txt disallows https://orange.realtaxdeed.com/"
+      ],
+      "links": [
+        {
+          "text": "Tax Deed Sales",
+          "href": "https://www.occompt.com/191/Tax-Deed-Sales"
+        },
+        {
+          "text": "Auctions",
+          "href": "https://www.occompt.com/160/Surplus-Property"
+        },
+        {
+          "text": "(sitemap)",
+          "href": "https://www.occompt.com/276/Unclaimed-Property"
+        },
+        {
+          "text": "(sitemap)",
+          "href": "https://www.occompt.com/194/Tax-Deed-Sales-FAQ"
+        },
+        {
+          "text": "(sitemap)",
+          "href": "https://www.occompt.com/197/Records-Surplus-Property"
+        },
+        {
+          "text": "(sitemap)",
+          "href": "https://www.occompt.com/160/Surplus-Equipment-and-Vehicles"
+        },
+        {
+          "text": "",
+          "href": "https://www.myorangeclerk.com/News/unclaimed-checks"
+        },
+        {
+          "text": "Unclaimed Checks List",
+          "href": "https://myorangeclerk.com/News/unclaimed-checks"
+        }
+      ],
+      "probes": [
+        {
+          "county": "Orange",
+          "url": "https://www.occompt.com/191/Tax-Deed-Sales",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page reachable, no surplus list detected"
+        },
+        {
+          "county": "Orange",
+          "url": "https://www.occompt.com/160/Surplus-Property",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page mentions surplus but publishes no list (claim instructions only)"
+        },
+        {
+          "county": "Orange",
+          "url": "https://www.occompt.com/276/Unclaimed-Property",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page mentions surplus but publishes no list (claim instructions only)"
+        },
+        {
+          "county": "Orange",
+          "url": "https://www.occompt.com/194/Tax-Deed-Sales-FAQ",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page reachable, no surplus list detected"
+        },
+        {
+          "county": "Orange",
+          "url": "https://www.occompt.com/197/Records-Surplus-Property",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "timeout after 25000ms (page)"
+        },
+        {
+          "county": "Orange",
+          "url": "https://www.occompt.com/160/Surplus-Equipment-and-Vehicles",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "timeout after 25000ms (page)"
+        },
+        {
+          "county": "Orange",
+          "url": "https://www.myorangeclerk.com/News/unclaimed-checks",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page mentions surplus but publishes no list (claim instructions only)"
+        },
+        {
+          "county": "Orange",
+          "url": "https://myorangeclerk.com/News/unclaimed-checks",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page mentions surplus but publishes no list (claim instructions only)"
+        }
+      ],
+      "candidate": null
+    },
+    {
+      "county": "Polk",
+      "discoveryNotes": [
+        "https://www.polkcountyclerk.net/: 2 relevant link(s)",
+        "https://www.polkcountyclerk.net/sitemap.xml: 1 relevant link(s)",
+        "robots.txt disallows https://polk.realtaxdeed.com/"
+      ],
+      "links": [
+        {
+          "text": "Tax Deeds",
+          "href": "https://www.polkcountyclerk.net/189"
+        },
+        {
+          "text": "Is Your Name on the List? Polk Clerk Has More Than $85,000 in Unclaime",
+          "href": "https://www.polkcountyclerk.net/CivicAlerts.aspx?AID=122"
+        },
+        {
+          "text": "(sitemap)",
+          "href": "https://www.polkclerkfl.gov/189/Tax-Deeds"
+        }
+      ],
+      "probes": [
+        {
+          "county": "Polk",
+          "url": "https://www.polkcountyclerk.net/189",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page mentions surplus but publishes no list (claim instructions only)"
+        },
+        {
+          "county": "Polk",
+          "url": "https://www.polkcountyclerk.net/CivicAlerts.aspx?AID=122",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page mentions surplus but publishes no list (claim instructions only)"
+        },
+        {
+          "county": "Polk",
+          "url": "https://www.polkclerkfl.gov/189/Tax-Deeds",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page mentions surplus but publishes no list (claim instructions only)"
+        },
+        {
+          "county": "Polk",
+          "url": "https://www.polkcountyclerk.net/336/Tax-Deeds",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Source Returned HTTP 404"
+        },
+        {
+          "county": "Polk",
+          "url": "https://www.polkcountyclerk.net/347/Unclaimed-Funds",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Source Returned HTTP 404"
+        }
+      ],
+      "candidate": null
+    },
+    {
+      "county": "Pinellas",
+      "discoveryNotes": [
+        "https://mypinellasclerk.gov/: Source Returned HTTP 403",
+        "https://mypinellasclerk.gov/sitemap.xml: Source Returned HTTP 403",
+        "https://www.mypinellasclerk.org/: Source Returned HTTP 403"
+      ],
+      "links": [],
+      "probes": [
+        {
+          "county": "Pinellas",
+          "url": "https://mypinellasclerk.gov/Home/TaxDeeds",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Source Returned HTTP 403"
+        },
+        {
+          "county": "Pinellas",
+          "url": "https://mypinellasclerk.gov/Home/UnclaimedFunds",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Source Returned HTTP 403"
+        }
+      ],
+      "candidate": null
+    },
+    {
+      "county": "Pasco",
+      "discoveryNotes": [
+        "https://www.pascoclerk.com/: 1 relevant link(s)",
+        "https://www.pascoclerk.com/sitemap.xml: 3 relevant link(s)",
+        "https://pascoclerk.com/: 1 relevant link(s)"
+      ],
+      "links": [
+        {
+          "text": "COULD YOU BE OWED MONEY? CHECK PASCO'S 2026 UNCLAIMED FUNDS LIST",
+          "href": "https://www.pascoclerk.com/CivicAlerts.aspx?AID=316"
+        },
+        {
+          "text": "(sitemap)",
+          "href": "https://www.pascoclerk.com/150/Annual-Unclaimed-Funds-Publication"
+        },
+        {
+          "text": "(sitemap)",
+          "href": "https://www.pascoclerk.com/201/Tax-Deed-Sales"
+        },
+        {
+          "text": "(sitemap)",
+          "href": "https://www.pascoclerk.com/839/Tax-Deed-Surplus"
+        },
+        {
+          "text": "COULD YOU BE OWED MONEY? CHECK PASCO'S 2026 UNCLAIMED FUNDS LIST",
+          "href": "https://pascoclerk.com/CivicAlerts.aspx?AID=316"
+        }
+      ],
+      "probes": [
+        {
+          "county": "Pasco",
+          "url": "https://www.pascoclerk.com/CivicAlerts.aspx?AID=316",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page mentions surplus but publishes no list (claim instructions only)"
+        },
+        {
+          "county": "Pasco",
+          "url": "https://www.pascoclerk.com/150/Annual-Unclaimed-Funds-Publication",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 1,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page mentions surplus but publishes no list (claim instructions only)"
+        },
+        {
+          "county": "Pasco",
+          "url": "https://www.pascoclerk.com/201/Tax-Deed-Sales",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 1,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page mentions surplus but publishes no list (claim instructions only)"
+        },
+        {
+          "county": "Pasco",
+          "url": "https://www.pascoclerk.com/839/Tax-Deed-Surplus",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 1,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page mentions surplus but publishes no list (claim instructions only)"
+        },
+        {
+          "county": "Pasco",
+          "url": "https://pascoclerk.com/CivicAlerts.aspx?AID=316",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page mentions surplus but publishes no list (claim instructions only)"
+        },
+        {
+          "county": "Pasco",
+          "url": "https://www.pascoclerk.com/263/Tax-Deed-Sales",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page reachable, no surplus list detected"
+        },
+        {
+          "county": "Pasco",
+          "url": "https://www.pascoclerk.com/280/Unclaimed-Funds",
+          "ok": false,
+          "robotsAllowed": true,
+          "handler": "unknown",
+          "tables": 0,
+          "headers": [],
+          "suggested": {},
+          "docLinks": [],
+          "note": "Page reachable, no surplus list detected"
+        }
+      ],
+      "candidate": null
+    }
+  ]
+}
