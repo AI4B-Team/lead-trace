@@ -96,3 +96,23 @@ that answered before it throttled, plus its sitemap.
 **1 of 4** gap counties went live: Pasco, 73 rows, $592,789.59 held. Pinellas
 (403), Polk (claim forms only) and Orange (no list published) stay on
 `records_request`.
+
+## Pinellas — residential-proxy attempt (2026-08-19)
+
+Pinellas got its one legitimate attempt through the residential proxy path
+(`WAF_CLERK_HOSTS` already covers `mypinellasclerk.gov` / `pinellasclerk.gov` /
+`pinellasclerk.org`, so `requiresProxy()` is true and `politeFetch` routes there).
+
+- Proxy verified working in this environment: `realauctionProxyStatus()` =
+  available, egress IP resolved to a US residential Verizon Business line
+  (Groton, MA) versus a datacenter IP on the direct control fetch.
+- Every Pinellas Clerk URL still answered **HTTP 403 with an empty body** through
+  the residential IP and a desktop Chrome UA: `/`, `/sitemap.xml`,
+  `/Home/TaxDeeds`, and the `www.` variant. `pinellasclerk.org` returns an
+  invalid TLS SAN; `www.pinellasclerk.org` answers 406 with an error page.
+- `pinellas.realtaxdeed.com` is reachable (200) but its `robots.txt` is
+  `User-agent: * / disallow: /`, so it is off-limits by policy.
+
+**Outcome: Pinellas stays on `records_request`.** The block is an
+unconditional 403 (not a solvable challenge), so there is nothing to read
+without bypassing the WAF — which we do not do. No source row created.
