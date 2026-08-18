@@ -4,12 +4,12 @@
   "index": "https://images-governmentwindow.s3.us-east-1.amazonaws.com/?list-type=2&delimiter=/&prefix=resources/sites/",
   "probedAt": "2026-08-17T18:30:35.261Z",
   "saleKind": "tax_deed",
-  "note": "The portal shares a host, not a layout — every columnMap/rowPattern below was confirmed by hand against the live document header.",
+  "note": "The portal shares a host, not a layout \u2014 every columnMap/rowPattern below was confirmed by hand against the live document header.",
   "ruledOut": [
     {
       "state": "GA",
       "candidate": "itsyourmoney.us",
-      "reason": "Texas accounting firm — unrelated to the GA tax commissioner portal"
+      "reason": "Texas accounting firm \u2014 unrelated to the GA tax commissioner portal"
     },
     {
       "state": "GA",
@@ -18,28 +18,28 @@
     },
     {
       "state": "GA",
-      "candidate": "GovtWindow portal — Catoosa",
-      "reason": "paid-out ledger: Balance vs 'Excess Received' split across a two-line header, and every printed row already carries a payment date — which column is money still held cannot be confirmed"
+      "candidate": "GovtWindow portal \u2014 Catoosa",
+      "reason": "paid-out ledger: Balance vs 'Excess Received' split across a two-line header, and every printed row already carries a payment date \u2014 which column is money still held cannot be confirmed"
     },
     {
       "state": "GA",
-      "candidate": "GovtWindow portal — Polk",
+      "candidate": "GovtWindow portal \u2014 Polk",
       "reason": "excess list is a block layout (one field per line), not a table; no confirmable row shape"
     },
     {
       "state": "GA",
-      "candidate": "GovtWindow portal — Mitchell, Union",
+      "candidate": "GovtWindow portal \u2014 Mitchell, Union",
       "reason": "newest excess PDFs carry no extractable text (scanned images)"
     },
     {
       "state": "GA",
-      "candidate": "GovtWindow portal — Jones, Lumpkin",
+      "candidate": "GovtWindow portal \u2014 Jones, Lumpkin",
       "reason": "excess list published only as .doc, which no handler parses"
     },
     {
       "state": "GA",
-      "candidate": "GovtWindow portal — Hart, Jackson",
-      "reason": "only list on the portal is explicitly marked OLD (Hart) or dated 2009-2018 (Jackson) — stale, not the current held-funds list"
+      "candidate": "GovtWindow portal \u2014 Hart, Jackson",
+      "reason": "only list on the portal is explicitly marked OLD (Hart) or dated 2009-2018 (Jackson) \u2014 stale, not the current held-funds list"
     }
   ],
   "counties": [
@@ -146,5 +146,38 @@
       "totalHeld": 47859.46,
       "ok": true
     }
-  ]
+  ],
+  "fullBucketScan": {
+    "ranAt": "2026-08-18",
+    "method": "unfiltered ListObjectsV2 sweep of images-governmentwindow.s3.us-east-1.amazonaws.com (no slug prefix filter)",
+    "listPages": 150,
+    "keysScanned": 136414,
+    "documentHits": 82,
+    "slugsWithExcessDocs": [
+      "carrollcountyga",
+      "catoosacountyga",
+      "cherokeecountyga",
+      "cowetacountyga",
+      "dawsoncountyga",
+      "decaturcountyga",
+      "forsythcountyga",
+      "gilmercountyga",
+      "habersham",
+      "hartcountyga",
+      "houstonwarnerga",
+      "jacksoncountyga",
+      "jonescountyga",
+      "libertycountyga",
+      "lumpkincountyga",
+      "meriwethercountyga",
+      "mitchellcountyga",
+      "oconeecountyga",
+      "pickenscountyga",
+      "polkcountyga",
+      "spaldingcountyga",
+      "stephenscountyga"
+    ],
+    "newLiveCounties": 0,
+    "conclusion": "Every slug carrying an excess/surplus/overage document is already live (Carroll, Meriwether, Coweta, Decatur, Walton), already covered by the Weissman index, or already in RULED_OUT (scanned images, .doc only, stale, paid-out ledger, block layout). The GovtWindow portal is exhausted for machine-readable held-funds lists; further GA counties must come through records_request."
+  }
 }
