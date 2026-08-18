@@ -1,0 +1,106 @@
+{
+  "generatedAt": "2026-08-19T00:00:00.000Z",
+  "batch": "fl-priority-6",
+  "untouchedAlreadyLive": [
+    "Hillsborough",
+    "Osceola"
+  ],
+  "counties": [
+    {
+      "county": "Pasco",
+      "state": "FL",
+      "pageReachable": true,
+      "publishesList": true,
+      "handler": "xlsx_list",
+      "landingUrl": "http://app.pascoclerk.com/appdot-public-statistical-reports-taxdeeds.asp",
+      "documentUrl": "http://app.pascoclerk.com/public_records/tax-deeds/Unclaimed%20Tax%20Deed%20Surplus%2020260731.xlsx",
+      "documentUpdated": "2026-08-11",
+      "fetchConfig": {
+        "indexUrl": "http://app.pascoclerk.com/appdot-public-statistical-reports-taxdeeds.asp",
+        "linkPattern": "Unclaimed.*Surplus.*\\.xlsx",
+        "sheetMode": "last",
+        "headerRow": 5,
+        "requirePresent": "TDA #",
+        "skipWhenPresent": "DATE PAID",
+        "defaultClaimStatus": "unclaimed",
+        "columnMap": {
+          "TDA #": "case_number",
+          "PARCEL ID #": "parcel_apn",
+          "ORIGINAL OWNER": "claimant_name",
+          "ACTUAL BALANCE": "confirmed_amount"
+        }
+      },
+      "confirmedHeaders": [
+        "DATE RECEIVED",
+        "TDA #",
+        "ORIGINAL OWNER",
+        "PARCEL ID #",
+        "ACTUAL BALANCE",
+        "DATE PAID",
+        "AMOUNT PAID",
+        "BALANCE"
+      ],
+      "unmapped": {
+        "DATE RECEIVED": "receipt date, not sale date - sale_date stays null",
+        "AMOUNT PAID": "reconciliation",
+        "BALANCE": "reconciliation"
+      },
+      "parsed": 73,
+      "withAmount": 73,
+      "written": 73,
+      "dupes": 0,
+      "totalHeld": 592789.59,
+      "status": "live"
+    },
+    {
+      "county": "Pinellas",
+      "state": "FL",
+      "pageReachable": false,
+      "publishesList": false,
+      "handler": "records_request",
+      "status": "manual",
+      "reason": "mypinellasclerk.gov returns HTTP 403 to a plain robots-respecting GET on the root and every tax-deed/unclaimed path; pinellas.realtaxdeed.com robots-disallowed site-wide. No WAF bypass."
+    },
+    {
+      "county": "Polk",
+      "state": "FL",
+      "pageReachable": true,
+      "publishesList": false,
+      "handler": "records_request",
+      "status": "manual",
+      "probedPages": [
+        "https://www.polkclerkfl.gov/189/Tax-Deeds",
+        "https://www.polkcountyclerk.net/189",
+        "https://www.polkcountyclerk.net/CivicAlerts.aspx?AID=122"
+      ],
+      "reason": "only surplus-relevant sitemap page publishes claim paperwork (Statement-of-Claim.pdf, Request-For-Reinstatement-Tax-Deeds.pdf), no list of held balances; polk.realtaxdeed.com now robots-disallowed."
+    },
+    {
+      "county": "Orange",
+      "state": "FL",
+      "pageReachable": true,
+      "publishesList": false,
+      "handler": "records_request",
+      "status": "manual",
+      "custodian": "Orange County Comptroller (occompt.com), not the Clerk",
+      "probedPages": [
+        "https://www.occompt.com/191/Tax-Deed-Sales",
+        "https://www.occompt.com/194/Tax-Deed-Sales-FAQ",
+        "https://www.occompt.com/276/Unclaimed-Property",
+        "https://www.occompt.com/160/Surplus-Equipment-and-Vehicles",
+        "https://www.occompt.com/197/Records-Surplus-Property"
+      ],
+      "reason": "sitemap carries five surplus-relevant pages, none a list of held tax-deed funds (/160 and /197 are surplus equipment and vehicles); orange.realtaxdeed.com robots-disallowed; site began returning HTTP 429 mid-sweep."
+    }
+  ],
+  "net": {
+    "newLive": 1,
+    "rows": 73,
+    "heldUsd": 592789.59,
+    "stayRecordsRequest": [
+      "Pinellas",
+      "Polk",
+      "Orange"
+    ]
+  }
+}

@@ -14,10 +14,24 @@
  */
 
 import { politeFetch, politeHtml } from "../../data-providers/scraper-policy";
-import { emptyResult, toClerkRow, type ClerkSurplusRow, type HandlerContext, type HandlerResult } from "./types";
+import {
+  emptyResult,
+  toClerkRow,
+  type ClerkSurplusRow,
+  type HandlerContext,
+  type HandlerResult,
+} from "./types";
 
 export type XlsxListConfig = {
   sheet?: string;
+  /**
+   * Which tab to read when `sheet` is not pinned by name. Pasco FL appends a
+   * NEW tab per month to the same workbook ("OCT 25" … "JUL 26"), each a fresh
+   * snapshot of what is still held; the first tab is therefore the oldest and
+   * pinning its name goes stale within a month. "last" follows the clerk's own
+   * append order instead of hard-coding a month. Defaults to "first".
+   */
+  sheetMode?: "first" | "last";
   headerRow?: number;
   columnMap?: Record<string, string>;
   defaultClaimStatus?: ClerkSurplusRow["claim_status"];
@@ -66,10 +80,16 @@ export function pickWorkbookLink(html: string, base: string, linkPattern?: strin
 }
 
 /** Rows as text, in sheet order, so the same column logic as html_table applies. */
-export async function sheetToMatrix(bytes: Uint8Array, sheetName?: string): Promise<string[][]> {
+export async function sheetToMatrix(
+  bytes: Uint8Array,
+  sheetName?: string,
+  sheetMode: "first" | "last" = "first",
+): Promise<string[][]> {
   const XLSX = await import("xlsx");
   const wb = XLSX.read(bytes, { type: "array" });
-  const name = sheetName && wb.SheetNames.includes(sheetName) ? sheetName : wb.SheetNames[0];
+  const fallback =
+    sheetMode === "last" ? wb.SheetNames[wb.SheetNames.length - 1] : wb.SheetNames[0];
+  const name = sheetName && wb.SheetNames.includes(sheetName) ? sheetName : fallback;
   if (!name) return [];
   const ws = wb.Sheets[name];
   if (!ws) return [];
@@ -85,14 +105,20 @@ export function parseXlsxMatrix(matrix: string[][], config: XlsxListConfig): Cle
   // configured column name (clerk workbooks often lead with an as-of note).
   let headerIndex = config.headerRow != null ? config.headerRow - 1 : -1;
   if (headerIndex < 0) {
-    headerIndex = matrix.findIndex((row) => row.some((cell) => wanted.includes(cell.toLowerCase().trim())));
+    headerIndex = matrix.findIndex((row) =>
+      row.some((cell) => wanted.includes(cell.toLowerCase().trim())),
+    );
   }
   if (headerIndex < 0 || headerIndex >= matrix.length) return [];
   const names = (matrix[headerIndex] ?? []).map((h) => h.trim());
   const out: ClerkSurplusRow[] = [];
   const cellFor = (record: Record<string, string>, column?: string): string =>
     column
-      ? (Object.entries(record).find(([k]) => k.toLowerCase().trim() === column.toLowerCase().trim())?.[1] ?? "").trim()
+      ? (
+          Object.entries(record).find(
+            ([k]) => k.toLowerCase().trim() === column.toLowerCase().trim(),
+          )?.[1] ?? ""
+        ).trim()
       : "";
   for (const cells of matrix.slice(headerIndex + 1)) {
     if (!cells.some((c) => c)) continue;
@@ -122,16 +148,20 @@ export function parseXlsxMatrix(matrix: string[][], config: XlsxListConfig): Cle
 export async function runXlsxList(ctx: HandlerContext): Promise<HandlerResult> {
   const { source } = ctx;
   const config = (source.fetch_config ?? {}) as XlsxListConfig;
-  if (!source.source_url && !config.indexUrl) return emptyResult("No source_url or indexUrl configured");
+  if (!source.source_url && !config.indexUrl)
+    return emptyResult("No source_url or indexUrl configured");
   if (!config.columnMap || !Object.keys(config.columnMap).length) {
-    return emptyResult("No columnMap in fetch_config — spreadsheet columns must be confirmed first");
+    return emptyResult(
+      "No columnMap in fetch_config — spreadsheet columns must be confirmed first",
+    );
   }
   let fileUrl = source.source_url;
   if (config.indexUrl) {
     const { html } = await politeHtml(config.indexUrl);
     const found = pickWorkbookLink(html, config.indexUrl, config.linkPattern);
     // A stale pinned URL is better than nothing, but no URL at all is a gap.
-    if (!found && !fileUrl) return emptyResult("Index page carried no workbook link matching linkPattern");
+    if (!found && !fileUrl)
+      return emptyResult("Index page carried no workbook link matching linkPattern");
     if (found) fileUrl = found;
   }
   const res = await politeFetch(fileUrl!, {
@@ -139,7 +169,7 @@ export async function runXlsxList(ctx: HandlerContext): Promise<HandlerResult> {
   });
   const buf = new Uint8Array(await res.arrayBuffer());
   const fetchedAt = new Date().toISOString();
-  const rows = parseXlsxMatrix(await sheetToMatrix(buf, config.sheet), config);
+  const rows = parseXlsxMatrix(await sheetToMatrix(buf, config.sheet, config.sheetMode), config);
   return {
     rows,
     fetchedAt,
