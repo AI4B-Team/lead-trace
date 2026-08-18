@@ -7,6 +7,7 @@ import {
   isEntitlementError,
   isMailingOptedOut,
   propertyToFiling,
+  sliceCounties,
 } from "./realeflow-source.shared";
 
 const probate = REALEFLOW_LEAD_CONFIGS.find((c) => c.recordType === "probate")!;
@@ -95,5 +96,43 @@ describe("source precedence", () => {
     )!;
     expect(filing.raw["source_class"]).toBe("licensed_api");
     expect(filing.property_address).toBe("902 21ST ST SE");
+  });
+});
+describe("resumable county slicing", () => {
+  const counties = ["a", "b", "c", "d", "e"];
+
+  it("resumes from the stored cursor", () => {
+    expect(sliceCounties({ counties, cursor: 2, maxCounties: 2 })).toEqual({
+      slice: ["c", "d"],
+      nextCursor: 4,
+      wrapped: false,
+    });
+  });
+
+  it("respects the slice bound", () => {
+    expect(sliceCounties({ counties, cursor: 0, maxCounties: 3 }).slice).toHaveLength(3);
+  });
+
+  it("wraps to the start once the list is covered", () => {
+    const last = sliceCounties({ counties, cursor: 4, maxCounties: 2 });
+    expect(last.slice).toEqual(["e"]);
+    expect(last.wrapped).toBe(true);
+    expect(last.nextCursor).toBe(0);
+  });
+
+  it("restarts rather than skipping when the cursor is past the end", () => {
+    expect(sliceCounties({ counties, cursor: 11, maxCounties: 2 }).slice).toEqual(["b", "c"]);
+  });
+
+  it("covers every county over successive ticks", () => {
+    const seen: string[] = [];
+    let cursor = 0;
+    for (let tick = 0; tick < 3; tick += 1) {
+      const s = sliceCounties({ counties, cursor, maxCounties: 2 });
+      seen.push(...s.slice);
+      cursor = s.nextCursor;
+    }
+    expect(seen).toEqual(counties);
+    expect(cursor).toBe(0);
   });
 });
