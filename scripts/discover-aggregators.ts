@@ -80,6 +80,12 @@ export const RULED_OUT: Array<{ state: string; candidate: string; reason: string
   { state: "GA", candidate: "GovtWindow portal — Mitchell, Union", reason: "newest excess PDFs carry no extractable text (scanned images)" },
   { state: "GA", candidate: "GovtWindow portal — Jones, Lumpkin", reason: "excess list published only as .doc, which no handler parses" },
   { state: "GA", candidate: "GovtWindow portal — Hart, Jackson", reason: "only list on the portal is explicitly marked OLD (Hart) or dated 2009-2018 (Jackson) — stale, not the current held-funds list" },
+  {
+    state: "GA",
+    candidate: "GovtWindow portal — remaining ~120 county slugs (full-bucket scan, 2026-08-18)",
+    reason:
+      "unfiltered scan of the whole images-governmentwindow object store (150+ list pages, ~136k keys) surfaces excess/surplus/overage documents for only 22 county slugs, every one of which is already live or already ruled out above — the portal's machine-readable held-funds lists are exhausted; any further GA county must go through records_request, not this portal",
+  },
   { state: "TX", candidate: "lgbs.com (Linebarger Goggan Blair & Sampson)", reason: "publishes sale schedules only — no held-excess-proceeds list" },
   { state: "TX", candidate: "pbfcm.com (Perdue Brandon Fielder Collins & Mott)", reason: "sale notices only; excess proceeds stay with the district clerk" },
   { state: "TX", candidate: "mvbalaw.com", reason: "sale calendars only, no money-held tables" },
