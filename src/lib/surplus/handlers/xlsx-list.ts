@@ -18,6 +18,14 @@ import { emptyResult, toClerkRow, type ClerkSurplusRow, type HandlerContext, typ
 
 export type XlsxListConfig = {
   sheet?: string;
+  /**
+   * Which tab to read when `sheet` is not pinned by name. Pasco FL appends a
+   * NEW tab per month to the same workbook ("OCT 25" … "JUL 26"), each a fresh
+   * snapshot of what is still held; the first tab is therefore the oldest and
+   * pinning its name goes stale within a month. "last" follows the clerk's own
+   * append order instead of hard-coding a month. Defaults to "first".
+   */
+  sheetMode?: "first" | "last";
   headerRow?: number;
   columnMap?: Record<string, string>;
   defaultClaimStatus?: ClerkSurplusRow["claim_status"];
@@ -66,10 +74,15 @@ export function pickWorkbookLink(html: string, base: string, linkPattern?: strin
 }
 
 /** Rows as text, in sheet order, so the same column logic as html_table applies. */
-export async function sheetToMatrix(bytes: Uint8Array, sheetName?: string): Promise<string[][]> {
+export async function sheetToMatrix(
+  bytes: Uint8Array,
+  sheetName?: string,
+  sheetMode: "first" | "last" = "first",
+): Promise<string[][]> {
   const XLSX = await import("xlsx");
   const wb = XLSX.read(bytes, { type: "array" });
-  const name = sheetName && wb.SheetNames.includes(sheetName) ? sheetName : wb.SheetNames[0];
+  const fallback = sheetMode === "last" ? wb.SheetNames[wb.SheetNames.length - 1] : wb.SheetNames[0];
+  const name = sheetName && wb.SheetNames.includes(sheetName) ? sheetName : fallback;
   if (!name) return [];
   const ws = wb.Sheets[name];
   if (!ws) return [];
@@ -139,7 +152,7 @@ export async function runXlsxList(ctx: HandlerContext): Promise<HandlerResult> {
   });
   const buf = new Uint8Array(await res.arrayBuffer());
   const fetchedAt = new Date().toISOString();
-  const rows = parseXlsxMatrix(await sheetToMatrix(buf, config.sheet), config);
+  const rows = parseXlsxMatrix(await sheetToMatrix(buf, config.sheet, config.sheetMode), config);
   return {
     rows,
     fetchedAt,
