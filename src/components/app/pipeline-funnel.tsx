@@ -107,12 +107,13 @@ export function PipelineFunnel({
                     animate={animate}
                     index={i}
                     // Phone-pending records runs never actually ran the carrier
-                    // check or DNC scrub on a number, so show an honest label ON
-                    // the box instead of a count that would look verified. The
-                    // scrub box explains WHY (no phone yet) rather than repeating
-                    // "Coming Soon".
+                    // check, skip trace, or DNC scrub on a number, so show an
+                    // honest label ON the box instead of a count that would look
+                    // verified. Skip Trace is the step that WOULD append a phone,
+                    // so it reads "Coming Soon" like the carrier check; the scrub
+                    // box explains WHY (no phone yet).
                     text={
-                      phonesPending && s.key === "verified"
+                      phonesPending && (s.key === "verified" || s.key === "skipTraced")
                         ? "Coming Soon"
                         : phonesPending && s.key === "scrubbed"
                           ? "Awaiting Phone"

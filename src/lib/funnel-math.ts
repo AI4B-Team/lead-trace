@@ -146,7 +146,12 @@ export function buildFunnel(
       ? []
       : [
           stage("skipTraced", "Skip Traced", skipTraced, skipTraced, {
-            annotation: traced > 0 ? `${traced.toLocaleString()} Traced` : "Not Needed",
+            // Phone-pending: the box reads "Coming Soon", so drop the caption.
+            annotation: phonesPending
+              ? undefined
+              : traced > 0
+                ? `${traced.toLocaleString()} Traced`
+                : "Not Needed",
           }),
         ]),
     stage("scrubbed", "Scrubbed", scrubbed, skipTraced, {
