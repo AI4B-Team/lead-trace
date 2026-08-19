@@ -213,6 +213,16 @@ export const recordsAdapter: SourceAdapter = {
 };
 
 /**
+ * Slug the picker uses → every spelling distress_records actually stores for it.
+ * Ingest paths wrote provider-native names ("tax_lien", "tax_deed") for what the
+ * picker calls Tax Default, so one canonical slug has to match several.
+ */
+const RECORD_TYPE_STORED_SLUGS: Record<string, string[]> = {
+  tax_default: ["tax_default", "tax_lien", "tax_deed", "tax_delinquent"],
+  pre_foreclosure: ["pre_foreclosure", "lis_pendens", "foreclosure_auction"],
+};
+
+/**
  * Reads distress_records for a county the coverage gate already marked
  * verified. Only verified FIPS are queried, and record types are matched on the
  * canonical slug the column actually stores.
