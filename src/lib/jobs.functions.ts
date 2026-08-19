@@ -172,7 +172,10 @@ export const listJobLeads = createServerFn({ method: "GET" })
   .inputValidator((input) =>
     z.object({
       jobId: z.string().uuid(),
-      bucket: z.enum(["clean", "dnc", "litigator", "all"]).default("clean"),
+      // "property" = deliverable property leads with no phone yet. Their stored
+      // scrub verdict stays "unknown" (there is no phone to scrub) — this
+      // bucket only changes what the browser SHOWS.
+      bucket: z.enum(["clean", "dnc", "litigator", "property", "all"]).default("clean"),
       search: z.string().max(120).optional(),
       limit: z.number().int().min(1).max(200).default(100),
     }).parse(input),
@@ -184,7 +187,8 @@ export const listJobLeads = createServerFn({ method: "GET" })
       .eq("job_id", data.jobId)
       .order("full_name", { ascending: true })
       .limit(data.limit);
-    if (data.bucket !== "all") q = q.eq("scrub_status", data.bucket);
+    if (data.bucket === "property") q = q.is("phone", null);
+    else if (data.bucket !== "all") q = q.eq("scrub_status", data.bucket);
     if (data.search?.trim()) {
       // Quote the pattern: a comma or parenthesis in the search text would
       // otherwise be read as filter syntax and fail the whole query.
