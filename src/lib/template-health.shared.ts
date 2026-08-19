@@ -8,10 +8,10 @@
  * numbers while we keep charging full credits is worse than a hard failure.
  */
 
-export type HealthStatus = "healthy" | "degraded" | "broken";
-
 import { REALEFLOW_LEAD_CONFIGS } from "@/lib/data-providers/realeflow-source.shared";
 import { RECORD_TYPE_TEMPLATE_IDS, templateForRecordType } from "@/lib/record-types";
+
+export type HealthStatus = "healthy" | "degraded" | "broken";
 
 /**
  * Health is a property of a DATA PATH, not of the "records" category.
