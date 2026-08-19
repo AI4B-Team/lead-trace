@@ -110,7 +110,7 @@ const distressFeedAdapter: SourceAdapter = {
   },
 };
 
-const recordsAdapter: SourceAdapter = {
+export const recordsAdapter: SourceAdapter = {
   key: "records.county",
   coverage: "live",
   async run(params, onProgress, out) {
