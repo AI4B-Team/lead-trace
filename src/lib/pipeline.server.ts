@@ -213,16 +213,6 @@ export const recordsAdapter: SourceAdapter = {
 };
 
 /**
- * Slug the picker uses → every spelling distress_records actually stores for it.
- * Ingest paths wrote provider-native names ("tax_lien", "tax_deed") for what the
- * picker calls Tax Default, so one canonical slug has to match several.
- */
-const RECORD_TYPE_STORED_SLUGS: Record<string, string[]> = {
-  tax_default: ["tax_default", "tax_lien", "tax_deed", "tax_delinquent"],
-  pre_foreclosure: ["pre_foreclosure", "lis_pendens", "foreclosure_auction"],
-};
-
-/**
  * Reads distress_records for a county the coverage gate already marked
  * verified. Only verified FIPS are queried, and record types are matched on the
  * canonical slug the column actually stores.
@@ -235,7 +225,7 @@ async function pullDistressRecords(args: {
   limit: number;
 }): Promise<RawLead[]> {
   const { coveredFipsForCounty } = await import("./distress/coverage.server");
-  const { recordTypeId } = await import("./record-types");
+  const { storedSlugsForRecordType } = await import("./record-types");
   const { DISTRESS_ROW_COLUMNS, distressRowToLead } = await import("./distress/row-to-lead");
   const { splitCountyLabel } = await import("./coverage.shared");
 
@@ -243,8 +233,9 @@ async function pullDistressRecords(args: {
   const slugs = new Set<string>();
   for (const recordType of args.recordTypes) {
     for (const f of await coveredFipsForCounty(args.county, recordType)) fips.add(f);
-    const slug = recordTypeId(recordType);
-    if (slug) for (const s of RECORD_TYPE_STORED_SLUGS[slug] ?? [slug]) slugs.add(s);
+    // Same shared map the coverage gate uses, so the rows we read can never be
+    // narrower than what the gate declared covered.
+    for (const s of storedSlugsForRecordType(recordType)) slugs.add(s);
   }
   if (!fips.size || !slugs.size) return [];
 

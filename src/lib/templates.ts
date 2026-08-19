@@ -613,7 +613,9 @@ export const TEMPLATES: Template[] = [
     prompt: "Pull tax delinquent property owners in Polk County FL",
     icon: Landmark,
     tint: "bg-indigo-500/10 text-indigo-600",
-    beta: true,
+    // Live statewide (67 FL counties) via the licensed RealeFlow /search path,
+    // exactly like probate and vacancy — rows land in distress_records as
+    // record_type "tax_lien". Not beta.
     credit_cost_per_lead: 0,
   },
   {

@@ -6,7 +6,7 @@
 
 import type { CoverageRow } from "../coverage.shared";
 import { splitCountyLabel } from "../coverage.shared";
-import { recordTypeId } from "../record-types";
+import { storedSlugsForRecordType } from "../record-types";
 
 /** Thrown when a run has no verified coverage at all. */
 export class NoCoverageError extends Error {
@@ -33,7 +33,9 @@ async function admin() {
 
 /** Primary gate: is this FIPS + record type verified? */
 export async function hasCoverage(fips: string, recordType: string): Promise<boolean> {
-  const typeKey = recordTypeId(recordType) ?? recordType;
+  // A picker slug can be stored under several provider-native spellings
+  // (Tax Default → tax_lien / tax_deed / …), so match ANY of them.
+  const typeKeys = storedSlugsForRecordType(recordType);
   const supabase = await admin();
   const read = async () => {
     const { data } = await supabase
@@ -41,7 +43,7 @@ export async function hasCoverage(fips: string, recordType: string): Promise<boo
       .select("id")
       .eq("status", "verified")
       .eq("fips", fips)
-      .eq("record_type", typeKey)
+      .in("record_type", typeKeys)
       .limit(1);
     return (data ?? []).length > 0;
   };
@@ -90,14 +92,16 @@ export async function coveredFipsForCounty(
   recordType: string,
 ): Promise<string[]> {
   const { county, state } = splitCountyLabel(countyLabel);
-  const typeKey = recordTypeId(recordType) ?? recordType;
+  // Match every stored spelling of this record type (Tax Default is registered
+  // under tax_lien in source_coverage because that's what the ingest writes).
+  const typeKeys = storedSlugsForRecordType(recordType);
   const supabase = await admin();
   const read = async () => {
     let q = supabase
       .from("source_coverage")
       .select("fips")
       .eq("status", "verified")
-      .eq("record_type", typeKey)
+      .in("record_type", typeKeys)
       .ilike("county_name", county);
     if (state) q = q.eq("state", state);
     const { data } = await q;

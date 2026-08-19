@@ -150,6 +150,31 @@ export function recordTypeId(raw: string | null | undefined): string | null {
   const canonical = canonicalRecordType(raw);
   return canonical ? RECORD_TYPE_OPTIONS.find((r) => r.label === canonical)?.id ?? null : null;
 }
+
+/**
+ * The picker's canonical slug → every spelling `distress_records.record_type`
+ * (and therefore `source_coverage.record_type`) actually stores for it. Ingest
+ * paths wrote provider-native names ("tax_lien", "tax_deed") for what the picker
+ * calls Tax Default, so one canonical slug has to match several stored slugs.
+ *
+ * This is the single source of truth for that mapping — the row reader
+ * (`pullDistressRecords`) AND the coverage gate both read from here, so the two
+ * can never drift and quietly gate out a type that has live rows.
+ */
+const RECORD_TYPE_STORED_SLUGS: Record<string, string[]> = {
+  tax_default: ["tax_default", "tax_lien", "tax_deed", "tax_delinquent"],
+  pre_foreclosure: ["pre_foreclosure", "lis_pendens", "foreclosure_auction"],
+};
+
+/**
+ * All the slugs a record type may be stored under, for any accepted spelling.
+ * Falls back to the canonical slug itself when there is no divergence.
+ */
+export function storedSlugsForRecordType(raw: string | null | undefined): string[] {
+  const slug = recordTypeId(raw) ?? (raw ?? "").trim().toLowerCase();
+  if (!slug) return [];
+  return RECORD_TYPE_STORED_SLUGS[slug] ?? [slug];
+}
 /**
  * The record type a public-records template pulls. Template cards are gated on
  * verified coverage for this label, so a filing with no verified county
