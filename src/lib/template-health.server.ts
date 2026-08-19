@@ -10,27 +10,35 @@
  * change in the source (not in our request) is what moves the needle.
  */
 
-import { TEMPLATES, hasCategory, type Template } from "@/lib/templates";
 import {
   assess,
   computeFillRates,
   CANARY_ROW_CAP,
+  licensedRecordTemplateIds,
+  openDataRecordTemplateIds,
   type CanaryRow,
   type FillRates,
   type HealthStatus,
 } from "@/lib/template-health.shared";
+import { TEMPLATES, hasCategory, type Template } from "@/lib/templates";
 
 type Canary = {
   key: string;
   label: string;
   /** Templates this canary speaks for. */
   templateIds: string[];
-  run: () => Promise<CanaryRow[]>;
+  /**
+   * Rows, or a skip when the source is in a known licensing state. A skip is
+   * NOT a failure: it must never write a "broken" verdict.
+   */
+  run: () => Promise<CanaryRow[] | { skipped: string }>;
 };
 
 /** Fixed known-good inputs. Do not "improve" these — stability is the point. */
 const GMAPS_PROBE = { niches: ["HVAC"], counties: ["Hillsborough"], state: "FL" };
 const RECORDS_PROBE = { county: "Hillsborough, FL", recordType: "code_violations" };
+/** RealeFlow /search probe: one enabled type, one covered county. */
+const REALEFLOW_PROBE = { county: "Hillsborough", recordType: "probate" };
 
 /** Templates that route through the business (Apify) adapter. */
 function businessTemplateIds(): string[] {
@@ -38,8 +46,21 @@ function businessTemplateIds(): string[] {
   return TEMPLATES.filter((t: Template) => t.categories.some((c) => categories.has(c))).map((t) => t.id);
 }
 
-function recordsTemplateIds(): string[] {
-  return TEMPLATES.filter((t: Template) => hasCategory(t, "records")).map((t) => t.id);
+/**
+ * Only the records templates the open-data probe actually exercises. Fanning an
+ * open-data outage out to every records template greyed out the licensed
+ * RealeFlow types (probate / tax defaults / vacancy) that the probe never
+ * touches — the bug this narrowing removes.
+ */
+function recordsOpenDataTemplateIds(): string[] {
+  const known = new Set(TEMPLATES.filter((t: Template) => hasCategory(t, "records")).map((t) => t.id));
+  return openDataRecordTemplateIds().filter((id) => known.has(id));
+}
+
+/** Templates served by the licensed API, limited to entitled record types. */
+function recordsLicensedTemplateIds(): string[] {
+  const known = new Set(TEMPLATES.filter((t: Template) => hasCategory(t, "records")).map((t) => t.id));
+  return licensedRecordTemplateIds({ enabledOnly: true }).filter((id) => known.has(id));
 }
 
 function canaries(): Canary[] {
@@ -59,12 +80,56 @@ function canaries(): Canary[] {
     {
       key: "records.open_data",
       label: "County Open Data",
-      templateIds: recordsTemplateIds(),
+      templateIds: recordsOpenDataTemplateIds(),
       async run() {
         const { fetchCatalogedRecords } = await import("@/lib/data-providers/source-registry.server");
         const rows = await fetchCatalogedRecords({ ...RECORDS_PROBE, limit: CANARY_ROW_CAP });
         if (rows === null) throw new Error("No catalogued open-data source for the probe county.");
         return rows.slice(0, CANARY_ROW_CAP) as CanaryRow[];
+      },
+    },
+    {
+      key: "records.realeflow",
+      label: "Licensed Property Records API",
+      templateIds: recordsLicensedTemplateIds(),
+      async run() {
+        const { FL_COUNTY_FIPS } = await import("@/lib/fl-counties");
+        const {
+          REALEFLOW_LEAD_CONFIGS,
+          buildSearchBody,
+          isEntitlementError,
+          streetAddress,
+        } = await import("@/lib/data-providers/realeflow-source.shared");
+        const { rfSearch, RealeflowError } = await import("@/lib/realeflow/client.server");
+
+        const config = REALEFLOW_LEAD_CONFIGS.find(
+          (c) => c.recordType === REALEFLOW_PROBE.recordType,
+        );
+        if (!config) throw new Error("No RealeFlow config for the probe record type.");
+        if (!config.enabled) {
+          return { skipped: config.disabledReason ?? "awaiting RealeFlow entitlement" };
+        }
+        const fips = FL_COUNTY_FIPS[REALEFLOW_PROBE.county];
+        if (!fips) throw new Error("Unknown probe county for the licensed records canary.");
+
+        try {
+          const res = await rfSearch(
+            buildSearchBody({ fips, config, page: 1, pageSize: CANARY_ROW_CAP }),
+          );
+          return (res.data ?? []).slice(0, CANARY_ROW_CAP).map((p) => ({
+            business_name: null,
+            full_name: p.owner_std_name1_full ?? null,
+            address: streetAddress(p),
+            phone: null,
+            source_meta: null,
+          })) as CanaryRow[];
+        } catch (err) {
+          const status = err instanceof RealeflowError ? err.status : 0;
+          const message = err instanceof Error ? err.message : String(err);
+          // Licensing state, not an outage: never grey the type out for it.
+          if (isEntitlementError(status, message)) return { skipped: message };
+          throw err;
+        }
       },
     },
   ];
@@ -87,17 +152,36 @@ export type CanaryReport = {
   notes: string;
 };
 
-export async function runTemplateHealthCanaries(): Promise<{ ok: true; reports: CanaryReport[] }> {
+export async function runTemplateHealthCanaries(
+  options: { only?: string[] } = {},
+): Promise<{ ok: true; reports: CanaryReport[] }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const reports: CanaryReport[] = [];
 
   for (const canary of canaries()) {
+    if (options.only?.length && !options.only.includes(canary.key)) continue;
+    if (canary.templateIds.length === 0) continue;
     let rows: CanaryRow[] = [];
     let hardError: string | null = null;
+    let skipped: string | null = null;
     try {
-      rows = await canary.run();
+      const result = await canary.run();
+      if (Array.isArray(result)) rows = result;
+      else skipped = result.skipped;
     } catch (err) {
       hardError = err instanceof Error ? err.message : String(err);
+    }
+
+    if (skipped) {
+      reports.push({
+        canary: canary.key,
+        status: "healthy",
+        rows: 0,
+        templates: 0,
+        refundedJobs: 0,
+        notes: `Skipped: ${skipped}`,
+      });
+      continue;
     }
 
     const { data: existing } = await supabaseAdmin
