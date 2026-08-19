@@ -365,7 +365,7 @@ function JobDetail() {
         ) : (
           <Stat
             label="Skip Traced"
-            value={phonesPending ? "Coming Soon" : traced > 0 ? traced.toLocaleString() : "Not Needed"}
+            value={traced > 0 ? traced.toLocaleString() : "Not Needed"}
             muted={traced === 0}
           />
         )}

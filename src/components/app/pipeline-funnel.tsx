@@ -107,13 +107,11 @@ export function PipelineFunnel({
                     animate={animate}
                     index={i}
                     // Phone-pending records runs never actually ran the carrier
-                    // check, skip trace, or DNC scrub on a number, so show an
-                    // honest label ON the box instead of a count that would look
-                    // verified. Skip Trace is the step that WOULD append a phone,
-                    // so it reads "Coming Soon" like the carrier check; the scrub
-                    // box explains WHY (no phone yet).
+                    // check or DNC scrub on a number, so show an honest badge ON
+                    // the box instead of a count that would look verified. Skip
+                    // Traced keeps its real pass-through count.
                     text={
-                      phonesPending && (s.key === "verified" || s.key === "skipTraced")
+                      phonesPending && s.key === "verified"
                         ? "Coming Soon"
                         : phonesPending && s.key === "scrubbed"
                           ? "Awaiting Phone"
@@ -188,7 +186,7 @@ function StageValue({
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 px-1">
       {isClean && <Check className="h-5 w-5 text-primary-foreground" strokeWidth={3} />}
       {text ? (
-        <span className="text-center font-display text-sm font-black leading-tight text-foreground/60 lg:text-base">
+        <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-center font-display text-xs font-bold leading-tight text-primary lg:text-sm">
           {text}
         </span>
       ) : (
