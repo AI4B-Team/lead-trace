@@ -152,11 +152,14 @@ export type CanaryReport = {
   notes: string;
 };
 
-export async function runTemplateHealthCanaries(): Promise<{ ok: true; reports: CanaryReport[] }> {
+export async function runTemplateHealthCanaries(
+  options: { only?: string[] } = {},
+): Promise<{ ok: true; reports: CanaryReport[] }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const reports: CanaryReport[] = [];
 
   for (const canary of canaries()) {
+    if (options.only?.length && !options.only.includes(canary.key)) continue;
     if (canary.templateIds.length === 0) continue;
     let rows: CanaryRow[] = [];
     let hardError: string | null = null;
