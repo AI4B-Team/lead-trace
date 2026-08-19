@@ -227,22 +227,30 @@ async function pullDistressRecords(args: {
   const { coveredFipsForCounty } = await import("./distress/coverage.server");
   const { recordTypeId } = await import("./record-types");
   const { DISTRESS_ROW_COLUMNS, distressRowToLead } = await import("./distress/row-to-lead");
+  const { splitCountyLabel } = await import("./coverage.shared");
 
   const fips = new Set<string>();
   const slugs = new Set<string>();
   for (const recordType of args.recordTypes) {
     for (const f of await coveredFipsForCounty(args.county, recordType)) fips.add(f);
     const slug = recordTypeId(recordType);
-    if (slug) slugs.add(slug);
+    if (slug) for (const s of RECORD_TYPE_STORED_SLUGS[slug] ?? [slug]) slugs.add(s);
   }
   if (!fips.size || !slugs.size) return [];
+
+  // distress_records keys geography by county + state; source_coverage keys it
+  // by FIPS, and the two registries do not share a spelling. The FIPS lookup
+  // above is the coverage assertion; the row filter is by county label.
+  const { county, state } = splitCountyLabel(args.county);
+  if (!county) return [];
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   let query = supabaseAdmin
     .from("distress_records")
     .select(DISTRESS_ROW_COLUMNS)
-    .in("fips", [...fips])
+    .ilike("county", county)
     .in("record_type", [...slugs]);
+  if (state) query = query.eq("state", state);
   if (args.dateFrom) query = query.gte("filed_date", args.dateFrom);
   if (args.dateTo) query = query.lte("filed_date", args.dateTo);
   const { data, error } = await query.limit(Math.min(Math.max(args.limit, 1), 5000));
