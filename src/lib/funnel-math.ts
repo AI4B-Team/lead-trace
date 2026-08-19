@@ -138,7 +138,9 @@ export function buildFunnel(
           annotation: "Contact Email Present",
         })
       : stage("verified", "Mobile Verified", verified, deduped, {
-          annotation: phonesPending ? "Carrier Check Coming Soon" : "Carrier Checked",
+          // When phones are pending the box itself reads "Coming Soon", so the
+          // caption is left blank to avoid repeating it under the card.
+          annotation: phonesPending ? undefined : "Carrier Checked",
         }),
     ...(variant === "creator"
       ? []
@@ -149,7 +151,8 @@ export function buildFunnel(
         ]),
     stage("scrubbed", "Scrubbed", scrubbed, skipTraced, {
       removalNoun: "DNC & Litigators Removed",
-      annotation: phonesPending ? "No Phone To Scrub Yet" : "Compliance Checked",
+      // The box reads "Coming Soon" when phones are pending; no caption needed.
+      annotation: phonesPending ? undefined : "Compliance Checked",
     }),
     stage("clean", "Clean", clean, scrubbed, { annotation: "Launch Ready", alwaysAnnotate: true }),
   );

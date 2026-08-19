@@ -106,6 +106,14 @@ export function PipelineFunnel({
                     isClean={isClean}
                     animate={animate}
                     index={i}
+                    // Phone-pending records runs never actually ran the carrier
+                    // check or DNC scrub on a number, so show "Coming Soon" ON
+                    // the box instead of a count that would look verified.
+                    text={
+                      phonesPending && (s.key === "verified" || s.key === "scrubbed")
+                        ? "Coming Soon"
+                        : null
+                    }
                   />
                 )}
               </div>
@@ -161,28 +169,37 @@ function StageValue({
   isClean,
   animate,
   index,
+  text = null,
 }: {
   remaining: number;
   isClean: boolean;
   animate: boolean;
   index: number;
+  /** When set, render this label ON the box instead of the count. */
+  text?: string | null;
 }) {
   const shown = useCountUp(remaining, { enabled: animate, delay: index * 450, duration: 700 });
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 px-1">
       {isClean && <Check className="h-5 w-5 text-primary-foreground" strokeWidth={3} />}
-      <span
-        className={cn(
-          // Scales down on narrow cards so a 4-digit count never bleeds past
-          // the card edge the way "1,000" did.
-          "font-display font-black leading-none tabular-nums",
-          isClean
-            ? "text-2xl text-primary-foreground lg:text-3xl"
-            : "text-base text-foreground/80 lg:text-xl",
-        )}
-      >
-        {shown.toLocaleString()}
-      </span>
+      {text ? (
+        <span className="text-center font-display text-sm font-black leading-tight text-foreground/60 lg:text-base">
+          {text}
+        </span>
+      ) : (
+        <span
+          className={cn(
+            // Scales down on narrow cards so a 4-digit count never bleeds past
+            // the card edge the way "1,000" did.
+            "font-display font-black leading-none tabular-nums",
+            isClean
+              ? "text-2xl text-primary-foreground lg:text-3xl"
+              : "text-base text-foreground/80 lg:text-xl",
+          )}
+        >
+          {shown.toLocaleString()}
+        </span>
+      )}
     </div>
   );
 }

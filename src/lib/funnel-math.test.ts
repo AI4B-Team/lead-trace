@@ -38,16 +38,18 @@ describe("funnel arithmetic", () => {
     expect(funnelViolations(stages, { readyToSend: 9 })).toHaveLength(1);
   });
 
-  it("says carrier/scrub are coming soon when phones are pending", () => {
-    // A records run that produced rows but no phone (no phone vendor yet).
+  it("drops the carrier/scrub captions when phones are pending", () => {
+    // A records run that produced rows but no phone (no phone vendor yet). The
+    // "Coming Soon" label is shown ON the box by the funnel component, so the
+    // caption under the card is blank to avoid repeating it.
     const pending = buildFunnel(
       { found: 206, deduped: 206, verified: 206, traced: 0, scrubbed: 206, clean: 0 },
       { phonesPending: true },
     );
     const verified = pending.find((s) => s.key === "verified")!;
     const scrubbed = pending.find((s) => s.key === "scrubbed")!;
-    expect(verified.annotation).toBe("Carrier Check Coming Soon");
-    expect(scrubbed.annotation).toBe("No Phone To Scrub Yet");
+    expect(verified.annotation).toBeNull();
+    expect(scrubbed.annotation).toBeNull();
 
     // Default (phones present / normal run) keeps the confident wording.
     const normal = buildFunnel(ROOFER_RUN);
