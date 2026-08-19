@@ -72,6 +72,13 @@ export function templateForRecordType(label: string | null | undefined): string 
 }
 
 /**
+ * Every template that exists to serve a single record type. Health checks group
+ * these by the data path that actually fulfils them, so the list has to come
+ * from this map rather than a second hand-written copy.
+ */
+export const RECORD_TYPE_TEMPLATE_IDS: readonly string[] = Object.values(TEMPLATE_BY_RECORD_TYPE);
+
+/**
  * One canonical spelling for a record type: the option LABEL.
  *
  * The model, the seed data and older specs all write this field differently
@@ -114,6 +121,7 @@ const RECORD_TYPE_ALIASES: Record<string, string> = {
   taxdelinquent: "Tax Default / Delinquency",
   taxdelinquency: "Tax Default / Delinquency",
   taxdefault: "Tax Default / Delinquency",
+  taxlien: "Tax Default / Delinquency",
   tax: "Tax Default / Delinquency",
   taxdeed: "Tax Default / Delinquency",
   vacancy: "Vacancy / Demolition Notice",
