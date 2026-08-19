@@ -205,6 +205,15 @@ function JobDetail() {
       : isCreatorRun || channel === "email"
         ? "creator"
         : "phone";
+  // A records/property run whose kept rows have no phone yet (no phone vendor
+  // connected): the carrier check and DNC scrub never ran on a real number, so
+  // the funnel and KPI strip say "coming soon" instead of implying they did.
+  const phonesPending =
+    job.source_type === "records" &&
+    funnelVariant === "phone" &&
+    counts.total > 0 &&
+    counts.clean === 0 &&
+    (job.rows_skiptraced ?? 0) === 0;
   const funnel = buildFunnel(
     {
       found: job.rows_in ?? 0,
@@ -214,7 +223,7 @@ function JobDetail() {
       scrubbed: counts.total,
       clean: counts.clean,
     },
-    { variant: funnelVariant },
+    { variant: funnelVariant, phonesPending },
   );
   const traced = job.rows_skiptraced ?? 0;
   const sourceLabel =
@@ -344,14 +353,19 @@ function JobDetail() {
           <>
         <Stat
           label={isCreatorRun ? "Email Found" : "Mobile Verified"}
-          value={funnel[2]!.remaining.toLocaleString()}
+          value={
+            !isCreatorRun && phonesPending
+              ? "Coming Soon"
+              : funnel[2]!.remaining.toLocaleString()
+          }
+          muted={!isCreatorRun && phonesPending}
         />
         {isCreatorRun ? (
           <Stat label="Contact Emails" value={counts.clean.toLocaleString()} />
         ) : (
           <Stat
             label="Skip Traced"
-            value={traced > 0 ? traced.toLocaleString() : "Not Needed"}
+            value={phonesPending ? "Coming Soon" : traced > 0 ? traced.toLocaleString() : "Not Needed"}
             muted={traced === 0}
           />
         )}
@@ -447,6 +461,7 @@ function JobDetail() {
             animate={isReady}
             traced={traced}
             variant={funnelVariant}
+            phonesPending={phonesPending}
             stages={{
               found: job.rows_in ?? 0,
               deduped: job.rows_deduped ?? 0,
@@ -553,16 +568,29 @@ function JobDetail() {
       )}
 
       <div className="grid md:grid-cols-3 gap-4 mt-6">
-        <BucketCard
-          tone="success"
-          icon={<ShieldCheck className="h-4 w-4" />}
-          title="Clean"
-          count={counts.clean}
-          note="Ready To Send"
-          ready={isReady}
-          onDownload={(f) => onDownload("clean", f)}
-          onView={() => { setBrowserBucket("clean"); setBrowserOpen(true); }}
-        />
+        {phonesPending ? (
+          <BucketCard
+            tone="success"
+            icon={<ShieldCheck className="h-4 w-4" />}
+            title="Property (No Phone)"
+            count={counts.total}
+            note="Deliverable For Mail — Phone Vendor Coming Soon"
+            ready={isReady}
+            onDownload={(f) => onDownload("clean", f)}
+            onView={() => { setBrowserBucket("property"); setBrowserOpen(true); }}
+          />
+        ) : (
+          <BucketCard
+            tone="success"
+            icon={<ShieldCheck className="h-4 w-4" />}
+            title="Clean"
+            count={counts.clean}
+            note="Ready To Send"
+            ready={isReady}
+            onDownload={(f) => onDownload("clean", f)}
+            onView={() => { setBrowserBucket("clean"); setBrowserOpen(true); }}
+          />
+        )}
         <BucketCard
           tone="warn"
           icon={<Ban className="h-4 w-4" />}

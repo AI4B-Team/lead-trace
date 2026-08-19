@@ -980,18 +980,13 @@ async function runPipelineBody(
       // Fail closed: a phone the provider did not return a verdict for is
       // 'unknown', never 'clean'. Unknown numbers are not campaignable.
       //
-      // Exception — phoneless property leads: on a records/property run a lead
-      // kept with a blank phone (address + owner, no phone vendor wired yet)
-      // has no number to scrub. Until a phone vendor is connected, treat it as
-      // clean so it lands in Ready To Send instead of stalling the bucket at 0.
-      // This is visibility only: the outbound send gate still blocks it because
-      // no phone = no SMS (campaign-runner filters `!l.phone` before dispatch).
-      // TODO(phone-vendor): revert phoneless→clean once real numbers are traced.
-      const status = lead.phone
-        ? (byPhone.get(lead.phone) ?? "unknown")
-        : job.source_type === "records"
-          ? ("clean" as const)
-          : ("unknown" as const);
+      // Phoneless property leads (records/property runs with a blank phone) have
+      // no number to scrub, so they stay 'unknown' — an HONEST verdict, not a
+      // fake 'clean'. They remain deliverable for mail/knock and are browsable
+      // under the "Property (No Phone)" bucket; they simply are not counted as
+      // DNC-scrubbed textable leads until a phone vendor is connected and the
+      // number is really scrubbed.
+      const status = (lead.phone ? byPhone.get(lead.phone) : undefined) ?? "unknown";
       if (status === "litigator") litigator++;
       else if (status === "dnc") dnc++;
       else if (status === "clean") clean++;
@@ -1035,12 +1030,11 @@ async function runPipelineBody(
   // 6) READY ----------------------------------------------------------------
   await supabase.from("jobs").update({ status: "ready" }).eq("id", jobId);
   // Property leads kept with a blank phone: real address + owner, no phone
-  // vendor connected yet. They are deliverable for mail/knock, not for SMS.
-  // These are already counted inside `clean` above, so the narration splits the
-  // Ready total into textable vs. phone-blank rather than adding them again.
+  // vendor connected yet. They are deliverable for mail/knock, not for SMS, and
+  // are NOT counted in `clean` (they have no scrubbed number). The narration
+  // reports them alongside the clean count so the run reads honestly.
   const phoneBlankProperty =
     job.source_type === "records" ? (inserted ?? []).filter((l) => !l.phone).length : 0;
-  const textableClean = Math.max(0, clean - phoneBlankProperty);
   await say(
     "ready",
     channel === "email"
@@ -1048,11 +1042,11 @@ async function runPipelineBody(
       : channel === "direct_mail"
         ? `${clean.toLocaleString()} mailable records are ready to export.`
         : phoneBlankProperty > 0
-          ? `${clean.toLocaleString()} leads are ready — ${textableClean.toLocaleString()} textable and ${phoneBlankProperty.toLocaleString()} property ${
+          ? `${clean.toLocaleString()} clean, textable ${clean === 1 ? "lead" : "leads"} and ${phoneBlankProperty.toLocaleString()} property ${
               phoneBlankProperty === 1 ? "lead" : "leads"
             } with the phone blank (add a phone vendor to text them). Browse the phone-blank rows under Property (No Phone).`
           : `${clean.toLocaleString()} clean, textable leads are ready.`,
-    clean,
+    clean + phoneBlankProperty,
   );
 
   // 7) EVENTS ---------------------------------------------------------------

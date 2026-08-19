@@ -32,6 +32,7 @@ export function PipelineFunnel({
   completedThrough,
   readyPill,
   variant = "phone",
+  phonesPending = false,
   className,
 }: {
   stages: FunnelStages;
@@ -46,6 +47,8 @@ export function PipelineFunnel({
   readyPill?: ReactNode;
   /** "creator" swaps Verified / Traced for a single Email Found stage. */
   variant?: FunnelVariant;
+  /** No phone vendor yet: carrier check + scrub stages read "coming soon". */
+  phonesPending?: boolean;
   className?: string;
 }) {
   const small = size === "sm";
@@ -59,7 +62,7 @@ export function PipelineFunnel({
       scrubbed: stages.scrubbed,
       clean: stages.clean,
     },
-    { variant },
+    { variant, phonesPending },
   );
   const found = built[0]!.remaining;
   const done = completedThrough ?? built.length - 1;

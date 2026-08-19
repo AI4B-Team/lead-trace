@@ -64,8 +64,16 @@ export type FunnelVariant = "phone" | "creator" | "data" | "scan";
  * their funnel replaces the verify stage with "Email Found" and never renders
  * "Mobile Verified" or "Skip Traced" at all.
  */
-export function buildFunnel(input: FunnelInput, opts?: { variant?: FunnelVariant }): FunnelStage[] {
+export function buildFunnel(
+  input: FunnelInput,
+  opts?: { variant?: FunnelVariant; phonesPending?: boolean },
+): FunnelStage[] {
   const variant = opts?.variant ?? "phone";
+  // When a records/property run produced rows but no phone (no phone vendor
+  // connected yet), the carrier check and DNC scrub never actually ran on a
+  // number. Say so honestly instead of claiming "Carrier Checked" /
+  // "Compliance Checked" on stages that were pass-through.
+  const phonesPending = opts?.phonesPending === true;
   const found = n(input.found);
   const deduped = Math.min(n(input.deduped), found);
   const verified = Math.min(n(input.verified), deduped);
@@ -129,7 +137,9 @@ export function buildFunnel(input: FunnelInput, opts?: { variant?: FunnelVariant
           removalNoun: "No Contact Info",
           annotation: "Contact Email Present",
         })
-      : stage("verified", "Mobile Verified", verified, deduped, { annotation: "Carrier Checked" }),
+      : stage("verified", "Mobile Verified", verified, deduped, {
+          annotation: phonesPending ? "Carrier Check Coming Soon" : "Carrier Checked",
+        }),
     ...(variant === "creator"
       ? []
       : [
@@ -139,7 +149,7 @@ export function buildFunnel(input: FunnelInput, opts?: { variant?: FunnelVariant
         ]),
     stage("scrubbed", "Scrubbed", scrubbed, skipTraced, {
       removalNoun: "DNC & Litigators Removed",
-      annotation: "Compliance Checked",
+      annotation: phonesPending ? "No Phone To Scrub Yet" : "Compliance Checked",
     }),
     stage("clean", "Clean", clean, scrubbed, { annotation: "Launch Ready", alwaysAnnotate: true }),
   );

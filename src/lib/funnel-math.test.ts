@@ -38,6 +38,23 @@ describe("funnel arithmetic", () => {
     expect(funnelViolations(stages, { readyToSend: 9 })).toHaveLength(1);
   });
 
+  it("says carrier/scrub are coming soon when phones are pending", () => {
+    // A records run that produced rows but no phone (no phone vendor yet).
+    const pending = buildFunnel(
+      { found: 206, deduped: 206, verified: 206, traced: 0, scrubbed: 206, clean: 0 },
+      { phonesPending: true },
+    );
+    const verified = pending.find((s) => s.key === "verified")!;
+    const scrubbed = pending.find((s) => s.key === "scrubbed")!;
+    expect(verified.annotation).toBe("Carrier Check Coming Soon");
+    expect(scrubbed.annotation).toBe("No Phone To Scrub Yet");
+
+    // Default (phones present / normal run) keeps the confident wording.
+    const normal = buildFunnel(ROOFER_RUN);
+    expect(normal.find((s) => s.key === "verified")!.annotation).toBe("Carrier Checked");
+    expect(normal.find((s) => s.key === "scrubbed")!.annotation).toBe("Compliance Checked");
+  });
+
   it("scales bars proportionally with a visible floor", () => {
     expect(stageFillPercent(168, 168)).toBe(100);
     expect(stageFillPercent(12, 168)).toBe(8);
