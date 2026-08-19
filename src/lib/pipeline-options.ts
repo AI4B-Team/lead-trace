@@ -1,4 +1,5 @@
 import type { JobSpec } from "@/lib/assistant.shared";
+import { defaultRecordTypeLabelForTemplate } from "@/lib/record-types";
 
 /** Which source kinds a toggle applies to. */
 export type SourceKind = NonNullable<JobSpec["sourceType"]>;
@@ -363,6 +364,14 @@ export function withEnrichmentDefaults(spec: JobSpec, templateId?: string | null
   if (!US_REALESTATE_PORTAL_IDS.includes(id ?? "")) next.contactTarget = null;
   // Job-board runs are only useful when fresh; the posting date is the trigger.
   if (isJobBoard(id) && !next.recencyDays) next.recencyDays = 30;
+  // A records preset that serves exactly one filing pre-fills its Record Type,
+  // so the Assembling checklist never waits on a slot the Source already
+  // decides. The operator can still change it in the dropdown. Templates that
+  // serve many types (the Distress Feed) return null and are left untouched.
+  if (next.sourceType === "records" && !next.recordType) {
+    const implied = defaultRecordTypeLabelForTemplate(id);
+    if (implied) next.recordType = implied;
+  }
   // Franchise removal stays a user-controlled toggle, off unless turned on.
   return next;
 }

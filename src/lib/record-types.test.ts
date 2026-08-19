@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { recordTypeId, storedSlugsForRecordType } from "./record-types";
+import {
+  defaultRecordTypeLabelForTemplate,
+  recordTypeId,
+  storedSlugsForRecordType,
+} from "./record-types";
 
 describe("storedSlugsForRecordType", () => {
   it("maps Tax Default to every provider-native spelling it is stored under", () => {
@@ -26,5 +30,22 @@ describe("storedSlugsForRecordType", () => {
   it("returns nothing for an empty/unknown input", () => {
     expect(storedSlugsForRecordType(null)).toEqual([]);
     expect(storedSlugsForRecordType("")).toEqual([]);
+  });
+});
+
+describe("defaultRecordTypeLabelForTemplate", () => {
+  it("gives a single-type records preset its Record Type label", () => {
+    // Selecting the Tax Defaults preset (templateId "tax") must pre-fill the
+    // Record Type, or the Assembling checklist stalls forever on that slot.
+    expect(defaultRecordTypeLabelForTemplate("tax")).toBe("Tax Default / Delinquency");
+    expect(defaultRecordTypeLabelForTemplate("probate")).toBe("Probate");
+    expect(defaultRecordTypeLabelForTemplate("code")).toBe("Code Violation");
+  });
+
+  it("returns null for templates that serve many or no record types", () => {
+    // The maintained Distress Feed serves every type — nothing to pre-fill.
+    expect(defaultRecordTypeLabelForTemplate("distress-feed")).toBeNull();
+    expect(defaultRecordTypeLabelForTemplate(null)).toBeNull();
+    expect(defaultRecordTypeLabelForTemplate("linkedin")).toBeNull();
   });
 });

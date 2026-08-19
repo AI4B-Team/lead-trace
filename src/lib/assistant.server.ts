@@ -10,7 +10,7 @@ import { enrichmentProfile, isNonUsRun, templateOutputType } from "./pipeline-op
 import { estimateSpec } from "./estimate.shared";
 import { countiesForState, formatCounty, parseCounty } from "./us-geo";
 import { speakTurn, stickyCounties, wantsWholeState } from "./assistant-dialogue";
-import { templateForRecordType } from "./record-types";
+import { defaultRecordTypeLabelForTemplate, templateForRecordType } from "./record-types";
 
 /** Snap model-provided county names onto real counties in the spec's state. */
 function normalizeCounties(counties: string[], state: string | null): string[] {
@@ -218,10 +218,19 @@ export async function askAssistant(opts: {
           synced.sourceType === "records" && wanted && synced.templateId !== "distress-feed"
             ? wanted
             : synced.templateId;
+        // The reciprocal: when the switch landed a single-type records preset
+        // but the model never named the Record Type, fill it from the template
+        // so the Assembling checklist doesn't stall on a slot the Source already
+        // decided. The operator can still change it in the panel.
+        const recordType =
+          synced.sourceType === "records" && !synced.recordType
+            ? defaultRecordTypeLabelForTemplate(templateId) ?? synced.recordType
+            : synced.recordType;
         return {
           ...synced,
           state,
           templateId,
+          recordType,
           // Franchise removal is business-only and off unless the operator
           // turns it on; never carry it onto other sources.
           removeFranchises: synced.sourceType === "business" ? synced.removeFranchises : false,

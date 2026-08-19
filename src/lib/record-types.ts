@@ -176,6 +176,21 @@ export function storedSlugsForRecordType(raw: string | null | undefined): string
   return RECORD_TYPE_STORED_SLUGS[slug] ?? [slug];
 }
 /**
+ * The single record-type LABEL a records template serves, or null when the
+ * template serves many (the maintained Distress Feed) or none. Selecting such a
+ * template — by chat switch or by picking its card — pre-fills the Record Type
+ * so the Assembling checklist never waits on a field the source already
+ * determines. The operator can still change it in the dropdown afterwards.
+ */
+export function defaultRecordTypeLabelForTemplate(
+  templateId: string | null | undefined,
+): string | null {
+  const slug = recordTypeForTemplate(templateId);
+  if (!slug) return null;
+  return RECORD_TYPE_OPTIONS.find((r) => r.id === slug)?.label ?? null;
+}
+
+/**
  * The record type a public-records template pulls. Template cards are gated on
  * verified coverage for this label, so a filing with no verified county
  * anywhere renders as "Coming Soon" instead of a runnable free template.
