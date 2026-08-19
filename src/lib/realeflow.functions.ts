@@ -6,22 +6,21 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
-  rfAutocomplete,
   rfCompsByAddress,
   rfCompsByHash,
   rfDetails,
   rfSearch,
 } from "@/lib/realeflow/client.server";
+import { resilientRfAutocomplete } from "@/lib/realeflow/autocomplete.server";
+import { realeflowAddressHashSchema } from "@/lib/realeflow/schemas";
 import type { SearchRequest, CompsRequest, DetailsInclude } from "@/lib/realeflow/types";
-
-const addressHash = z.string().regex(/^HA[0-9]+-\w+$/, "Invalid address hash");
 
 /** Type-ahead address / place suggestions. */
 export const realeflowAutocomplete = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ q: z.string().trim().min(1).max(200) }))
-  .handler(async ({ data }) => {
-    return rfAutocomplete(data.q);
+  .handler(async ({ data, context }) => {
+    return resilientRfAutocomplete(context.supabase, data.q);
   });
 
 /** Full property record by address hash, with optional includes. */
@@ -29,7 +28,7 @@ export const realeflowDetails = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
-      identifier: addressHash,
+      identifier: realeflowAddressHashSchema,
       with: z
         .array(z.enum(["history", "parcel", "preforeclosures", "liens"]))
         .optional(),
@@ -44,7 +43,7 @@ export const realeflowComps = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
-      identifier: addressHash.optional(),
+      identifier: realeflowAddressHashSchema.optional(),
       // Address subject (used when no identifier):
       address: z.string().optional(),
       city: z.string().optional(),
