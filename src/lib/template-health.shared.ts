@@ -10,6 +10,36 @@
 
 export type HealthStatus = "healthy" | "degraded" | "broken";
 
+import { REALEFLOW_LEAD_CONFIGS } from "@/lib/data-providers/realeflow-source.shared";
+import { RECORD_TYPE_TEMPLATE_IDS, templateForRecordType } from "@/lib/record-types";
+
+/**
+ * Health is a property of a DATA PATH, not of the "records" category.
+ *
+ * Probate, tax defaults and vacancy come from the licensed RealeFlow /search
+ * API; code violations come from county open data. A single failing open-data
+ * probe used to be fanned out to every records template and greyed out the
+ * licensed types too. Both lists below are derived from existing config
+ * (REALEFLOW_LEAD_CONFIGS + the record-type→template map) so they cannot drift.
+ */
+export function licensedRecordTemplateIds(opts: { enabledOnly?: boolean } = {}): string[] {
+  const ids = new Set<string>();
+  for (const config of REALEFLOW_LEAD_CONFIGS) {
+    if (opts.enabledOnly && !config.enabled) continue;
+    const templateId = templateForRecordType(config.recordType);
+    if (templateId) ids.add(templateId);
+  }
+  return [...ids];
+}
+
+/** Record-type templates whose live rows come from open data, and only those. */
+export function openDataRecordTemplateIds(): string[] {
+  // Licensed membership counts even for entitlement-pending types: they are not
+  // open-data-backed, so an open-data outage says nothing about them.
+  const licensed = new Set(licensedRecordTemplateIds());
+  return RECORD_TYPE_TEMPLATE_IDS.filter((id) => !licensed.has(id));
+}
+
 /** Fields whose fill rate we track and alert on. */
 export const KEY_FIELDS = ["name", "address", "phone", "website"] as const;
 export type KeyField = (typeof KEY_FIELDS)[number];
