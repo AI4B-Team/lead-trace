@@ -6,12 +6,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
-  rfAutocomplete,
   rfCompsByAddress,
   rfCompsByHash,
   rfDetails,
   rfSearch,
 } from "@/lib/realeflow/client.server";
+import { resilientRfAutocomplete } from "@/lib/realeflow/autocomplete.server";
 import type { SearchRequest, CompsRequest, DetailsInclude } from "@/lib/realeflow/types";
 
 const addressHash = z.string().regex(/^HA[0-9]+-\w+$/, "Invalid address hash");
@@ -20,8 +20,8 @@ const addressHash = z.string().regex(/^HA[0-9]+-\w+$/, "Invalid address hash");
 export const realeflowAutocomplete = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ q: z.string().trim().min(1).max(200) }))
-  .handler(async ({ data }) => {
-    return rfAutocomplete(data.q);
+  .handler(async ({ data, context }) => {
+    return resilientRfAutocomplete(context.supabase, data.q);
   });
 
 /** Full property record by address hash, with optional includes. */
