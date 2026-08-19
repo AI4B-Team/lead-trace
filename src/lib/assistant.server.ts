@@ -10,7 +10,7 @@ import { enrichmentProfile, isNonUsRun, templateOutputType } from "./pipeline-op
 import { estimateSpec } from "./estimate.shared";
 import { countiesForState, formatCounty, parseCounty } from "./us-geo";
 import { speakTurn, stickyCounties, wantsWholeState } from "./assistant-dialogue";
-import { defaultRecordTypeLabelForTemplate, templateForRecordType } from "./record-types";
+import { defaultRecordTypeLabelForTemplate, detectRecordType, templateForRecordType } from "./record-types";
 
 /** Snap model-provided county names onto real counties in the spec's state. */
 function normalizeCounties(counties: string[], state: string | null): string[] {
@@ -67,7 +67,8 @@ function systemPrompt(coveredPairs: string[], niches: string[], recordTypes: str
     "",
     "MAP THE REQUEST TO THE RIGHT SOURCE (core principle):",
     "- A selected template is a starting hint, not a constraint. Always map what the operator ASKED FOR to the source that actually produces it. Never force their request into the currently selected template.",
-    "- TEMPLATE MISMATCH: if the request does not fit the selected template's source, do NOT ask a vague either/or question. Instead: (1) name the correct source plainly (\"Tax defaults are public records, not a business scrape — that's the Public Records source\"), (2) ask to switch in one line (\"Want me to switch this to Public Records -> Tax Defaults?\"), and (3) only switch after the operator confirms. Never silently swap the source.",
+    "- FRESH REQUEST (no template selected yet, currentSpec.sourceType and templateId are both null): just SET the right source directly — do NOT ask permission to switch, because there is nothing to switch FROM. Emit the specPatch that selects the source and record type this turn (e.g. tax liens with no source yet -> {\"sourceType\":\"records\",\"templateId\":\"tax\",\"recordType\":\"Tax Default / Delinquency\", plus any geography named}). Briefly say what you chose and why.",
+    "- TEMPLATE MISMATCH (a template IS already selected and the request does not fit its source): do NOT ask a vague either/or question. Instead: (1) name the correct source plainly (\"Tax defaults are public records, not a business scrape — that's the Public Records source\"), (2) ask to switch in one line (\"Want me to switch this to Public Records -> Tax Defaults?\"), and (3) only switch after the operator confirms. Never silently swap a source the operator deliberately chose.",
     "- On the mismatch turn, do not patch sourceType or templateId. Patch geography and options you can already infer (state, counties, mobileOnly, etc.).",
     "- The turn the operator confirms the switch (\"yes\", \"switch it\", \"do it\"), you MUST emit the full specPatch that performs it, not just prose. Never say you switched something without patching it. Example patch for a confirmed tax-defaults switch: {\"sourceType\":\"records\",\"templateId\":\"<public records template id>\",\"recordType\":\"Tax Defaults\",\"state\":\"FL\",\"counties\":[\"Hillsborough County, FL\"]}.",
     "- If they decline, stay on the currently selected template and work within it.",
@@ -198,7 +199,17 @@ export async function askAssistant(opts: {
   // The model may name one state or several; keep both fields consistent.
   const spec = merged.success
     ? (() => {
-        const synced = withStates(merged.data, specStates(merged.data));
+        let synced = withStates(merged.data, specStates(merged.data));
+        // Deterministic net: on a fresh request with no source chosen yet, a
+        // plainly-named public-records filing ("tax lien leads for Pasco")
+        // selects the Public Records source on its own, so Source never stalls
+        // on "Waiting On You" while the model merely offers to switch. Only
+        // fires when nothing is selected — an already-chosen source is left for
+        // the model's ask-first flow. The operator can still change it.
+        if (!synced.sourceType && !synced.templateId) {
+          const detected = detectRecordType([...userTexts].join(" "));
+          if (detected) synced = { ...synced, sourceType: "records", recordType: detected };
+        }
         // Accumulate across the conversation, and never let a later model patch
         // silently discard a county the operator already named.
         const sticky = stickyCounties(userTexts, {

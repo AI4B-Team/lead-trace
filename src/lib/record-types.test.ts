@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   defaultRecordTypeLabelForTemplate,
+  detectRecordType,
   recordTypeId,
   storedSlugsForRecordType,
 } from "./record-types";
@@ -47,5 +48,23 @@ describe("defaultRecordTypeLabelForTemplate", () => {
     expect(defaultRecordTypeLabelForTemplate("distress-feed")).toBeNull();
     expect(defaultRecordTypeLabelForTemplate(null)).toBeNull();
     expect(defaultRecordTypeLabelForTemplate("linkedin")).toBeNull();
+  });
+});
+
+describe("detectRecordType", () => {
+  it("reads a plainly-named filing out of operator text", () => {
+    // The reported bug: this text left Source stuck on "Waiting On You".
+    expect(detectRecordType("Tax Lien leads for Pasco")).toBe("Tax Default / Delinquency");
+    expect(detectRecordType("probate leads in hillsborough")).toBe("Probate");
+    expect(detectRecordType("pre-foreclosures in tampa")).toBe("Pre-Foreclosure / Lis Pendens");
+    expect(detectRecordType("code violation list, orange county")).toBe("Code Violation");
+    expect(detectRecordType("surplus funds for FL")).toBe("Surplus Funds / Excess Proceeds");
+  });
+
+  it("ignores business scrapes and bare geography", () => {
+    expect(detectRecordType("roofing companies in Hillsborough")).toBeNull();
+    expect(detectRecordType("leads for Pasco County")).toBeNull();
+    expect(detectRecordType("")).toBeNull();
+    expect(detectRecordType(null)).toBeNull();
   });
 });

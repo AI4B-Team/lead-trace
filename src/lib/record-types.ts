@@ -176,6 +176,39 @@ export function storedSlugsForRecordType(raw: string | null | undefined): string
   return RECORD_TYPE_STORED_SLUGS[slug] ?? [slug];
 }
 /**
+ * Word-boundary patterns that name a record type in plain operator text. Used
+ * as a deterministic net so a request like "tax lien leads for Pasco" selects
+ * the Public Records source on its own, even if the model offers to "switch"
+ * instead of setting it. Ordered so the more specific filing wins first.
+ */
+const RECORD_TYPE_TEXT_PATTERNS: ReadonlyArray<{ re: RegExp; label: string }> = [
+  {
+    re: /\btax\s*(?:lien|liens|deed|deeds|default|defaults|delinquent|delinquency|delinquencies)\b/,
+    label: "Tax Default / Delinquency",
+  },
+  { re: /\b(?:pre[-\s]?foreclosures?|lis\s+pendens|foreclosures?)\b/, label: "Pre-Foreclosure / Lis Pendens" },
+  { re: /\bprobates?\b/, label: "Probate" },
+  { re: /\bcode\s+(?:violations?|enforcement|cases?)\b/, label: "Code Violation" },
+  { re: /\bevictions?\b/, label: "Eviction" },
+  { re: /\b(?:vacant|vacancy|vacancies|demolitions?)\b/, label: "Vacancy / Demolition Notice" },
+  { re: /\b(?:surplus\s+funds?|excess\s+proceeds|unclaimed\s+surplus)\b/, label: "Surplus Funds / Excess Proceeds" },
+];
+
+/**
+ * The record type an operator's plain text names, or null when it names none.
+ * Only public-records filings match; business niches and geography are ignored.
+ * The result is a canonical option LABEL, ready to drop straight into a spec.
+ */
+export function detectRecordType(text: string | null | undefined): string | null {
+  if (!text) return null;
+  const t = text.toLowerCase();
+  for (const { re, label } of RECORD_TYPE_TEXT_PATTERNS) {
+    if (re.test(t)) return canonicalRecordType(label) ?? label;
+  }
+  return null;
+}
+
+/**
  * The single record-type LABEL a records template serves, or null when the
  * template serves many (the maintained Distress Feed) or none. Selecting such a
  * template — by chat switch or by picking its card — pre-fills the Record Type
