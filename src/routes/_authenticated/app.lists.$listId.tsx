@@ -365,8 +365,19 @@ function JobDetail() {
         ) : (
           <Stat
             label="Skip Traced"
-            value={traced > 0 ? traced.toLocaleString() : "Not Needed"}
-            muted={traced === 0}
+            // Real traced count when we have one. On a phoneless property run
+            // every kept row is queued for skip trace, so show that pending
+            // count (matches the funnel box) instead of "Not Needed" — a bare
+            // number reads as active, not a dead card. Only a genuinely
+            // phone-complete run with nothing to trace says "Not Needed".
+            value={
+              traced > 0
+                ? traced.toLocaleString()
+                : phonesPending
+                  ? funnel[3]!.remaining.toLocaleString()
+                  : "Not Needed"
+            }
+            muted={traced === 0 && !phonesPending}
           />
         )}
           </>

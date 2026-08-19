@@ -146,7 +146,17 @@ export function buildFunnel(
       ? []
       : [
           stage("skipTraced", "Skip Traced", skipTraced, skipTraced, {
-            annotation: traced > 0 ? `${traced.toLocaleString()} Traced` : "Not Needed",
+            // Real traced count when we have one. When phones are pending every
+            // kept row is queued for a phone vendor, so the caption says so
+            // instead of "Not Needed" — the box already shows that pending
+            // count, and the two must agree. Only a phone-complete run with
+            // nothing left to trace reads "Not Needed".
+            annotation:
+              traced > 0
+                ? `${traced.toLocaleString()} Traced`
+                : phonesPending
+                  ? "Awaiting Phone Vendor"
+                  : "Not Needed",
           }),
         ]),
     stage("scrubbed", "Scrubbed", scrubbed, skipTraced, {

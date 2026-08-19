@@ -50,8 +50,11 @@ describe("funnel arithmetic", () => {
     const scrubbed = pending.find((s) => s.key === "scrubbed")!;
     expect(verified.annotation).toBeNull();
     expect(scrubbed.annotation).toBeNull();
-    // Skip Traced keeps its real pass-through caption even when phones pend.
-    expect(pending.find((s) => s.key === "skipTraced")!.annotation).toBe("Not Needed");
+    // Skip Traced shows its pass-through count and an honest pending caption —
+    // never "Not Needed", which would contradict the count on the box.
+    const skipTraced = pending.find((s) => s.key === "skipTraced")!;
+    expect(skipTraced.remaining).toBe(206);
+    expect(skipTraced.annotation).toBe("Awaiting Phone Vendor");
 
     // Default (phones present / normal run) keeps the confident wording.
     const normal = buildFunnel(ROOFER_RUN);
