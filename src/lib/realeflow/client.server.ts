@@ -60,9 +60,11 @@ async function rfFetch<T>(
       "X-RF-Partner-Account-Id": accountId,
       "Content-Type": "application/json",
       Accept: "application/json",
-      // Cloudflare on app.realelite.com blocks default non-browser
-      // user-agents (Error 1010) — send an identifiable client UA.
-      "User-Agent": "LeadTrace-Integration/1.0 (+github.com/realelite)",
+      // Cloudflare in front of the API serves a "Just a moment..." interstitial
+      // (HTTP 403) to non-browser user-agents, so send a browser UA.
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+      "Accept-Language": "en-US,en;q=0.9",
     },
     body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
   });
@@ -72,6 +74,13 @@ async function rfFetch<T>(
   if (!res.ok) {
     // Auth-stage failures return plain text; endpoint errors return JSON.
     let message = text.slice(0, 500);
+    if (/Just a moment|challenges\.cloudflare\.com|cf-browser-verification/i.test(text)) {
+      // Never surface the raw HTML interstitial to callers/UI.
+      throw new RealeflowError(
+        res.status,
+        "Realeflow request was blocked by the provider's bot protection. Please retry shortly.",
+      );
+    }
     try {
       const parsed = JSON.parse(text) as { message?: string; error?: string };
       message = parsed.message ?? parsed.error ?? message;
