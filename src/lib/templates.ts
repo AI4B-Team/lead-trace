@@ -628,7 +628,9 @@ export const TEMPLATES: Template[] = [
     prompt: "Find vacancy and demolition notices in Hernando County FL and skip trace owners",
     icon: Home,
     tint: "bg-slate-500/10 text-slate-600",
-    beta: true,
+    // Live statewide (67 FL counties) via the licensed RealeFlow /search path,
+    // exactly like probate and tax — rows land in distress_records as
+    // record_type "vacancy". Not beta.
     credit_cost_per_lead: 0,
   },
 

@@ -6,6 +6,8 @@ import {
 } from "./template-health.shared";
 import { REALEFLOW_LEAD_CONFIGS } from "./data-providers/realeflow-source.shared";
 import { templateForRecordType } from "./record-types";
+import { TEMPLATES } from "./templates";
+import { templateAdapterStatus } from "./template-schema";
 
 describe("health data-path membership", () => {
   it("maps every RealeFlow record type onto a template", () => {
@@ -42,6 +44,17 @@ describe("health data-path membership", () => {
     );
     const openData = openDataRecordTemplateIds();
     for (const id of pending) expect(openData).not.toContain(id);
+  });
+
+  it("every entitled licensed template reports a live adapter", () => {
+    // A stale `beta: true` on a wired template lights up the "Isn't Wired Yet /
+    // Launching Soon" waitlist UI and blocks the run, even though rows flow via
+    // the licensed RealeFlow /search path. Probate/tax/vacancy are all live.
+    for (const id of licensedRecordTemplateIds({ enabledOnly: true })) {
+      const template = TEMPLATES.find((t) => t.id === id);
+      expect(template, `missing template for ${id}`).toBeTruthy();
+      expect(templateAdapterStatus(template!)).toBe("live");
+    }
   });
 });
 
