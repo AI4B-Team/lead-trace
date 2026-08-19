@@ -979,7 +979,19 @@ async function runPipelineBody(
     for (const lead of inserted ?? []) {
       // Fail closed: a phone the provider did not return a verdict for is
       // 'unknown', never 'clean'. Unknown numbers are not campaignable.
-      const status = (lead.phone ? byPhone.get(lead.phone) : undefined) ?? "unknown";
+      //
+      // Exception — phoneless property leads: on a records/property run a lead
+      // kept with a blank phone (address + owner, no phone vendor wired yet)
+      // has no number to scrub. Until a phone vendor is connected, treat it as
+      // clean so it lands in Ready To Send instead of stalling the bucket at 0.
+      // This is visibility only: the outbound send gate still blocks it because
+      // no phone = no SMS (campaign-runner filters `!l.phone` before dispatch).
+      // TODO(phone-vendor): revert phoneless→clean once real numbers are traced.
+      const status = lead.phone
+        ? (byPhone.get(lead.phone) ?? "unknown")
+        : job.source_type === "records"
+          ? ("clean" as const)
+          : ("unknown" as const);
       if (status === "litigator") litigator++;
       else if (status === "dnc") dnc++;
       else if (status === "clean") clean++;
@@ -1024,8 +1036,11 @@ async function runPipelineBody(
   await supabase.from("jobs").update({ status: "ready" }).eq("id", jobId);
   // Property leads kept with a blank phone: real address + owner, no phone
   // vendor connected yet. They are deliverable for mail/knock, not for SMS.
+  // These are already counted inside `clean` above, so the narration splits the
+  // Ready total into textable vs. phone-blank rather than adding them again.
   const phoneBlankProperty =
     job.source_type === "records" ? (inserted ?? []).filter((l) => !l.phone).length : 0;
+  const textableClean = Math.max(0, clean - phoneBlankProperty);
   await say(
     "ready",
     channel === "email"
@@ -1033,11 +1048,11 @@ async function runPipelineBody(
       : channel === "direct_mail"
         ? `${clean.toLocaleString()} mailable records are ready to export.`
         : phoneBlankProperty > 0
-          ? `${clean.toLocaleString()} clean, textable leads and ${phoneBlankProperty.toLocaleString()} property ${
+          ? `${clean.toLocaleString()} leads are ready — ${textableClean.toLocaleString()} textable and ${phoneBlankProperty.toLocaleString()} property ${
               phoneBlankProperty === 1 ? "lead" : "leads"
-            } with the phone blank are ready — browse them under Property (No Phone).`
+            } with the phone blank (add a phone vendor to text them). Browse the phone-blank rows under Property (No Phone).`
           : `${clean.toLocaleString()} clean, textable leads are ready.`,
-    clean + phoneBlankProperty,
+    clean,
   );
 
   // 7) EVENTS ---------------------------------------------------------------
