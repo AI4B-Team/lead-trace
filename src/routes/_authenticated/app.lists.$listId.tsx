@@ -226,6 +226,28 @@ function JobDetail() {
     { variant: funnelVariant, phonesPending },
   );
   const traced = job.rows_skiptraced ?? 0;
+  // Covered-but-empty: a records run that passed the coverage gate (so it is not
+  // a NoCoverage failure) yet found zero rows. This happens for real — a small
+  // county like Baker is statewide-covered for tax defaults but simply has no
+  // tax filings in the licensed feed right now. Say so plainly so a legitimate
+  // empty result never reads as a broken run.
+  const runRecordType =
+    typeof params.record_type === "string" ? params.record_type : null;
+  const runCounties = Array.isArray(params.counties)
+    ? (params.counties as string[])
+    : typeof params.county === "string"
+      ? [params.county]
+      : [];
+  const emptyButCovered =
+    isReady &&
+    !isDataRun &&
+    job.source_type === "records" &&
+    (job.rows_in ?? 0) === 0 &&
+    counts.total === 0 &&
+    // A genuine no-coverage run fails instead of reaching "ready", but if the
+    // stamped report shows some counties did run, this is squarely the empty
+    // case rather than a coverage gap.
+    (!coverage || coverage.ran > 0);
   const sourceLabel =
     job.source_type === "upload"
       ? "Uploaded CSV"
@@ -398,6 +420,23 @@ function JobDetail() {
           </div>
         )}
 
+      {emptyButCovered && (
+        <div className="mt-6 flex flex-wrap items-start gap-3 rounded-xl border border-border bg-surface-muted px-4 py-3">
+          <ShieldCheck className="mt-0.5 h-4 w-4 text-muted-foreground" />
+          <div className="min-w-[12rem] flex-1">
+            <div className="text-sm font-semibold text-foreground">
+              Covered — No {runRecordType ?? "Records"} On File Right Now
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {runCounties.length ? runCounties.join(", ") : "This county"} is covered for{" "}
+              {runRecordType ?? "this record type"}, but the licensed feed has no matching
+              filings at the moment. Nothing was charged. Smaller counties fill in as new
+              records are recorded — try a larger county or check back after the next refresh.
+            </div>
+          </div>
+        </div>
+      )}
+
       {coverage && coverage.uncoveredCounties.length > 0 && (
         <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-warn/40 bg-warn/10 p-4">
           <AlertTriangle className="h-4 w-4 text-warn" />
@@ -442,7 +481,7 @@ function JobDetail() {
         </div>
       )}
 
-      {scrubFreshness.stale && isReady && (
+      {scrubFreshness.stale && isReady && !emptyButCovered && (
         <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-destructive/40 bg-destructive/10 p-4">
           <AlertTriangle className="h-4 w-4 text-destructive" />
           <span className="text-sm font-semibold text-foreground">
