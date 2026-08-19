@@ -99,44 +99,18 @@ const distressFeedAdapter: SourceAdapter = {
     if (!ids.length) return [];
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await onProgress?.(`Pulling ${ids.length} selected filings from the Distress Feed…`, ids.length);
+    const { DISTRESS_ROW_COLUMNS, distressRowToLead } = await import("./distress/row-to-lead");
     const { data, error } = await supabaseAdmin
       .from("distress_records")
-      .select(
-        "id, state, county, record_type, doc_number, filed_date, owner_first, owner_last, company_entity, property_address, property_city, property_state, property_zip, mailing_address, mailing_city, mailing_state, mailing_zip, amount, auction_date, status, parcel_apn, source_url",
-      )
+      .select(DISTRESS_ROW_COLUMNS)
       .in("id", ids);
     if (error) throw new Error(error.message);
     type Row = Record<string, string | number | null>;
-    return ((data ?? []) as unknown as Row[]).map((r) => ({
-      full_name: [r.owner_first, r.owner_last].filter(Boolean).join(" ") || null,
-      business_name: (r.company_entity as string | null) ?? null,
-      phone: null,
-      email: null,
-      address: (r.property_address as string | null) ?? null,
-      city: (r.property_city as string | null) ?? null,
-      state: (r.property_state as string | null) ?? (r.state as string | null),
-      zip: (r.property_zip as string | null) ?? null,
-      source_meta: {
-        source: "distress_feed",
-        record_type: r.record_type,
-        doc_number: r.doc_number,
-        filed_date: r.filed_date,
-        county: r.county,
-        amount: r.amount,
-        auction_date: r.auction_date,
-        case_status: r.status,
-        parcel_apn: r.parcel_apn,
-        mailing_address: r.mailing_address,
-        mailing_city: r.mailing_city,
-        mailing_state: r.mailing_state,
-        mailing_zip: r.mailing_zip,
-        source_url: r.source_url,
-      },
-    }));
+    return ((data ?? []) as unknown as Row[]).map((r) => distressRowToLead(r));
   },
 };
 
-const recordsAdapter: SourceAdapter = {
+export const recordsAdapter: SourceAdapter = {
   key: "records.county",
   coverage: "live",
   async run(params, onProgress, out) {
@@ -179,6 +153,7 @@ const recordsAdapter: SourceAdapter = {
     const all: RawLead[] = [];
     for (const county of split.coveredCounties) {
       const typesHere = split.covered.filter((p) => p.county === county).map((p) => p.recordType);
+      const before = all.length;
       if (hasLiveCountyScraper(county)) {
         await onProgress?.(`Pulling live public records for ${county}…`);
         // One slice per record type (offset pagination) so multi-select pulls
@@ -212,10 +187,87 @@ const recordsAdapter: SourceAdapter = {
           cataloged += rows.length;
         }
       }
+
+      // Last resort: the county is verified because rows for it already live in
+      // distress_records (licensed pulls, clerk intakes, reconciled surplus).
+      // Without this the run passed the gate and returned zero.
+      if (all.length === before) {
+        const fallback = await pullDistressRecords({
+          county,
+          recordTypes: typesHere,
+          dateFrom: (params.date_from as string | null | undefined) ?? null,
+          dateTo: (params.date_to as string | null | undefined) ?? null,
+          limit: Number(params.max_results) > 0 ? Number(params.max_results) : 200,
+        });
+        if (fallback.length) {
+          await onProgress?.(
+            `Pulling licensed records for ${county} from the distress feed…`,
+            fallback.length,
+          );
+          all.push(...fallback);
+        }
+      }
     }
     return all;
   },
 };
+
+/**
+ * Slug the picker uses → every spelling distress_records actually stores for it.
+ * Ingest paths wrote provider-native names ("tax_lien", "tax_deed") for what the
+ * picker calls Tax Default, so one canonical slug has to match several.
+ */
+const RECORD_TYPE_STORED_SLUGS: Record<string, string[]> = {
+  tax_default: ["tax_default", "tax_lien", "tax_deed", "tax_delinquent"],
+  pre_foreclosure: ["pre_foreclosure", "lis_pendens", "foreclosure_auction"],
+};
+
+/**
+ * Reads distress_records for a county the coverage gate already marked
+ * verified. Only verified FIPS are queried, and record types are matched on the
+ * canonical slug the column actually stores.
+ */
+async function pullDistressRecords(args: {
+  county: string;
+  recordTypes: string[];
+  dateFrom: string | null;
+  dateTo: string | null;
+  limit: number;
+}): Promise<RawLead[]> {
+  const { coveredFipsForCounty } = await import("./distress/coverage.server");
+  const { recordTypeId } = await import("./record-types");
+  const { DISTRESS_ROW_COLUMNS, distressRowToLead } = await import("./distress/row-to-lead");
+  const { splitCountyLabel } = await import("./coverage.shared");
+
+  const fips = new Set<string>();
+  const slugs = new Set<string>();
+  for (const recordType of args.recordTypes) {
+    for (const f of await coveredFipsForCounty(args.county, recordType)) fips.add(f);
+    const slug = recordTypeId(recordType);
+    if (slug) for (const s of RECORD_TYPE_STORED_SLUGS[slug] ?? [slug]) slugs.add(s);
+  }
+  if (!fips.size || !slugs.size) return [];
+
+  // distress_records keys geography by county + state; source_coverage keys it
+  // by FIPS, and the two registries do not share a spelling. The FIPS lookup
+  // above is the coverage assertion; the row filter is by county label.
+  const { county, state } = splitCountyLabel(args.county);
+  if (!county) return [];
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  let query = supabaseAdmin
+    .from("distress_records")
+    .select(DISTRESS_ROW_COLUMNS)
+    .ilike("county", county)
+    .in("record_type", [...slugs]);
+  if (state) query = query.eq("state", state);
+  if (args.dateFrom) query = query.gte("filed_date", args.dateFrom);
+  if (args.dateTo) query = query.lte("filed_date", args.dateTo);
+  const { data, error } = await query.limit(Math.min(Math.max(args.limit, 1), 5000));
+  if (error) throw new Error(error.message);
+  type Row = Record<string, string | number | null>;
+  return ((data ?? []) as unknown as Row[]).map((r) => distressRowToLead(r));
+}
 
 /**
  * Street Scan. Parcel imagery scoring has no verified provider wired yet, so it
