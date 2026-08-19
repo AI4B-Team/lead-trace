@@ -28,6 +28,8 @@ vi.mock("@/integrations/supabase/client.server", () => {
   Object.assign(builder, {
     select: chain,
     in: chain,
+    ilike: chain,
+    eq: chain,
     gte: chain,
     lte: chain,
     limit: () => Promise.resolve({ data: rows, error: null }),
