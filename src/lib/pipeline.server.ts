@@ -749,31 +749,37 @@ async function runPipelineBody(
 
     // 3) SKIPTRACE ----------------------------------------------------------
     await supabase.from("jobs").update({ status: "skiptracing" }).eq("id", jobId);
+    let awaitingTrace = 0;
     if (shouldSkiptrace) {
-      // Real records leads (live county scrapers set source_meta.provider) go
-      // through the skip-trace provider (default "realeflow-semi": Realeflow
-      // Property Data API → assessor owner name + MAILING address + value/
-      // equity, stacked into source_meta.realeflow for the lead drawer).
-      const isRealRecords =
-        job.source_type === "records" &&
-        verified.some((r) => (r.source_meta as { provider?: string } | undefined)?.provider);
+      // Records leads go through the skip-trace provider (default
+      // "realeflow-semi": Realeflow Property Data API → assessor owner name +
+      // MAILING address + value/equity, stacked into source_meta.realeflow for
+      // the lead drawer). Eligible rows = live-scraper rows (source_meta
+      // .provider) AND distress_records fallback rows (source_meta.source ===
+      // "distress_feed"), both of which carry a property address.
+      const { hasTraceableRecordsRows, isTraceableRecordsLead, MAX_LIVE_TRACES } = await import(
+        "./skiptrace/traceable"
+      );
+      const isRealRecords = job.source_type === "records" && hasTraceableRecordsRows(verified);
       if (isRealRecords) {
         const { getSkipTraceProvider } = await import("./skiptrace/provider.server");
         const provider = getSkipTraceProvider();
-        // Cloudflare Workers (free plan) caps ~50 subrequests per invocation.
-        // Each trace = 2 API calls (autocomplete + details) — keep the slice
-        // small so the request always survives to "ready".
-        const MAX_LIVE_TRACES = 5;
         let traceCalls = 0;
         let consecutiveFailures = 0;
         for (const r of verified) {
-          if (traceCalls >= MAX_LIVE_TRACES || consecutiveFailures >= 3) break;
-          if (!r.address) continue;
+          if (!isTraceableRecordsLead(r)) continue;
+          if ((r.phone ?? "").replace(/\D/g, "")) continue;
+          // Per-invocation subrequest budget: everything past the slice is
+          // reported as awaiting the next pass, never as "dropped".
+          if (traceCalls >= MAX_LIVE_TRACES || consecutiveFailures >= 3) {
+            awaitingTrace++;
+            continue;
+          }
           traceCalls++;
           try {
             const t = await provider.trace({
               ownerName: r.full_name ?? null,
-              street: r.address,
+              street: r.address ?? null,
               city: r.city ?? null,
               state: r.state ?? null,
               zip: r.zip ?? null,
@@ -824,7 +830,11 @@ async function runPipelineBody(
     await say(
       "skiptracing",
       skiptraced > 0
-        ? `Skip traced ${skiptraced.toLocaleString()} records that were missing a phone number.`
+        ? awaitingTrace > 0
+          ? `Skip traced ${skiptraced.toLocaleString()} records that were missing a phone number — ${awaitingTrace.toLocaleString()} still awaiting skip trace on the next pass.`
+          : `Skip traced ${skiptraced.toLocaleString()} records that were missing a phone number.`
+        : awaitingTrace > 0
+        ? `${awaitingTrace.toLocaleString()} records are awaiting skip trace on the next pass.`
         : "No skip tracing needed — every record already had a phone number.",
       skiptraced,
     );
@@ -846,11 +856,22 @@ async function runPipelineBody(
           );
         }
         if (finalGate.removedNoPhone > 0) {
-          parts.push(
-            `${finalGate.removedNoPhone.toLocaleString()} ${
-              finalGate.removedNoPhone === 1 ? "record" : "records"
-            } still had no phone number after skip trace and were dropped`,
-          );
+          const deferred = Math.min(awaitingTrace, finalGate.removedNoPhone);
+          const dropped = finalGate.removedNoPhone - deferred;
+          if (deferred > 0) {
+            parts.push(
+              `${deferred.toLocaleString()} ${
+                deferred === 1 ? "record is" : "records are"
+              } awaiting skip trace on the next pass`,
+            );
+          }
+          if (dropped > 0) {
+            parts.push(
+              `${dropped.toLocaleString()} ${
+                dropped === 1 ? "record" : "records"
+              } still had no phone number after skip trace and were dropped`,
+            );
+          }
         }
         await say(
           "enriching",
