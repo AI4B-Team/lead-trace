@@ -750,6 +750,10 @@ async function runPipelineBody(
     // 3) SKIPTRACE ----------------------------------------------------------
     await supabase.from("jobs").update({ status: "skiptracing" }).eq("id", jobId);
     let awaitingTrace = 0;
+    // Rows kept with a blank phone because they are property leads (address +
+    // owner) and no paid phone vendor is connected yet.
+    let keptPhoneless = 0;
+    let tracedNoPhone = 0;
     if (shouldSkiptrace) {
       // Records leads go through the skip-trace provider (default
       // "realeflow-semi": Realeflow Property Data API → assessor owner name +
@@ -788,6 +792,9 @@ async function runPipelineBody(
             if (!r.phone && t.phones[0]) {
               r.phone = t.phones[0];
               r.line_type = classifyLineType(t.phones[0]);
+            } else if (!r.phone) {
+              // Semi-trace (mailing address only) — no phone came back.
+              tracedNoPhone++;
             }
             r.source_meta = {
               ...(r.source_meta ?? {}),
@@ -804,7 +811,7 @@ async function runPipelineBody(
                 traced_at: t.tracedAt,
               },
             };
-            skiptraced++;
+            if (r.phone) skiptraced++;
             consecutiveFailures = 0;
           } catch {
             // No property match / subrequest budget hit — keep the lead as-is.
@@ -814,6 +821,8 @@ async function runPipelineBody(
       }
       // Records with no trace match keep no phone. We never invent one.
     }
+    // Credits: only a trace that actually produced a phone number is billable
+    // skip trace. A semi-trace that returned mailing data only is not charged.
     if (skiptraced > 0) {
       const { applyCreditDelta } = await import("./credits.server");
       await applyCreditDelta(supabase, {
@@ -833,6 +842,10 @@ async function runPipelineBody(
         ? awaitingTrace > 0
           ? `Skip traced ${skiptraced.toLocaleString()} records that were missing a phone number — ${awaitingTrace.toLocaleString()} still awaiting skip trace on the next pass.`
           : `Skip traced ${skiptraced.toLocaleString()} records that were missing a phone number.`
+        : tracedNoPhone > 0
+        ? `No phone vendor connected yet — kept ${tracedNoPhone.toLocaleString()} property ${
+            tracedNoPhone === 1 ? "record" : "records"
+          } with mailing address only.`
         : awaitingTrace > 0
         ? `${awaitingTrace.toLocaleString()} records are awaiting skip trace on the next pass.`
         : "No skip tracing needed — every record already had a phone number.",
@@ -840,14 +853,27 @@ async function runPipelineBody(
     );
 
     if (mobileOnly) {
+      // Distress/live-records property rows survive the gate phone-blank; every
+      // other phoneless row (uploads, business lists) still drops as before.
+      const { isTraceableRecordsLead } = await import("./skiptrace/traceable");
+      const keepPhoneless =
+        job.source_type === "records" ? (row: (typeof verified)[number]) => isTraceableRecordsLead(row) : undefined;
       // Rows that already passed as mobile are never re-checked here — skip
       // trace only appends numbers to rows that had none, so the second pass
       // evaluates ONLY those rows.
-      const finalGate = verifyNewlyTraced(verified, true);
+      const finalGate = verifyNewlyTraced(verified, true, { keepPhoneless });
       const removedTotal = finalGate.removedNotMobile + finalGate.removedNoPhone;
       verified = finalGate.kept;
+      keptPhoneless = finalGate.keptPhonelessProperty;
       if (finalGate.evaluated > 0) {
         const parts: string[] = [];
+        if (keptPhoneless > 0) {
+          parts.push(
+            `kept ${keptPhoneless.toLocaleString()} property ${
+              keptPhoneless === 1 ? "lead" : "leads"
+            } with the phone blank (mailing address only)`,
+          );
+        }
         if (finalGate.removedNotMobile > 0) {
           parts.push(
             `removed ${finalGate.removedNotMobile.toLocaleString()} ${
@@ -875,10 +901,10 @@ async function runPipelineBody(
         }
         await say(
           "enriching",
-          removedTotal > 0
+          removedTotal > 0 || keptPhoneless > 0
             ? `Final carrier check on ${finalGate.evaluated.toLocaleString()} pending ${
                 finalGate.evaluated === 1 ? "record" : "records"
-              }: ${parts.join("; ")} — ${verified.length.toLocaleString()} mobile records remain.`
+              }: ${parts.join("; ")} — ${verified.length.toLocaleString()} records remain.`
             : `Carrier check confirmed the ${finalGate.evaluated.toLocaleString()} newly traced ${
                 finalGate.evaluated === 1 ? "number is" : "numbers are"
               } mobile — ${verified.length.toLocaleString()} records remain.`,
@@ -996,14 +1022,22 @@ async function runPipelineBody(
 
   // 6) READY ----------------------------------------------------------------
   await supabase.from("jobs").update({ status: "ready" }).eq("id", jobId);
+  // Property leads kept with a blank phone: real address + owner, no phone
+  // vendor connected yet. They are deliverable for mail/knock, not for SMS.
+  const phoneBlankProperty =
+    job.source_type === "records" ? (inserted ?? []).filter((l) => !l.phone).length : 0;
   await say(
     "ready",
     channel === "email"
       ? `${clean.toLocaleString()} records with contact emails are ready to export.`
       : channel === "direct_mail"
         ? `${clean.toLocaleString()} mailable records are ready to export.`
-        : `${clean.toLocaleString()} clean, textable leads are ready.`,
-    clean,
+        : phoneBlankProperty > 0
+          ? `${clean.toLocaleString()} clean, textable leads and ${phoneBlankProperty.toLocaleString()} property ${
+              phoneBlankProperty === 1 ? "lead" : "leads"
+            } with the phone blank are ready — browse them under Property (No Phone).`
+          : `${clean.toLocaleString()} clean, textable leads are ready.`,
+    clean + phoneBlankProperty,
   );
 
   // 7) EVENTS ---------------------------------------------------------------

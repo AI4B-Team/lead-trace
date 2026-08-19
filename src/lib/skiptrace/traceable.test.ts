@@ -66,4 +66,20 @@ describe("distress rows survive the mobile gate after tracing", () => {
     expect(gate.kept.length).toBe(2);
     expect(gate.removedNoPhone).toBe(0);
   });
+
+  it("keeps phone-less distress rows as property leads when no phone vendor returns a number", async () => {
+    const { verifyPending, verifyNewlyTraced } = await import("../line-type");
+    const rows = [
+      { full_name: "A", phone: null as string | null, address: "1 Oak St", source_meta: { source: "distress_feed" } },
+      { full_name: "B", phone: null as string | null, address: "2 Oak St", source_meta: { source: "distress_feed" } },
+      { full_name: "C", phone: null as string | null, address: "3 Oak St", source_meta: { source: "distress_feed" } },
+    ];
+    const verified = verifyPending(rows, true).kept;
+    const gate = verifyNewlyTraced(verified, true, { keepPhoneless: isTraceableRecordsLead });
+    expect(gate.keptPhonelessProperty).toBe(3);
+    expect(gate.removedNoPhone).toBe(0);
+    const leadRows = gate.kept.map((r) => ({ phone: r.phone ?? null, address: r.address }));
+    expect(leadRows).toHaveLength(3);
+    expect(leadRows.every((r) => r.phone === null && r.address)).toBe(true);
+  });
 });

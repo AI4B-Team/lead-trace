@@ -81,6 +81,19 @@ export type FinalGateResult<T> = {
   removedNotMobile: number;
   /** Evaluated rows dropped because there is still no phone number at all. */
   removedNoPhone: number;
+  /**
+   * Phoneless rows kept anyway because they are deliverable property leads
+   * (real address + owner) that simply have no phone vendor attached yet.
+   */
+  keptPhonelessProperty: number;
+};
+
+export type FinalGateOptions<T> = {
+  /**
+   * Rows matching this predicate survive with a blank phone instead of being
+   * dropped as removedNoPhone. Landline/VoIP rows still drop under mobileOnly.
+   */
+  keepPhoneless?: (row: T) => boolean;
 };
 
 /**
@@ -94,12 +107,14 @@ export type FinalGateResult<T> = {
 export function verifyNewlyTraced<T extends VerifyInput & { line_type?: LineType }>(
   rows: T[],
   mobileOnly: boolean,
+  options: FinalGateOptions<T> = {},
 ): FinalGateResult<T> {
   const kept: Array<T & { line_type: LineType }> = [];
   let alreadyMobile = 0;
   let evaluated = 0;
   let removedNotMobile = 0;
   let removedNoPhone = 0;
+  let keptPhonelessProperty = 0;
 
   for (const row of rows) {
     if (row.line_type === "mobile") {
@@ -110,6 +125,12 @@ export function verifyNewlyTraced<T extends VerifyInput & { line_type?: LineType
     evaluated++;
     const line_type = classifyLineType(row.phone);
     const missing = !(row.phone ?? "").replace(/\D/g, "");
+    if (missing && options.keepPhoneless?.(row)) {
+      // A property lead with no phone is still mailable/knockable — keep it.
+      keptPhonelessProperty++;
+      kept.push({ ...row, line_type });
+      continue;
+    }
     if (mobileOnly && !isTextable(line_type)) {
       if (missing) removedNoPhone++;
       else removedNotMobile++;
@@ -117,5 +138,5 @@ export function verifyNewlyTraced<T extends VerifyInput & { line_type?: LineType
     }
     kept.push({ ...row, line_type });
   }
-  return { kept, alreadyMobile, evaluated, removedNotMobile, removedNoPhone };
+  return { kept, alreadyMobile, evaluated, removedNotMobile, removedNoPhone, keptPhonelessProperty };
 }

@@ -76,7 +76,9 @@ function JobDetail() {
   const doPause = useServerFn(pauseJob);
   const doResume = useServerFn(resumeJob);
   const [browserOpen, setBrowserOpen] = useState(false);
-  const [browserBucket, setBrowserBucket] = useState<"clean" | "dnc" | "litigator" | "all">("clean");
+  const [browserBucket, setBrowserBucket] = useState<
+    "clean" | "dnc" | "litigator" | "property" | "all"
+  >("clean");
   const [logOpen, setLogOpen] = useState(true);
   const [legacyDismissed, setLegacyDismissed] = useState(false);
   // Nobody rereads the log once the run lands — collapse it on completion.
@@ -810,7 +812,7 @@ function LaunchCampaignDialog({ defaultJobId, defaultJobName }: { defaultJobId: 
   );
 }
 
-type Bucket = "clean" | "dnc" | "litigator" | "all";
+type Bucket = "clean" | "dnc" | "litigator" | "property" | "all";
 
 type LeadRow = {
   id: string;
@@ -879,6 +881,7 @@ function LeadsBrowser({ jobId, templateId, outputFields, disabled, open, onOpenC
               <SelectItem value="clean">Clean</SelectItem>
               <SelectItem value="dnc">DNC</SelectItem>
               <SelectItem value="litigator">Litigator</SelectItem>
+              <SelectItem value="property">Property (No Phone)</SelectItem>
               <SelectItem value="all">All</SelectItem>
             </SelectContent>
           </Select>
@@ -886,7 +889,16 @@ function LeadsBrowser({ jobId, templateId, outputFields, disabled, open, onOpenC
         <div className="mt-4 space-y-2">
           {isFetching && <div className="text-sm text-muted-foreground">Loading…</div>}
           {!isFetching && leads.length === 0 && (
-            <div className="text-sm text-muted-foreground text-center py-6">No Leads Match.</div>
+            <div className="text-sm text-muted-foreground text-center py-6">
+              No Leads Match.
+              {bucket === "clean" && (
+                <div className="mt-2">
+                  <Button variant="outline" size="sm" className="rounded-full" onClick={() => onBucketChange("property")}>
+                    View Property Leads (No Phone)
+                  </Button>
+                </div>
+              )}
+            </div>
           )}
           {leads.map((l) => (
             <button

@@ -53,4 +53,18 @@ describe("verifyNewlyTraced (final carrier gate)", () => {
     expect(gate.removedNotMobile).toBe(0);
     expect(gate.kept).toHaveLength(1);
   });
+
+  it("keeps phoneless property leads and still drops other phoneless rows", () => {
+    const rows = [
+      { phone: null as string | null, isProperty: true },
+      { phone: null as string | null, isProperty: false },
+      { phone: "312-200-0100", isProperty: true }, // landline that DID come back
+    ];
+    const gate = verifyNewlyTraced(rows, true, { keepPhoneless: (r) => r.isProperty });
+    expect(gate.keptPhonelessProperty).toBe(1);
+    expect(gate.removedNoPhone).toBe(1);
+    expect(gate.removedNotMobile).toBe(1);
+    expect(gate.kept).toHaveLength(1);
+    expect(gate.kept[0]!.phone).toBeNull();
+  });
 });
