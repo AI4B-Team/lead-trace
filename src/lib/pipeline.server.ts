@@ -779,7 +779,7 @@ async function runPipelineBody(
           try {
             const t = await provider.trace({
               ownerName: r.full_name ?? null,
-              street: r.address,
+              street: r.address ?? null,
               city: r.city ?? null,
               state: r.state ?? null,
               zip: r.zip ?? null,
@@ -867,9 +867,9 @@ async function runPipelineBody(
           }
           if (dropped > 0) {
             parts.push(
-            `${finalGate.removedNoPhone.toLocaleString()} ${
-              finalGate.removedNoPhone === 1 ? "record" : "records"
-            } still had no phone number after skip trace and were dropped`,
+              `${dropped.toLocaleString()} ${
+                dropped === 1 ? "record" : "records"
+              } still had no phone number after skip trace and were dropped`,
             );
           }
         }
