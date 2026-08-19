@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { RealeflowError, rfAutocomplete } from "@/lib/realeflow/client.server";
 import type { AutocompleteResult } from "@/lib/realeflow/types";
+import { FL_COUNTY_FIPS } from "@/lib/fl-counties";
 
 function isBotProtectionError(error: unknown): boolean {
   return (
@@ -45,10 +46,14 @@ export async function resilientRfAutocomplete(
     }
 
     const { data, error: lookupError } = await lookup;
-    if (lookupError) return [];
+    const databaseRows = lookupError ? [] : (data ?? []);
+    const localFloridaRows = Object.entries(FL_COUNTY_FIPS)
+      .filter(([county]) => county.toLowerCase().includes(countyTerm.toLowerCase()))
+      .map(([county_name, fips]) => ({ county_name, state: "FL", fips }));
+    const rows = databaseRows.length > 0 ? databaseRows : localFloridaRows;
 
     const seen = new Set<string>();
-    return (data ?? []).flatMap((row) => {
+    return rows.flatMap((row) => {
       if (!row.fips || seen.has(row.fips)) return [];
       seen.add(row.fips);
       return [
