@@ -53,8 +53,8 @@ export type EscheatBucket = (typeof ESCHEAT_BUCKETS)[number]["value"];
  * scanning what just landed.
  */
 export const SORT_OPTIONS = [
-  { value: "urgency", label: "Closest deadline" },
-  { value: "newest", label: "Newest sale date" },
+  { value: "urgency", label: "Closest Deadline" },
+  { value: "newest", label: "Newest Sale Date" },
 ] as const;
 
 export type SortOrder = (typeof SORT_OPTIONS)[number]["value"];
