@@ -132,41 +132,35 @@ function SurplusFundsFeed() {
           isFiltered={isFiltered}
         />
 
-        {/* Summary strip */}
-        <div className="flex flex-wrap items-center gap-3">
-          <SummaryChip label="Total Records" value={query.isLoading ? "—" : total.toLocaleString()} />
+        {/* Summary strip + sorting */}
+        <div className="flex flex-wrap items-center gap-2">
+          <SummaryChip text={`${query.isLoading ? "—" : total.toLocaleString()} Records`} />
           <SummaryChip
-            label="Total Surplus (this page)"
-            value={query.isLoading ? "—" : currency.format(pageSurplusTotal)}
+            text={`${query.isLoading ? "—" : currency.format(pageSurplusTotal)} Surplus`}
+            hint="Sum of the surplus amounts on this page only."
           />
           <SummaryChip
-            label="Clerk Confirmed (this page)"
-            value={query.isLoading ? "—" : clerkConfirmedCount.toLocaleString()}
+            text={`${query.isLoading ? "—" : clerkConfirmedCount.toLocaleString()} Clerk Confirmed`}
+            hint="Clerk-confirmed records on this page only."
             accent
           />
           <div className="ml-auto flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Sort</span>
-            <div className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5">
-              {SORT_OPTIONS.map((option) => {
-                const active = filters.sort === option.value;
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    aria-pressed={active}
-                    onClick={() => setFilters({ sort: option.value, page: 1 })}
-                    className={
-                      "h-7 rounded-md px-3 text-xs font-medium transition-colors " +
-                      (active
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground")
-                    }
-                  >
+            <span className="text-xs text-muted-foreground">Sort By</span>
+            <Select
+              value={filters.sort}
+              onValueChange={(sort) => setFilters({ sort, page: 1 })}
+            >
+              <SelectTrigger className="h-8 w-[190px] rounded-md text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="end">
+                {SORT_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
                     {option.label}
-                  </button>
-                );
-              })}
-            </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
