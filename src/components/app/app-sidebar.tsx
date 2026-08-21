@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspaceId } from "@/hooks/use-workspace";
@@ -78,45 +77,41 @@ export function AppSidebar() {
     <TooltipProvider delayDuration={0}>
       <Sidebar collapsible="icon">
         <SidebarHeader className="border-b border-sidebar-border">
-          <div className={cn("relative flex items-center px-2 py-2", collapsed ? "justify-center" : "justify-between gap-1")}>
-            <Tooltip>
-              <TooltipTrigger asChild>
+          {collapsed ? (
+            // Collapsed rail is only 3rem wide — the logo and the toggle would
+            // overlap, and the logo (a Link to the dashboard) would swallow the
+            // click so Expand never fired. Show a single, full-width trigger.
+            <div className="flex items-center justify-center px-2 py-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SidebarTrigger className="h-8 w-8 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="bg-popover text-popover-foreground border-border shadow-md">
+                  Expand Menu
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          ) : (
+            <>
+              <div className="relative flex items-center px-2 py-2 justify-between gap-1">
                 <Link
                   to="/app/dashboard"
-                  className={cn(
-                    "flex items-center gap-2 font-display font-bold text-base text-sidebar-foreground",
-                    collapsed && "justify-center"
-                  )}
+                  className="flex items-center gap-2 font-display font-bold text-base text-sidebar-foreground"
                 >
                   <span className="grid place-items-center h-7 w-7 rounded-md bg-primary text-primary-foreground shrink-0">
                     <Radar className="h-4 w-4" />
                   </span>
-                  {!collapsed && BRAND_NAME}
-                </Link>
-              </TooltipTrigger>
-              {collapsed && (
-                <TooltipContent side="right" className="bg-popover text-popover-foreground border-border shadow-md">
                   {BRAND_NAME}
-                </TooltipContent>
-              )}
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <SidebarTrigger className={cn("h-7 w-7 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", collapsed && "absolute right-1")} />
-              </TooltipTrigger>
-              {collapsed && (
-                <TooltipContent side="right" className="bg-popover text-popover-foreground border-border shadow-md">
-                  Expand Menu
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </div>
-          {!collapsed && (
-            <div className="px-2 pb-1.5">
-              <WorkspaceSwitcher />
-            </div>
+                </Link>
+                <SidebarTrigger className="h-7 w-7 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" />
+              </div>
+              <div className="px-2 pb-1.5">
+                <WorkspaceSwitcher />
+              </div>
+            </>
           )}
         </SidebarHeader>
+
         <SidebarContent>
           <SidebarGroup>
             {!collapsed && <SidebarGroupLabel>Navigate</SidebarGroupLabel>}
