@@ -16,7 +16,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useWorkspaceId } from "@/hooks/use-workspace";
 import { exportSurplusRecords, listSurplusRecords } from "@/lib/surplus/feed.functions";
 import { surplusFiltersSchema, type SurplusFilters } from "@/lib/surplus/feed.schema";
