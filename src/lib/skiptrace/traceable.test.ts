@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { isTraceableRecordsLead, hasTraceableRecordsRows } from "./traceable";
+import {
+  isTraceableRecordsLead,
+  hasTraceableRecordsRows,
+  isSurplusPropertyLead,
+  isKeepablePropertyLead,
+} from "./traceable";
 
 describe("isTraceableRecordsLead", () => {
   it("treats distress_feed rows with an address as traceable", () => {
@@ -33,6 +38,61 @@ describe("isTraceableRecordsLead", () => {
         { address: "2 Oak St", source_meta: { source: "distress_feed" } },
       ]),
     ).toBe(true);
+  });
+});
+
+describe("isSurplusPropertyLead / isKeepablePropertyLead", () => {
+  // Marion FL: owner-less, address-less surplus list — only a parcel + balance.
+  const marionRow = {
+    address: null as string | null,
+    source_meta: {
+      source: "distress_feed",
+      record_type: "surplus_funds",
+      surplus_amount: 6870.5,
+      parcel_apn: "1814-026-017",
+    },
+  };
+
+  it("keeps a parcel-only confirmed surplus row (no phone, no address)", () => {
+    expect(isSurplusPropertyLead(marionRow)).toBe(true);
+    // Not skip-traceable (no address), but still worth keeping in the master.
+    expect(isTraceableRecordsLead(marionRow)).toBe(false);
+    expect(isKeepablePropertyLead(marionRow)).toBe(true);
+  });
+
+  it("rejects a surplus row with no parcel to key on", () => {
+    expect(
+      isSurplusPropertyLead({
+        address: null,
+        source_meta: { record_type: "surplus_funds", surplus_amount: 100 },
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects a surplus row with no confirmed amount", () => {
+    expect(
+      isSurplusPropertyLead({
+        address: null,
+        source_meta: { record_type: "surplus_funds", parcel_apn: "1814-026-017" },
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects a non-surplus parcel row (probate with a parcel is not a surplus balance)", () => {
+    expect(
+      isSurplusPropertyLead({
+        address: null,
+        source_meta: { record_type: "probate", surplus_amount: 100, parcel_apn: "X" },
+      }),
+    ).toBe(false);
+  });
+
+  it("still keeps an address-carrying property row via the traceable path", () => {
+    const dekalb = {
+      address: "470 Varner St",
+      source_meta: { source: "distress_feed", record_type: "surplus_funds" },
+    };
+    expect(isKeepablePropertyLead(dekalb)).toBe(true);
   });
 });
 

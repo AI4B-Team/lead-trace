@@ -846,9 +846,12 @@ async function runPipelineBody(
     if (mobileOnly) {
       // Distress/live-records property rows survive the gate phone-blank; every
       // other phoneless row (uploads, business lists) still drops as before.
-      const { isTraceableRecordsLead } = await import("./skiptrace/traceable");
+      // Parcel-only confirmed surplus rows (no phone, no address — e.g. Marion FL)
+      // are kept too: the held balance is claimable by parcel, so the record is
+      // real even though it can't be skip traced.
+      const { isKeepablePropertyLead } = await import("./skiptrace/traceable");
       const keepPhoneless =
-        job.source_type === "records" ? (row: (typeof verified)[number]) => isTraceableRecordsLead(row) : undefined;
+        job.source_type === "records" ? (row: (typeof verified)[number]) => isKeepablePropertyLead(row) : undefined;
       // Rows that already passed as mobile are never re-checked here — skip
       // trace only appends numbers to rows that had none, so the second pass
       // evaluates ONLY those rows.
