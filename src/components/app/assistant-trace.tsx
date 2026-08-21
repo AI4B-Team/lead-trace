@@ -124,7 +124,11 @@ function headline(
   done: boolean,
   complete: boolean,
   cov: TraceCoverage | null,
+  waiting: boolean,
 ): { text: string; ok: boolean } {
+  // Idle with a required slot still open: the assistant is not working, it is
+  // waiting on the operator. Never imply live work with an "Assembling…" spinner.
+  if (waiting) return { text: "Waiting On You", ok: false };
   if (!done) return { text: complete ? "Building Your List…" : "Assembling…", ok: false };
   if (cov && (cov.status === "none" || cov.status === "scope_too_broad")) {
     return { text: "Spec Complete — Not Available Yet", ok: false };
@@ -160,7 +164,10 @@ export function AssistantTrace({
   const visible = steps.slice(0, revealed);
   const complete = open.length === 0;
   const done = complete && revealed >= steps.length && !thinking;
-  const head = headline(done, complete, coverage);
+  // The turn is over (not thinking, every step shown) but a required slot is
+  // still open. The card is idle — waiting on the operator, not assembling.
+  const waiting = !thinking && !complete && revealed >= steps.length;
+  const head = headline(done, complete, coverage, waiting);
   const blocked = Boolean(
     coverage && (coverage.status === "none" || coverage.status === "scope_too_broad"),
   );
@@ -172,7 +179,7 @@ export function AssistantTrace({
           <span className="grid h-5 w-5 place-items-center rounded-full bg-success/15 text-success">
             <Check className="h-3 w-3" strokeWidth={3} />
           </span>
-        ) : done ? (
+        ) : done || waiting ? (
           <MinusCircle className="h-4 w-4 text-muted-foreground" />
         ) : (
           <Loader2 className="h-4 w-4 animate-spin text-primary" />
