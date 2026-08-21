@@ -26,10 +26,40 @@ export class ScopeTooBroadError extends Error {
   }
 }
 
-async function admin() {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return supabaseAdmin;
+/**
+ * Coverage reads only touch `source_coverage`, which is readable with the
+ * publishable key. Prefer the admin client (writes via the sync RPC), but fall
+ * back to a publishable-key client when the service-role key is unavailable in
+ * this runtime — a missing key must never blank the assistant.
+ */
+type AdminClient = typeof import("@/integrations/supabase/client.server")["supabaseAdmin"];
+
+async function admin(): Promise<AdminClient> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Touch a property so the lazy proxy throws here, not at query time.
+    void supabaseAdmin.from;
+    return supabaseAdmin;
+  } catch {
+    const { createClient } = await import("@supabase/supabase-js");
+    const key = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY ?? "";
+    return createClient(process.env.SUPABASE_URL ?? "", key, {
+      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+      global: {
+        fetch: (input: RequestInfo | URL, init?: RequestInit) => {
+          const headers = new Headers(init?.headers);
+          if (key.startsWith("sb_") && headers.get("Authorization") === `Bearer ${key}`) {
+            headers.delete("Authorization");
+          }
+          headers.set("apikey", key);
+          return fetch(input, { ...init, headers });
+        },
+      },
+    }) as unknown as AdminClient;
+  }
 }
+
+
 
 /** Primary gate: is this FIPS + record type verified? */
 export async function hasCoverage(fips: string, recordType: string): Promise<boolean> {
