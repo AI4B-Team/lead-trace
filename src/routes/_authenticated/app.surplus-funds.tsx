@@ -336,27 +336,31 @@ function SurplusFundsFeed() {
 }
 
 function SummaryChip({
-  label,
-  value,
+  text,
+  hint,
   accent,
 }: {
-  label: string;
-  value: string;
+  text: string;
+  hint?: string;
   accent?: boolean;
 }) {
-  return (
-    <div
+  const chip = (
+    <span
       className={
-        "flex items-center gap-2 rounded-lg border px-3 py-1.5 " +
+        "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium tabular-nums text-foreground " +
         (accent ? "border-success/30 bg-success/5" : "border-border bg-muted/30")
       }
     >
-      <Sparkles className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
-      <div className="flex items-baseline gap-2">
-        <span className="text-xs text-muted-foreground">{label}</span>
-        <span className="text-sm font-semibold tabular-nums text-foreground">{value}</span>
-      </div>
-    </div>
+      <Sparkles className="h-3 w-3 text-muted-foreground" aria-hidden />
+      {text}
+    </span>
+  );
+  if (!hint) return chip;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{chip}</TooltipTrigger>
+      <TooltipContent>{hint}</TooltipContent>
+    </Tooltip>
   );
 }
 
