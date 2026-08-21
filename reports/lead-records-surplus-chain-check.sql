@@ -1,5 +1,51 @@
 -- ============================================================================
--- All three links in ONE result grid (the SQL editor only renders the LAST
+-- FINDINGS (2026-08-21 run)
+--   §1 distress_records: 5194 surplus rows, all with surplus_amount (global catalog).
+--   §2 leads:            5131 total; 2874 carry a surplus_amount KEY but
+--                        record_type LIKE %surplus% = 0  -> these are probate/
+--                        vacancy distress-feed leads. distressRowToLead ALWAYS
+--                        writes surplus_amount: (value ?? null), so non-surplus
+--                        distress leads carry surplus_amount:null. No real amount.
+--   §3 lead_records:     3367 total, 3292 with meta, 0 surplus_amount / escheat.
+--
+-- CONCLUSION: not a migration/trigger bug. The backfill correctly skipped the
+-- null-valued keys. Real surplus leads never entered THIS workspace's leads
+-- because no surplus job was ever run here. distress_records is a GLOBAL catalog
+-- (no workspace_id); leads/lead_records are per-workspace + credit-gated, so a
+-- direct distress_records -> lead_records backfill would be WRONG (it would
+-- inject paid data into workspaces that never requested it).
+--
+-- FIX: run a surplus job (e.g. "surplus funds for Hillsborough, FL"). The fixed
+-- rollup trigger then persists surplus_amount + sale_date + DB-computed
+-- escheat_date into lead_records, and the Leads UI columns populate.
+-- ============================================================================
+
+-- ============================================================================
+-- DECISIVE: §2 has the surplus_amount KEY (2874) but §3 got 0. Is the value
+-- actually a JSON null in leads (so the backfill correctly skipped it), or a
+-- real number the backfill wrongly dropped? Run this one query.
+--
+--   value_is_json_null ≈ 2874  -> leads carry surplus_amount:null (the amount was
+--       lost upstream, e.g. old distressRowToLead). Nothing to recover FROM leads.
+--       Fix: backfill lead_records straight from distress_records (see below),
+--       and/or run a fresh surplus job so the current mapping repopulates.
+--   has_real_value  ≈ 2874     -> backfill bug: it dropped real numbers.
+-- ============================================================================
+SELECT
+  count(*) FILTER (WHERE source_meta ? 'surplus_amount')                      AS key_present,
+  count(*) FILTER (WHERE jsonb_typeof(source_meta->'surplus_amount') = 'null') AS value_is_json_null,
+  count(*) FILTER (WHERE nullif(source_meta->>'surplus_amount','') IS NOT NULL) AS has_real_value,
+  count(*) FILTER (WHERE nullif(source_meta->>'auction_date','') IS NOT NULL)   AS has_real_auction
+FROM public.leads
+WHERE source_meta ? 'surplus_amount';
+
+-- Also: which meta keys actually landed in lead_records (what the 3292 are).
+SELECT k AS meta_key, count(*) AS n
+FROM public.lead_records, jsonb_object_keys(source_meta) k
+GROUP BY k ORDER BY n DESC;
+
+-- ============================================================================
+
 -- SELECT of a multi-statement batch, so UNION them). Read top-to-bottom:
 --   §2 with_surplus_amount = 0  -> surplus never reached the leads table
 --       (no surplus/records job was run, or the phoneless gate dropped them).
