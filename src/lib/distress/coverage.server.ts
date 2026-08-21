@@ -32,7 +32,9 @@ export class ScopeTooBroadError extends Error {
  * back to a publishable-key client when the service-role key is unavailable in
  * this runtime — a missing key must never blank the assistant.
  */
-async function admin() {
+type AdminClient = typeof import("@/integrations/supabase/client.server")["supabaseAdmin"];
+
+async function admin(): Promise<AdminClient> {
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Touch a property so the lazy proxy throws here, not at query time.
@@ -53,11 +55,10 @@ async function admin() {
           return fetch(input, { ...init, headers });
         },
       },
-    }) as unknown as Awaited<ReturnType<typeof import("@/integrations/supabase/client.server").then>> extends never
-      ? never
-      : ReturnType<typeof createClient>;
+    }) as unknown as AdminClient;
   }
 }
+
 
 
 /** Primary gate: is this FIPS + record type verified? */
