@@ -12,8 +12,6 @@ import {
   BarChart3,
   Bot,
   Users,
-  Home,
-  Coins,
 } from "lucide-react";
 import {
   Sidebar,
@@ -42,8 +40,6 @@ const ITEMS = [
   { to: "/app/assistant", label: "Build", icon: Plus },
   { to: "/app/lists", label: "Lists", icon: ListChecks },
   { to: "/app/leads", label: "Leads", icon: Users },
-  { to: "/app/property-search", label: "Property Search", icon: Home },
-  { to: "/app/surplus-funds", label: "Surplus Funds", icon: Coins },
   { to: "/app/agent", label: "AI Agent", icon: Bot },
   { to: "/app/campaigns", label: "Campaigns", icon: MessageSquare },
   { to: "/app/reports", label: "Performance", icon: BarChart3 },

@@ -10,6 +10,15 @@ import { pgIlikePattern } from "@/lib/pg-filter";
 
 const CADENCES = ["one_time", "12h", "daily", "weekly"] as const;
 
+/** Read a single string field out of a lead_records.source_meta JSON blob. */
+function metaStr(meta: unknown, key: string): string {
+  if (!meta || typeof meta !== "object") return "";
+  const v = (meta as Record<string, unknown>)[key];
+  if (v == null) return "";
+  const s = String(v).trim();
+  return s;
+}
+
 // The cumulative, cross-list record asset.
 export const listLeadRecords = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -35,7 +44,7 @@ export const listLeadRecords = createServerFn({ method: "GET" })
     let q = supabase
       .from("lead_records")
       .select(
-        "id, full_name, business_name, phone, phone_type, email, address, website, socials, handle, platform, followers, engagement, city, state, zip, disposition, source_types, record_types, list_count, first_seen_at, last_seen_at, is_new, nominated_at, nominated_score, nominated_reason",
+        "id, full_name, business_name, phone, phone_type, email, address, website, socials, handle, platform, followers, engagement, city, state, zip, disposition, source_types, record_types, source_meta, list_count, first_seen_at, last_seen_at, is_new, nominated_at, nominated_score, nominated_reason",
       )
       .eq("workspace_id", data.workspaceId)
       .order("last_seen_at", { ascending: false })
@@ -452,7 +461,7 @@ export const exportLeadRecords = createServerFn({ method: "GET" })
       let q = context.supabase
         .from("lead_records")
         .select(
-          "full_name, business_name, phone, phone_type, email, address, city, state, zip, website, handle, platform, followers, engagement, disposition, source_types, record_types, list_count, first_seen_at, last_seen_at, nominated_at, nominated_score, nominated_reason",
+          "full_name, business_name, phone, phone_type, email, address, city, state, zip, website, handle, platform, followers, engagement, disposition, source_types, record_types, source_meta, list_count, first_seen_at, last_seen_at, nominated_at, nominated_score, nominated_reason",
         )
         .eq("workspace_id", data.workspaceId)
         .order("last_seen_at", { ascending: false })
@@ -506,6 +515,12 @@ export const exportLeadRecords = createServerFn({ method: "GET" })
       disposition: r.disposition ?? "",
       sources: (r.source_types ?? []).join(" | "),
       record_types: (r.record_types ?? []).join(" | "),
+      // Amount-driven lead types (surplus / distress) carry these in source_meta.
+      county: metaStr(r.source_meta, "county"),
+      surplus_amount: metaStr(r.source_meta, "surplus_amount"),
+      sale_date: metaStr(r.source_meta, "sale_date") || metaStr(r.source_meta, "auction_date"),
+      escheat_date: metaStr(r.source_meta, "escheat_date"),
+      disbursement_status: metaStr(r.source_meta, "disbursement_status"),
       shortlisted: r.nominated_at ? "yes" : "",
       shortlist_score: r.nominated_score ?? "",
       shortlist_reason: r.nominated_reason ?? "",

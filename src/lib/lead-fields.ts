@@ -29,7 +29,12 @@ export type KnownLeadFieldKey =
   | "phone"
   | "email"
   | "address"
-  | "website";
+  | "website"
+  | "record_type"
+  | "county"
+  | "surplus_amount"
+  | "sale_date"
+  | "escheat_date";
 
 /**
  * Field keys are NOT a closed enum. Built-in templates use registry keys;
@@ -42,12 +47,21 @@ export type LeadFieldRow = Record<string, unknown> & {
   source_meta?: unknown;
 };
 
+/**
+ * How a display value should be rendered. Amount-driven lead types (surplus /
+ * distress) carry currency, dates and an escheat countdown that read as noise
+ * when printed raw — the table uses this hint to format them properly.
+ */
+export type LeadFieldFormat = "currency" | "date" | "escheat";
+
 export type LeadField = {
   key: LeadFieldKey;
   label: string;
   kind: LeadFieldKind;
   /** Outreach channel this field maps to, when it is one. */
   channel?: "phone" | "email" | "address";
+  /** Presentation hint for the renderer; plain text when omitted. */
+  format?: LeadFieldFormat;
   /** Raw display value for this row, or null when the record has none. */
   value: (row: LeadFieldRow) => string | null;
 };
@@ -118,6 +132,41 @@ export const LEAD_FIELDS: Record<KnownLeadFieldKey, LeadField> = {
     kind: "display",
     value: (r) => firstOf(r.website, meta(r).website, meta(r).profile_url, meta(r).url),
   },
+  // Amount-driven lead types (surplus funds / distress). These live in
+  // source_meta, so they are display-only and formatted via the `format` hint.
+  record_type: {
+    key: "record_type",
+    label: "Record Type",
+    kind: "display",
+    value: (r) => str(meta(r).record_type),
+  },
+  county: {
+    key: "county",
+    label: "County",
+    kind: "display",
+    value: (r) => str(meta(r).county),
+  },
+  surplus_amount: {
+    key: "surplus_amount",
+    label: "Surplus",
+    kind: "display",
+    format: "currency",
+    value: (r) => str(meta(r).surplus_amount),
+  },
+  sale_date: {
+    key: "sale_date",
+    label: "Sale Date",
+    kind: "display",
+    format: "date",
+    value: (r) => firstOf(meta(r).sale_date, meta(r).auction_date),
+  },
+  escheat_date: {
+    key: "escheat_date",
+    label: "Escheat",
+    kind: "display",
+    format: "escheat",
+    value: (r) => str(meta(r).escheat_date),
+  },
 };
 
 /** The three real outreach channels. Website/social are deliberately absent. */
@@ -147,6 +196,12 @@ export const AGGREGATE_CANDIDATE_KEYS: KnownLeadFieldKey[] = [
   "email",
   "address",
   "website",
+  // Amount-driven lead types — surface only when the filtered view has them.
+  "record_type",
+  "county",
+  "surplus_amount",
+  "sale_date",
+  "escheat_date",
 ];
 
 /** Site scrapers take a URL in and hand back a business + its contact page. */
@@ -171,10 +226,20 @@ const CLAIMED_META_KEYS = new Set([
   "handle", "username", "platform", "followers", "follower_count", "engagement",
   "engagement_rate", "email", "website", "url", "profile_url", "phone", "address",
   "city", "state", "zip", "name", "full_name", "business", "business_name",
+  // Claimed by the amount-driven registry fields above (some via aliases), so
+  // discovery never renders a second raw copy of them.
+  "record_type", "county", "surplus_amount", "sale_date", "auction_date", "escheat_date",
 ]);
 
 /** Structural noise that is never a user-facing column. */
-const NOISE_META_KEYS = new Set(["id", "raw", "html", "body", "source", "source_id", "scraped_at", "row_index"]);
+const NOISE_META_KEYS = new Set([
+  "id", "raw", "html", "body", "source", "source_id", "scraped_at", "row_index",
+  // Internal distress/surplus plumbing — not customer-facing columns. The
+  // surplus facts worth showing are promoted to registry fields above.
+  "fips", "doc_number", "filed_date", "parcel_apn", "amount",
+  "mailing_address", "mailing_city", "mailing_state", "mailing_zip",
+  "surplus_basis", "case_status", "disbursement_status", "provider", "rf_hash", "realeflow",
+]);
 
 const humanize = (key: string): string =>
   key

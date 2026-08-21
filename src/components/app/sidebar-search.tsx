@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Search, ChevronDown, Users, ListChecks, MessageSquare, Radio, Home } from "lucide-react";
+import { Search, ChevronDown, Users, ListChecks, MessageSquare, Radio } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -18,7 +18,6 @@ const SCOPES: { value: Scope; label: string; icon: typeof Users; placeholder: st
 const JUMP_TO = [
   { to: "/app/inbox", label: "Conversations", icon: MessageSquare },
   { to: "/app/campaigns", label: "Campaigns", icon: Radio },
-  { to: "/app/property-search", label: "Property Search", icon: Home },
 ] as const;
 
 /**

@@ -30,6 +30,8 @@ import { LeadDetailDrawer } from "@/components/app/lead-detail-drawer";
 import { PhoneCell, EmailCell } from "@/components/app/channel-icons";
 import { mailingAddress } from "@/lib/contact-channels";
 import { aggregateFields, type LeadField } from "@/lib/lead-fields";
+import { currency, formatFeedDate } from "@/lib/surplus/feed.shared";
+import { EscheatCountdown } from "@/components/app/surplus/indicators";
 
 export const Route = createFileRoute("/_authenticated/app/leads")({
   validateSearch: (search: Record<string, unknown>): { onlyNew?: boolean; q?: string } => ({
@@ -282,7 +284,7 @@ function LeadsPageInner() {
   // Registry fields present in this view, plus any novel fields a custom
   // scrape contributed — no column code per source.
   const dynamicCols: LeadField[] = aggregateFields(rows as Array<Record<string, unknown>>);
-  const colCount = dynamicCols.length + 5;
+  const colCount = dynamicCols.length + 6;
   const byRecordType = Object.entries(data?.byRecordType ?? {});
   const bySource = Object.entries(data?.bySource ?? {});
 
@@ -432,6 +434,7 @@ function LeadsPageInner() {
             <thead>
               <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground border-b border-border">
                 <th className="p-4">Name / Business</th>
+                <th className="p-4">Type</th>
                 {dynamicCols.map((f) => (
                   <th key={f.key} className="p-4">{f.label}</th>
                 ))}
@@ -506,6 +509,22 @@ function LeadsPageInner() {
                       </div>
                     </div>
                   </td>
+                  <td className="p-4">
+                    {(r.record_types ?? []).length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {(r.record_types ?? []).map((t) => (
+                          <span
+                            key={t}
+                            className="inline-flex rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[11px] font-medium text-muted-foreground whitespace-nowrap"
+                          >
+                            {recordTypeLabelFor(t)}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground/40">—</span>
+                    )}
+                  </td>
                   {dynamicCols.map((f) => {
                     const k = f.key;
                     return (
@@ -537,6 +556,34 @@ function LeadsPageInner() {
                         ) : (
                           <span className="text-muted-foreground/40">—</span>
                         )
+                      ) : f.format ? (
+                        // Amount-driven lead types (surplus / distress): currency,
+                        // dates and the escheat countdown from the surplus feed.
+                        (() => {
+                          const v = f.value(r as unknown as Record<string, unknown>);
+                          if (f.format === "escheat") {
+                            const days = v ? Math.round((new Date(`${v.slice(0, 10)}T00:00:00`).getTime() - Date.now()) / 86_400_000) : null;
+                            const status = (r.source_meta as Record<string, unknown> | null)?.["disbursement_status"];
+                            return (
+                              <EscheatCountdown
+                                days={days}
+                                escheatDate={v}
+                                disbursementStatus={typeof status === "string" ? status : null}
+                              />
+                            );
+                          }
+                          if (!v) return <span className="text-muted-foreground/40">—</span>;
+                          if (f.format === "currency") {
+                            const n = Number(v);
+                            return (
+                              <span className="tabular-nums font-medium text-foreground">
+                                {Number.isFinite(n) ? currency.format(n) : v}
+                              </span>
+                            );
+                          }
+                          // date
+                          return <span className="tabular-nums text-muted-foreground">{formatFeedDate(v)}</span>;
+                        })()
                       ) : f.channel ? (
                         // Custom outreach-channel field (e.g. a county portal's
                         // "mailing_address"): channel treatment, generic render.

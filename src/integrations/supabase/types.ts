@@ -2281,6 +2281,7 @@ export type Database = {
           platform: string | null
           record_types: string[]
           socials: Json
+          source_meta: Json
           source_types: string[]
           state: string | null
           updated_at: string
@@ -2317,6 +2318,7 @@ export type Database = {
           platform?: string | null
           record_types?: string[]
           socials?: Json
+          source_meta?: Json
           source_types?: string[]
           state?: string | null
           updated_at?: string
@@ -2353,6 +2355,7 @@ export type Database = {
           platform?: string | null
           record_types?: string[]
           socials?: Json
+          source_meta?: Json
           source_types?: string[]
           state?: string | null
           updated_at?: string
