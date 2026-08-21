@@ -70,6 +70,7 @@ BEGIN
   v_handle := nullif(coalesce(NEW.source_meta->>'handle', NEW.source_meta->>'username', ''), '');
   v_platform := nullif(coalesce(NEW.source_meta->>'platform', ''), '');
   v_followers := nullif(coalesce(NEW.source_meta->>'followers', NEW.source_meta->>'follower_count', ''), '');
+  v_engagement := nullif(coalesce(NEW.source_meta->>'engagement', NEW.source_meta->>'engagement_rate', ''), '');
 
   -- Curated facts we surface as Leads columns. Non-null / non-blank only, so the
   -- ON CONFLICT merge below never overwrites a good value with a null.
@@ -116,6 +117,7 @@ BEGIN
     IF v_escheat_date IS NOT NULL THEN
       v_meta := v_meta || jsonb_build_object('escheat_date', to_char(v_escheat_date, 'YYYY-MM-DD'));
     END IF;
+  END IF;
 
   INSERT INTO public.lead_records (
     workspace_id, dedupe_key, full_name, business_name, phone, phone_type, email,
@@ -174,10 +176,6 @@ BEGIN
   RETURN NEW;
 END;
 $function$;
-
-  END IF;
-
-  v_engagement := nullif(coalesce(NEW.source_meta->>'engagement', NEW.source_meta->>'engagement_rate', ''), '');
 
 -- Backfill: replay any parcel-only surplus leads that the OLD key dropped (rows
 -- with no phone/name/address/zip but a parcel_apn). Mirrors the trigger's INSERT
