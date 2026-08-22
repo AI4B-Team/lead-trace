@@ -27,7 +27,8 @@ export const getOnboarding = createServerFn({ method: "GET" })
   .handler(async ({ data, context }): Promise<OnboardingState> => {
     const ws = data.workspaceId;
     const count = (table: "jobs" | "brands" | "sending_numbers" | "campaigns" | "registrations") =>
-      context.supabase.from(table).select("id", { count: "exact", head: true }).eq("workspace_id", ws);
+      // registrations is keyed by workspace_id (no id column) — count on workspace_id.
+      context.supabase.from(table).select("workspace_id", { count: "exact", head: true }).eq("workspace_id", ws);
 
     const [prefs, wsPrefs, jobs, brands, numbers, campaigns, registrations] = await Promise.all([
       context.supabase
@@ -80,7 +81,8 @@ export const getLandingTarget = createServerFn({ method: "GET" })
   .handler(async ({ data, context }): Promise<{ target: "assistant" | "dashboard"; firstRun: boolean }> => {
     const ws = data.workspaceId;
     const count = (table: "jobs" | "campaigns" | "brands" | "sending_numbers" | "registrations") =>
-      context.supabase.from(table).select("id", { count: "exact", head: true }).eq("workspace_id", ws);
+      // registrations is keyed by workspace_id (no id column) — count on workspace_id.
+      context.supabase.from(table).select("workspace_id", { count: "exact", head: true }).eq("workspace_id", ws);
 
     const [prefs, jobs, campaigns, brands, numbers, registrations] = await Promise.all([
       context.supabase
