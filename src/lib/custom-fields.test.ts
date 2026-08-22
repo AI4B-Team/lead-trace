@@ -14,8 +14,10 @@ describe("custom scrape fields", () => {
     const keys = fields.map((f) => f.key);
     expect(keys).toContain("parcel_id");
     expect(keys).toContain("tax_amount");
-    expect(keys).toContain("mailing_address");
-    expect(fields.find((f) => f.key === "mailing_address")?.channel).toBe("address");
+    // mailing_* keys are internal distress/surplus plumbing — the registry's
+    // address field covers them, so discovery must not render a raw copy.
+    expect(keys).not.toContain("mailing_address");
+    expect(classifyFieldKey("mailing_address").channel).toBe("address");
     expect(fields.find((f) => f.key === "parcel_id")?.kind).toBe("display");
     expect(fields.find((f) => f.key === "parcel_id")?.label).toBe("Parcel Id");
     expect(fields.find((f) => f.key === "parcel_id")?.value(countyRows[0]!)).toBe("12-345-678");
