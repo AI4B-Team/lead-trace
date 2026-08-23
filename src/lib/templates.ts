@@ -4,7 +4,7 @@ import {
   Car, Utensils, Stethoscope, Wrench, Camera, Music, Plane, Store,
   Mail, Rocket, BadgeCheck, Network,
   DollarSign, BookOpen, Trophy, Film, Code, MessageSquare, Hotel, Bed,
-  ScanEye, CircleDollarSign,
+  ScanEye, CircleDollarSign, Radar,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
