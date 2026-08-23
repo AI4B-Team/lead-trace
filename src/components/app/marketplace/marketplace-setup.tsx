@@ -91,7 +91,7 @@ export function MarketplaceSetup({ initialMode = "manage" }: { initialMode?: "ma
     setLocation("");
     setRadius(50);
     setSources(MARKETPLACE_SOURCES.map((s) => s.key));
-    setAlertThreshold(1);
+    setMinMatchScore(DEFAULT_MIN_MATCH_SCORE);
     setNotifyInApp(true);
     setNotifyEmail(false);
     setDegraded(false);
