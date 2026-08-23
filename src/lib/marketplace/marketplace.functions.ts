@@ -164,3 +164,23 @@ export const reanalyzeMarketplaceListing = createServerFn({ method: "POST" })
     const s = await import("./analyze.server");
     return s.reanalyzeStoredListing(context.supabase, data.workspaceId, data.id);
   });
+
+/**
+ * Comparable Listings for one stored listing. Reuses a cached comp run unless
+ * `refresh` is set, since comp gathering is expensive.
+ */
+export const getMarketplaceComps = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        workspaceId: z.string().uuid(),
+        refresh: z.boolean().default(false),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const s = await import("./comps.server");
+    return s.checkComps(context.supabase, data.workspaceId, data.id, { refresh: data.refresh });
+  });
