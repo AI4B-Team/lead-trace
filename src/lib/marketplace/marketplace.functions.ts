@@ -56,3 +56,48 @@ export const listMarketplaceSearches = createServerFn({ method: "GET" })
     const s = await import("./searches.server");
     return { searches: await s.listSearches(context.supabase, data.workspaceId) };
   });
+
+const patchSchema = z.object({
+  id: z.string().uuid(),
+  workspaceId: z.string().uuid(),
+  name: z.string().min(1).max(120).optional(),
+  category: z.string().min(1).optional(),
+  prompt: z.string().max(2000).optional(),
+  criteria: criteriaSchema.optional(),
+  sources: z.array(z.string()).optional(),
+  location: z.string().max(200).nullable().optional(),
+  radiusMiles: z.number().int().nullable().optional(),
+  alertThreshold: z.number().int().min(1).max(100).optional(),
+  notifyInApp: z.boolean().optional(),
+  notifyEmail: z.boolean().optional(),
+  status: z.enum(["active", "paused"]).optional(),
+});
+
+export const updateMarketplaceSearch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => patchSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { id, workspaceId, ...patch } = data;
+    const s = await import("./searches.server");
+    return s.updateSearch(context.supabase, id, workspaceId, patch);
+  });
+
+export const duplicateMarketplaceSearch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: z.string().uuid(), workspaceId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const s = await import("./searches.server");
+    return s.duplicateSearch(context.supabase, context.userId, data.id, data.workspaceId);
+  });
+
+export const deleteMarketplaceSearch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: z.string().uuid(), workspaceId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const s = await import("./searches.server");
+    return s.deleteSearch(context.supabase, data.id, data.workspaceId);
+  });
