@@ -54,7 +54,7 @@ export function MarketplaceSetup({ initialMode = "manage" }: { initialMode?: "ma
   const [radius, setRadius] = useState<number | null>(50);
   const [sources, setSources] = useState<string[]>(MARKETPLACE_SOURCES.map((s) => s.key));
   const [name, setName] = useState("");
-  const [alertThreshold, setAlertThreshold] = useState(1);
+  const [minMatchScore, setMinMatchScore] = useState(DEFAULT_MIN_MATCH_SCORE);
   const [notifyInApp, setNotifyInApp] = useState(true);
   const [notifyEmail, setNotifyEmail] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -110,7 +110,7 @@ export function MarketplaceSetup({ initialMode = "manage" }: { initialMode?: "ma
     setLocation(row.location ?? "");
     setRadius(row.radiusMiles);
     setSources(row.sources);
-    setAlertThreshold(row.alertThreshold);
+    setMinMatchScore(row.minMatchScore);
     setNotifyInApp(row.notifyInApp);
     setNotifyEmail(row.notifyEmail);
     setMode("review");
@@ -153,7 +153,7 @@ export function MarketplaceSetup({ initialMode = "manage" }: { initialMode?: "ma
         sources,
         location: location.trim() || null,
         radiusMiles: radius,
-        alertThreshold,
+        minMatchScore,
         notifyInApp,
         notifyEmail,
       };
@@ -408,8 +408,8 @@ export function MarketplaceSetup({ initialMode = "manage" }: { initialMode?: "ma
             <SourcePicker available={available} sources={sources} setSources={setSources} />
 
             <AlertSettings
-              alertThreshold={alertThreshold}
-              setAlertThreshold={setAlertThreshold}
+              minMatchScore={minMatchScore}
+              setMinMatchScore={setMinMatchScore}
               notifyInApp={notifyInApp}
               setNotifyInApp={setNotifyInApp}
               notifyEmail={notifyEmail}
@@ -455,12 +455,12 @@ export function MarketplaceSetup({ initialMode = "manage" }: { initialMode?: "ma
   );
 }
 
-/** Alert threshold + notification preferences, editable at create and edit time. */
+/** Match Score threshold + notification preferences, editable at create and edit time. */
 function AlertSettings({
-  alertThreshold, setAlertThreshold, notifyInApp, setNotifyInApp, notifyEmail, setNotifyEmail,
+  minMatchScore, setMinMatchScore, notifyInApp, setNotifyInApp, notifyEmail, setNotifyEmail,
 }: {
-  alertThreshold: number;
-  setAlertThreshold: (n: number) => void;
+  minMatchScore: number;
+  setMinMatchScore: (n: number) => void;
   notifyInApp: boolean;
   setNotifyInApp: (v: boolean) => void;
   notifyEmail: boolean;
@@ -469,20 +469,37 @@ function AlertSettings({
   return (
     <Card>
       <CardContent className="grid gap-3 p-4 sm:grid-cols-2">
-        <label className="space-y-1.5">
-          <span className="text-sm font-medium text-foreground">Alert Threshold</span>
-          <Input
-            inputMode="numeric"
-            value={alertThreshold}
-            onChange={(e) => {
-              const n = Number(e.target.value.replace(/[^0-9]/g, ""));
-              setAlertThreshold(Math.min(100, Math.max(1, n || 1)));
-            }}
-          />
-          <span className="block text-xs text-muted-foreground">
-            Alert Me After This Many New Matches.
+        <div className="space-y-1.5">
+          <span className="text-sm font-medium text-foreground">
+            Alert Me When Match Score Is At Least
           </span>
-        </label>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {MATCH_THRESHOLD_PRESETS.map((n) => (
+              <Pill key={n} active={minMatchScore === n} onClick={() => setMinMatchScore(n)}>
+                {n}%
+              </Pill>
+            ))}
+            <Pill
+              active={!MATCH_THRESHOLD_PRESETS.includes(minMatchScore as 70 | 80 | 90)}
+              onClick={() => setMinMatchScore(85)}
+            >
+              Custom
+            </Pill>
+            <Input
+              inputMode="numeric"
+              className="w-20"
+              aria-label="Custom Minimum Match Score"
+              value={minMatchScore}
+              onChange={(e) => {
+                const n = Number(e.target.value.replace(/[^0-9]/g, ""));
+                setMinMatchScore(Math.min(100, Math.max(0, n || 0)));
+              }}
+            />
+          </div>
+          <span className="block text-xs text-muted-foreground">
+            Match Score Measures Fit To Your Criteria Only — Not Market Value Or Profit.
+          </span>
+        </div>
         <div className="space-y-1.5">
           <span className="text-sm font-medium text-foreground">Notify Me By</span>
           <div className="flex flex-wrap gap-1.5">
