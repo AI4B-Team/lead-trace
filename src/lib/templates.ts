@@ -4,7 +4,7 @@ import {
   Car, Utensils, Stethoscope, Wrench, Camera, Music, Plane, Store,
   Mail, Rocket, BadgeCheck, Network,
   DollarSign, BookOpen, Trophy, Film, Code, MessageSquare, Hotel, Bed,
-  ScanEye, CircleDollarSign,
+  ScanEye, CircleDollarSign, Radar,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -23,6 +23,7 @@ export type TemplateCategory =
   | "news"
   | "sports"
   | "search"
+  | "marketplace"
   | "upload";
 
 export type Template = {
@@ -776,6 +777,21 @@ export const TEMPLATES: Template[] = [
     tint: "bg-indigo-500/10 text-indigo-600",
     credit_cost_per_lead: 0,
   },
+  {
+    id: "marketplace-deals",
+    shortTitle: "Marketplace Deals",
+    shortSubtitle: "Monitor New Listings",
+    title: "Marketplace Deals",
+    subtitle: "Monitor Marketplaces For Newly Listed Opportunities That Match Exactly What You're Looking For.",
+    categories: ["marketplace"],
+    prompt: "Find Toyota Camrys and Honda Accords from 2015-2021 within 75 miles, under 130k miles, clean title, private sellers only, under $8,000",
+    icon: Radar,
+    tint: "bg-sky-500/10 text-sky-600",
+    adapterStatus: "beta",
+    beta: true,
+    placeholderHint: "e.g. DeWalt cordless tool lots within 50 miles, under $200",
+    credit_cost_per_lead: 0,
+  },
 ];
 export const CATEGORY_LABELS: Record<TemplateCategory, string> = {
   business: "Business & Local",
@@ -792,6 +808,7 @@ export const CATEGORY_LABELS: Record<TemplateCategory, string> = {
   news: "News",
   sports: "Sports",
   search: "Search Engine",
+  marketplace: "Marketplace",
   upload: "Upload",
 };
 

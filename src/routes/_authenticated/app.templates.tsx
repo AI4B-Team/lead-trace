@@ -32,6 +32,7 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: "education", label: "Education" },
   { key: "news", label: "News" },
   { key: "sports", label: "Sports" },
+  { key: "marketplace", label: "Marketplace" },
   { key: "records", label: "Public Records" },
   { key: "upload", label: "Upload" },
 ];

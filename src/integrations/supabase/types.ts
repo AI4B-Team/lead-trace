@@ -2583,6 +2583,68 @@ export type Database = {
           },
         ]
       }
+      marketplace_searches: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          criteria: Json
+          id: string
+          last_checked_at: string | null
+          location: string | null
+          name: string
+          next_check_at: string | null
+          prompt: string
+          radius_miles: number | null
+          sources: string[]
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string
+          criteria?: Json
+          id?: string
+          last_checked_at?: string | null
+          location?: string | null
+          name: string
+          next_check_at?: string | null
+          prompt?: string
+          radius_miles?: number | null
+          sources?: string[]
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          criteria?: Json
+          id?: string
+          last_checked_at?: string | null
+          location?: string | null
+          name?: string
+          next_check_at?: string | null
+          prompt?: string
+          radius_miles?: number | null
+          sources?: string[]
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_searches_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_limits: {
         Row: {
           approval_threshold_credits: number | null
