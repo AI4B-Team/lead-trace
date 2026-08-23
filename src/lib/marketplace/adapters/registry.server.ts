@@ -214,12 +214,13 @@ export function toSourceListing(
   const posted = postedTimeFor(adapter, listing);
   const identity = identityFor(adapter, listing);
   const supportsSeller = adapter.profile.capabilities.includes("seller_metadata");
+  const supportsCoords = adapter.profile.capabilities.includes("map_coordinates");
   return {
     source: listing.source,
     externalId: identity.sourceListingId,
     listingUrl: listingUrlFor(adapter, listing),
     title: listing.title,
-    description: adapter.profile.capabilities.includes("description") ? listing.description : listing.description,
+    description: adapter.profile.capabilities.includes("description") ? listing.description : null,
     price: listing.price,
     currency: listing.currency,
     category: listing.category,
@@ -230,10 +231,15 @@ export function toSourceListing(
     seller: supportsSeller
       ? { ...(listing.sellerName ? { name: listing.sellerName } : {}), ...listing.sellerMetadata }
       : {},
+    sellerName: supportsSeller ? listing.sellerName : null,
+    latitude: supportsCoords ? listing.latitude : null,
+    longitude: supportsCoords ? listing.longitude : null,
+    sourceMetadata: listing.rawSourceMetadata ?? {},
     postedAt: posted.at,
     postedAtReliable: posted.reliable,
   };
 }
+
 
 /**
  * Run one adapter for one search: validate, collect, normalize, bound, convert.
