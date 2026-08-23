@@ -10,7 +10,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
-  ArrowLeft, CheckCircle2, Loader2, MapPin, Pencil, Radar, Send, Sparkles, X,
+  ArrowLeft, CheckCircle2, List, Loader2, MapPin, Pencil, Plus, Radar, Send, Sparkles, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/app/page-header";
@@ -28,7 +28,11 @@ import {
 } from "@/lib/marketplace/catalog.shared";
 import {
   createMarketplaceSearch, listMarketplaceSearches, parseMarketplaceRequest,
+  updateMarketplaceSearch,
 } from "@/lib/marketplace/marketplace.functions";
+import {
+  MarketplaceSearchList, MarketplaceSearchResults,
+} from "@/components/app/marketplace/marketplace-searches";
 import type { MarketplaceSearchRow } from "@/lib/marketplace/searches.server";
 
 const EXAMPLE =
@@ -567,7 +571,7 @@ function IntegrationNotice() {
   );
 }
 
-function ExistingSearches({ rows }: { rows: MarketplaceSearchRow[] }) {
+function ExistingSearches({ rows, onManage }: { rows: MarketplaceSearchRow[]; onManage: () => void }) {
   if (!rows.length) return null;
   return (
     <Card>
@@ -586,12 +590,18 @@ function ExistingSearches({ rows }: { rows: MarketplaceSearchRow[] }) {
             </li>
           ))}
         </ul>
+        <Button variant="ghost" size="sm" onClick={onManage}>
+          <List className="mr-2 h-4 w-4" />
+          Manage All Searches
+        </Button>
       </CardContent>
     </Card>
   );
 }
 
-function ActiveState({ search, onAnother }: { search: MarketplaceSearchRow; onAnother: () => void }) {
+function ActiveState({
+  search, onAnother, onManage,
+}: { search: MarketplaceSearchRow; onAnother: () => void; onManage: () => void }) {
   const rows = criteriaSummary(
     search.category as MarketplaceCategory,
     search.criteria,
@@ -646,7 +656,11 @@ function ActiveState({ search, onAnother }: { search: MarketplaceSearchRow; onAn
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <Button asChild variant="outline">
+              <Button variant="outline" onClick={onManage}>
+                <List className="mr-2 h-4 w-4" />
+                All Marketplace Searches
+              </Button>
+              <Button asChild variant="ghost">
                 <Link to="/app/templates">Back To Template Library</Link>
               </Button>
               <Button variant="ghost" onClick={onAnother}>
