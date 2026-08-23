@@ -142,7 +142,7 @@ export function marketplaceDedupeKey(listing: {
 function matchExplanation(listing: MarketplaceListingRow): string {
   const matched = listing.matchCriteria.filter((c) => c.state === "matched").map((c) => c.label);
   const missed = listing.matchCriteria
-    .filter((c) => c.state === "mismatched")
+    .filter((c) => c.state === "not_matched" || c.state === "conflicting")
     .map((c) => c.label);
   const parts: string[] = [];
   if (matched.length) parts.push(`Matched: ${matched.join(", ")}`);
