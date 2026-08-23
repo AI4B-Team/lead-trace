@@ -171,3 +171,28 @@ describe("alert threshold", () => {
     expect(meetsThreshold(95, 90)).toBe(true);
   });
 });
+
+describe("multiple targets", () => {
+  it("treats several targets as alternatives, not as all-required", () => {
+    const spec: MatchSearchSpec = {
+      ...camrySpec,
+      criteria: { ...camrySpec.criteria, targets: ["Toyota Camry", "Honda Accord"] },
+    };
+    const result = evaluateMatch(camryListing(), spec);
+    const target = result.criteria.find((c) => c.key === "targets");
+    expect(target?.state).toBe("matched");
+    expect(target?.label).toBe("Toyota Camry");
+    expect(result.score).toBeGreaterThanOrEqual(94);
+  });
+
+  it("fails only when none of the targets appear", () => {
+    const spec: MatchSearchSpec = {
+      ...camrySpec,
+      criteria: { ...camrySpec.criteria, targets: ["Toyota Camry", "Honda Accord"] },
+    };
+    const other = { ...camryListing(), title: "2018 Kia Optima EX", description: "Clean title" };
+    expect(evaluateMatch(other, spec).criteria.find((c) => c.key === "targets")?.state).toBe(
+      "not_matched",
+    );
+  });
+});
