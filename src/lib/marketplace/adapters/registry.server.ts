@@ -282,3 +282,20 @@ export async function collectFromAdapter(
     note: result.note ?? (result.truncated ? "More results were available than were collected." : null),
   };
 }
+
+/* ------------------------------------------------------------------ *
+ * Test hooks
+ * ------------------------------------------------------------------ */
+
+/**
+ * Install an adapter without the catalog `live` guard. TESTS ONLY — it lets the
+ * contract be exercised against fixtures while the shipping registry stays
+ * empty. Never call this from application code.
+ */
+export function __setAdapterForTests(adapter: MarketplaceSourceAdapter): void {
+  ADAPTERS[adapter.source] = adapter;
+}
+
+export function __resetAdaptersForTests(): void {
+  for (const key of Object.keys(ADAPTERS)) delete ADAPTERS[key as MarketplaceSourceKey];
+}
