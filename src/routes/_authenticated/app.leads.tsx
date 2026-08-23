@@ -34,9 +34,14 @@ import { currency, formatFeedDate } from "@/lib/surplus/feed.shared";
 import { EscheatCountdown } from "@/components/app/surplus/indicators";
 
 export const Route = createFileRoute("/_authenticated/app/leads")({
-  validateSearch: (search: Record<string, unknown>): { onlyNew?: boolean; q?: string } => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { onlyNew?: boolean; q?: string; lead?: string } => ({
     onlyNew: search.onlyNew === true || search.onlyNew === "true",
     q: typeof search.q === "string" ? (search.q as string) : undefined,
+    // Deep link used by Marketplace Deals' "View Lead" so a saved listing opens
+    // in the one Leads library instead of a separate view.
+    lead: typeof search.lead === "string" ? (search.lead as string) : undefined,
   }),
   head: () => ({
     meta: [
@@ -219,7 +224,7 @@ function LeadsPageInner() {
   const [onlyNew, setOnlyNew] = useState<boolean>(onlyNewParam === true);
   const [multiList, setMultiList] = useState(false);
   const [onlyNominated, setOnlyNominated] = useState(false);
-  const [openLeadId, setOpenLeadId] = useState<string | null>(null);
+  const [openLeadId, setOpenLeadId] = useState<string | null>(leadParam ?? null);
   const [exporting, setExporting] = useState(false);
 
   const { data, isLoading } = useQuery({
