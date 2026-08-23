@@ -244,17 +244,26 @@ export function evaluateMatch(listing: NormalizedListing, spec: MatchSearchSpec)
   const text = haystack(listing);
   const attrs = listing.attributes ?? {};
 
-  /* targets ------------------------------------------------------------- */
-  for (const target of spec.criteria.targets) {
-    const ts = tokens(target);
-    const hits = ts.filter((t) => text.includes(t)).length;
-    const state: CriterionState =
-      ts.length === 0 ? "unknown" : hits === ts.length ? "matched" : hits > 0 ? "not_matched" : "not_matched";
+  /* targets — an OR set: any one of them is the item the user wants ------ */
+  if (spec.criteria.targets.length) {
+    const scored = spec.criteria.targets.map((target) => {
+      const ts = tokens(target);
+      const hits = ts.filter((t) => text.includes(t)).length;
+      return { target, ts, hits, full: ts.length > 0 && hits === ts.length };
+    });
+    const best = scored.find((x) => x.full) ?? scored.sort((a, b) => b.hits - a.hits)[0];
+    const state: CriterionState = best.full ? "matched" : best.hits > 0 ? "unknown" : "not_matched";
     push(criteria, {
-      key: `target.${target}`,
-      label: titleize(target),
+      key: "targets",
+      label: best.full
+        ? titleize(best.target)
+        : `Matches One Of: ${spec.criteria.targets.map(titleize).join(", ")}`,
       state,
-      detail: state === "matched" ? null : "Listing Text Does Not Confirm This",
+      detail: best.full
+        ? null
+        : best.hits > 0
+          ? `Listing Partially Mentions ${titleize(best.target)}`
+          : "Listing Does Not Mention Any Of Your Targets",
       weight: WEIGHT.target,
       fromCriteria: true,
     });
