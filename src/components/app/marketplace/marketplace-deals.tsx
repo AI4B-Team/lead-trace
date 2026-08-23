@@ -37,6 +37,10 @@ import {
   matchScoreTone, metaLine, agoLabel, type DealGroup, type MarketplaceListingRow,
 } from "@/lib/marketplace/deals.shared";
 import {
+  CONFIDENCE_LABEL, MARKET_POSITION_LABEL, groupCriteria,
+  type MatchCriterion,
+} from "@/lib/marketplace/match.shared";
+import {
   dismissMarketplaceListing, listMarketplaceDeals, saveMarketplaceListingAsLead,
 } from "@/lib/marketplace/marketplace.functions";
 import type { MarketplaceSearchRow } from "@/lib/marketplace/searches.server";
@@ -276,8 +280,15 @@ function DealCard({
   onSaveLead: () => void;
 }) {
   const row = group.listing;
-  const matched = row.matchBreakdown.filter((m) => m.ok);
-  const mismatched = row.matchBreakdown.filter((m) => !m.ok);
+  // Prefer the four-state explanation; fall back to the legacy compact breakdown.
+  const grouped = groupCriteria(
+    row.matchCriteria.length
+      ? row.matchCriteria
+      : legacyToCriteria(row.matchBreakdown),
+  );
+  const matched = grouped.matched;
+  const mismatched = grouped.mismatched;
+  const unknown = grouped.unknown.filter((c) => c.fromCriteria);
   const meta = metaLine(row);
 
   return (
@@ -338,7 +349,7 @@ function DealCard({
                 <div className="flex flex-wrap gap-1.5">
                   {matched.map((m) => (
                     <span
-                      key={m.label}
+                      key={m.key}
                       className="flex items-center gap-1 rounded-md border border-success/20 bg-success/10 px-2 py-0.5 text-xs font-medium text-success"
                     >
                       <Check className="h-3 w-3" />
@@ -355,9 +366,25 @@ function DealCard({
                   Potential Mismatch
                 </p>
                 {mismatched.map((m) => (
-                  <p key={m.label} className="flex items-center gap-1 text-xs text-warn">
+                  <p key={m.key} className="flex items-center gap-1 text-xs text-warn">
                     <TriangleAlert className="h-3 w-3 shrink-0" />
-                    {m.note || m.label}
+                    {m.label}
+                    {m.detail ? ` — ${m.detail}` : ""}
+                  </p>
+                ))}
+              </div>
+            )}
+
+            {unknown.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Unknown
+                </p>
+                {unknown.slice(0, 3).map((m) => (
+                  <p key={m.key} className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <CircleHelp className="h-3 w-3 shrink-0" />
+                    {m.label}
+                    {m.detail ? ` — ${m.detail}` : ""}
                   </p>
                 ))}
               </div>
@@ -468,32 +495,62 @@ function DealDetail({
 
       <Separator />
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Criteria Match Breakdown{searchName ? ` · ${searchName}` : ""}
         </p>
-        {row.matchBreakdown.length === 0 ? (
+        {detailCriteria.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No criteria breakdown was recorded for this listing.
           </p>
         ) : (
+          <div className="space-y-3">
+            <CriterionList title="Matched" items={detailGroups.matched} tone="matched" />
+            <CriterionList
+              title="Potential Mismatch"
+              items={detailGroups.mismatched}
+              tone="mismatch"
+            />
+            <CriterionList title="Unknown" items={detailGroups.unknown} tone="unknown" />
+          </div>
+        )}
+        {row.disqualifiedReason && (
+          <p className="rounded-md border border-warn/20 bg-warn/10 px-3 py-2 text-xs text-warn">
+            Filtered Before Analysis: {row.disqualifiedReason}
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-1">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Market Position
+        </p>
+        <p className="text-sm font-medium text-foreground">
+          {MARKET_POSITION_LABEL[row.marketPosition]}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {row.marketPositionNote ??
+            "Market position is tracked separately from the Match Score and is never mixed into it."}
+        </p>
+      </div>
+
+      {row.sellerSignals.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Seller Language Signals
+          </p>
           <ul className="space-y-1.5">
-            {row.matchBreakdown.map((m) => (
-              <li key={m.label} className="flex items-start gap-2 text-sm">
-                {m.ok ? (
-                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
-                ) : (
-                  <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warn" />
+            {row.sellerSignals.map((sig) => (
+              <li key={sig.key} className="text-sm">
+                <span className="font-medium text-foreground">{sig.label}</span>
+                {sig.evidence && (
+                  <span className="text-muted-foreground"> — &ldquo;{sig.evidence}&rdquo;</span>
                 )}
-                <span className={m.ok ? "text-foreground" : "text-warn"}>
-                  {m.label}
-                  {m.note ? ` — ${m.note}` : ""}
-                </span>
               </li>
             ))}
           </ul>
-        )}
-      </div>
+        </div>
+      )}
 
       {attributeEntries.length > 0 && (
         <div className="space-y-2">
@@ -508,6 +565,11 @@ function DealDetail({
                 </dt>
                 <dd className="text-right font-medium text-foreground">
                   {formatAttrValue(v as string | number)}
+                  {row.attributeConfidence[k] && (
+                    <span className="block text-xs font-normal text-muted-foreground">
+                      Confidence: {CONFIDENCE_LABEL[row.attributeConfidence[k]]}
+                    </span>
+                  )}
                 </dd>
               </div>
             ))}
