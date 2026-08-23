@@ -2862,6 +2862,7 @@ export type Database = {
           created_at: string
           created_by: string
           criteria: Json
+          effective_interval_seconds: number | null
           id: string
           last_alerted_at: string | null
           last_checked_at: string | null
@@ -2877,6 +2878,7 @@ export type Database = {
           notify_email: boolean
           notify_in_app: boolean
           prompt: string
+          quiet_checks: number
           radius_miles: number | null
           rate_limited_until: string | null
           sources: string[]
@@ -2898,6 +2900,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           criteria?: Json
+          effective_interval_seconds?: number | null
           id?: string
           last_alerted_at?: string | null
           last_checked_at?: string | null
@@ -2913,6 +2916,7 @@ export type Database = {
           notify_email?: boolean
           notify_in_app?: boolean
           prompt?: string
+          quiet_checks?: number
           radius_miles?: number | null
           rate_limited_until?: string | null
           sources?: string[]
@@ -2934,6 +2938,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           criteria?: Json
+          effective_interval_seconds?: number | null
           id?: string
           last_alerted_at?: string | null
           last_checked_at?: string | null
@@ -2949,6 +2954,7 @@ export type Database = {
           notify_email?: boolean
           notify_in_app?: boolean
           prompt?: string
+          quiet_checks?: number
           radius_miles?: number | null
           rate_limited_until?: string | null
           sources?: string[]
@@ -2968,57 +2974,81 @@ export type Database = {
       }
       marketplace_source_runs: {
         Row: {
+          ai_calls: number
           alerted: number
           baseline: boolean
           created_at: string
           duration_ms: number | null
           error: string | null
+          error_category: string | null
+          filtered_out: number
           finished_at: string | null
           id: string
           listings_seen: number
           new_listings: number
+          provider: string | null
+          provider_job_id: string | null
+          provider_records: number
+          provider_requests: number
           qualified: number
           rate_limited: boolean
           search_id: string
           source: string
           started_at: string
           status: string
+          truncated: boolean
           workspace_id: string
         }
         Insert: {
+          ai_calls?: number
           alerted?: number
           baseline?: boolean
           created_at?: string
           duration_ms?: number | null
           error?: string | null
+          error_category?: string | null
+          filtered_out?: number
           finished_at?: string | null
           id?: string
           listings_seen?: number
           new_listings?: number
+          provider?: string | null
+          provider_job_id?: string | null
+          provider_records?: number
+          provider_requests?: number
           qualified?: number
           rate_limited?: boolean
           search_id: string
           source: string
           started_at?: string
           status: string
+          truncated?: boolean
           workspace_id: string
         }
         Update: {
+          ai_calls?: number
           alerted?: number
           baseline?: boolean
           created_at?: string
           duration_ms?: number | null
           error?: string | null
+          error_category?: string | null
+          filtered_out?: number
           finished_at?: string | null
           id?: string
           listings_seen?: number
           new_listings?: number
+          provider?: string | null
+          provider_job_id?: string | null
+          provider_records?: number
+          provider_requests?: number
           qualified?: number
           rate_limited?: boolean
           search_id?: string
           source?: string
           started_at?: string
           status?: string
+          truncated?: boolean
           workspace_id?: string
         }
         Relationships: [
