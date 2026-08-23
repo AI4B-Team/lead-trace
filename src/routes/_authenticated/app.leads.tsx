@@ -207,7 +207,7 @@ function ListMembershipCell({ leadId, count }: { leadId: string; count: number }
 function LeadsPageInner() {
   const { workspaceId } = useWorkspaceId();
   const team = useTeamContext();
-  const { onlyNew: onlyNewParam, q: qParam } = Route.useSearch();
+  const { onlyNew: onlyNewParam, q: qParam, lead: leadParam } = Route.useSearch();
   const fetchRecords = useServerFn(listLeadRecords);
   const fetchExport = useServerFn(exportLeadRecords);
 
