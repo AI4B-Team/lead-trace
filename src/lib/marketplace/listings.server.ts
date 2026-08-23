@@ -54,6 +54,9 @@ function toRow(r: any): MarketplaceListingRow {
     duplicateConfidence: r.duplicate_confidence == null ? null : Number(r.duplicate_confidence),
     dismissedAt: r.dismissed_at ?? null,
     savedAt: r.saved_at ?? null,
+    compCount: r.comp_count == null ? null : Number(r.comp_count),
+    compConfidence: r.comp_confidence ?? null,
+    compsCheckedAt: r.comps_checked_at ?? null,
   };
 }
 

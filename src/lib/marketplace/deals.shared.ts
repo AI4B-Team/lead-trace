@@ -57,6 +57,10 @@ export type MarketplaceListingRow = {
   duplicateConfidence: number | null;
   dismissedAt: string | null;
   savedAt: string | null;
+  /** Comparable Listings cache pointers — null until comps are checked once. */
+  compCount: number | null;
+  compConfidence: string | null;
+  compsCheckedAt: string | null;
 };
 
 /** A feed entry: one primary listing plus confidently-matched duplicates. */
@@ -157,11 +161,7 @@ export function metaLine(row: MarketplaceListingRow): string {
 }
 
 /**
- * Comps link. LeadTrace has no comparable-sales dataset for consumer
- * marketplace goods, so Check Comps opens a sold-listings search on the open
- * web rather than pretending we computed a value.
+ * Comparable Listings are computed from actual listing evidence by the comps
+ * engine (see comps.shared.ts). There is intentionally no "open a web search"
+ * shortcut any more: a market range must be backed by comps we can show.
  */
-export function compsUrl(row: MarketplaceListingRow): string {
-  const q = encodeURIComponent(`${row.title} sold price`);
-  return `https://www.google.com/search?q=${q}&tbm=shop`;
-}

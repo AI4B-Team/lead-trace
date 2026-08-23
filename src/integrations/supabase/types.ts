@@ -2583,6 +2583,78 @@ export type Database = {
           },
         ]
       }
+      marketplace_comp_runs: {
+        Row: {
+          cache_key: string
+          category: string
+          comp_sources: string[]
+          comps: Json
+          comps_found: number
+          computed_at: string
+          confidence: string
+          created_at: string
+          expires_at: string
+          id: string
+          listing_id: string | null
+          subject: Json
+          summary: Json
+          updated_at: string
+          usable_count: number
+          workspace_id: string
+        }
+        Insert: {
+          cache_key: string
+          category: string
+          comp_sources?: string[]
+          comps?: Json
+          comps_found?: number
+          computed_at?: string
+          confidence?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          listing_id?: string | null
+          subject?: Json
+          summary?: Json
+          updated_at?: string
+          usable_count?: number
+          workspace_id: string
+        }
+        Update: {
+          cache_key?: string
+          category?: string
+          comp_sources?: string[]
+          comps?: Json
+          comps_found?: number
+          computed_at?: string
+          confidence?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          listing_id?: string | null
+          subject?: Json
+          summary?: Json
+          updated_at?: string
+          usable_count?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_comp_runs_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_comp_runs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_listings: {
         Row: {
           ai_analysis_used: boolean
@@ -2592,6 +2664,10 @@ export type Database = {
           attribute_confidence: Json
           attributes: Json
           category: string | null
+          comp_confidence: string | null
+          comp_count: number | null
+          comp_summary: Json | null
+          comps_checked_at: string | null
           created_at: string
           currency: string
           description: string | null
@@ -2632,6 +2708,10 @@ export type Database = {
           attribute_confidence?: Json
           attributes?: Json
           category?: string | null
+          comp_confidence?: string | null
+          comp_count?: number | null
+          comp_summary?: Json | null
+          comps_checked_at?: string | null
           created_at?: string
           currency?: string
           description?: string | null
@@ -2672,6 +2752,10 @@ export type Database = {
           attribute_confidence?: Json
           attributes?: Json
           category?: string | null
+          comp_confidence?: string | null
+          comp_count?: number | null
+          comp_summary?: Json | null
+          comps_checked_at?: string | null
           created_at?: string
           currency?: string
           description?: string | null
