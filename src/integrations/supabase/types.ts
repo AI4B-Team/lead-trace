@@ -2658,6 +2658,7 @@ export type Database = {
       marketplace_listings: {
         Row: {
           ai_analysis_used: boolean
+          alert_count: number
           alerted_at: string | null
           analysis_version: number
           analyzed_at: string | null
@@ -2676,9 +2677,14 @@ export type Database = {
           distance_miles: number | null
           duplicate_confidence: number | null
           duplicate_group: string | null
+          enriched_at: string | null
+          enrichment_state: string
           external_id: string | null
           first_seen_at: string
           id: string
+          is_baseline: boolean
+          last_alerted_at: string | null
+          last_seen_at: string
           listing_url: string
           location_text: string | null
           market_position: string
@@ -2690,18 +2696,22 @@ export type Database = {
           posted_at: string | null
           posted_at_reliable: boolean
           price: number | null
+          relisted_at: string | null
           saved_at: string | null
           saved_lead_id: string | null
           search_id: string | null
+          seen_count: number
           seller: Json
           seller_signals: Json
           source: string
+          source_listing_id: string | null
           title: string
           updated_at: string
           workspace_id: string
         }
         Insert: {
           ai_analysis_used?: boolean
+          alert_count?: number
           alerted_at?: string | null
           analysis_version?: number
           analyzed_at?: string | null
@@ -2720,9 +2730,14 @@ export type Database = {
           distance_miles?: number | null
           duplicate_confidence?: number | null
           duplicate_group?: string | null
+          enriched_at?: string | null
+          enrichment_state?: string
           external_id?: string | null
           first_seen_at?: string
           id?: string
+          is_baseline?: boolean
+          last_alerted_at?: string | null
+          last_seen_at?: string
           listing_url: string
           location_text?: string | null
           market_position?: string
@@ -2734,18 +2749,22 @@ export type Database = {
           posted_at?: string | null
           posted_at_reliable?: boolean
           price?: number | null
+          relisted_at?: string | null
           saved_at?: string | null
           saved_lead_id?: string | null
           search_id?: string | null
+          seen_count?: number
           seller?: Json
           seller_signals?: Json
           source: string
+          source_listing_id?: string | null
           title: string
           updated_at?: string
           workspace_id: string
         }
         Update: {
           ai_analysis_used?: boolean
+          alert_count?: number
           alerted_at?: string | null
           analysis_version?: number
           analyzed_at?: string | null
@@ -2764,9 +2783,14 @@ export type Database = {
           distance_miles?: number | null
           duplicate_confidence?: number | null
           duplicate_group?: string | null
+          enriched_at?: string | null
+          enrichment_state?: string
           external_id?: string | null
           first_seen_at?: string
           id?: string
+          is_baseline?: boolean
+          last_alerted_at?: string | null
+          last_seen_at?: string
           listing_url?: string
           location_text?: string | null
           market_position?: string
@@ -2778,12 +2802,15 @@ export type Database = {
           posted_at?: string | null
           posted_at_reliable?: boolean
           price?: number | null
+          relisted_at?: string | null
           saved_at?: string | null
           saved_lead_id?: string | null
           search_id?: string | null
+          seen_count?: number
           seller?: Json
           seller_signals?: Json
           source?: string
+          source_listing_id?: string | null
           title?: string
           updated_at?: string
           workspace_id?: string
@@ -2807,14 +2834,24 @@ export type Database = {
       }
       marketplace_searches: {
         Row: {
+          alert_existing_matches: boolean
           alert_threshold: number
           attention_note: string | null
+          baseline_at: string | null
+          baseline_count: number
+          baseline_state: string
           category: string
+          check_interval_seconds: number
+          consecutive_failures: number
           created_at: string
           created_by: string
           criteria: Json
           id: string
+          last_alerted_at: string | null
           last_checked_at: string | null
+          last_error: string | null
+          last_error_at: string | null
+          last_success_at: string | null
           location: string | null
           matches_found: number
           min_match_score: number
@@ -2824,20 +2861,31 @@ export type Database = {
           notify_in_app: boolean
           prompt: string
           radius_miles: number | null
+          rate_limited_until: string | null
           sources: string[]
           status: string
           updated_at: string
           workspace_id: string
         }
         Insert: {
+          alert_existing_matches?: boolean
           alert_threshold?: number
           attention_note?: string | null
+          baseline_at?: string | null
+          baseline_count?: number
+          baseline_state?: string
           category: string
+          check_interval_seconds?: number
+          consecutive_failures?: number
           created_at?: string
           created_by?: string
           criteria?: Json
           id?: string
+          last_alerted_at?: string | null
           last_checked_at?: string | null
+          last_error?: string | null
+          last_error_at?: string | null
+          last_success_at?: string | null
           location?: string | null
           matches_found?: number
           min_match_score?: number
@@ -2847,20 +2895,31 @@ export type Database = {
           notify_in_app?: boolean
           prompt?: string
           radius_miles?: number | null
+          rate_limited_until?: string | null
           sources?: string[]
           status?: string
           updated_at?: string
           workspace_id: string
         }
         Update: {
+          alert_existing_matches?: boolean
           alert_threshold?: number
           attention_note?: string | null
+          baseline_at?: string | null
+          baseline_count?: number
+          baseline_state?: string
           category?: string
+          check_interval_seconds?: number
+          consecutive_failures?: number
           created_at?: string
           created_by?: string
           criteria?: Json
           id?: string
+          last_alerted_at?: string | null
           last_checked_at?: string | null
+          last_error?: string | null
+          last_error_at?: string | null
+          last_success_at?: string | null
           location?: string | null
           matches_found?: number
           min_match_score?: number
@@ -2870,6 +2929,7 @@ export type Database = {
           notify_in_app?: boolean
           prompt?: string
           radius_miles?: number | null
+          rate_limited_until?: string | null
           sources?: string[]
           status?: string
           updated_at?: string
@@ -2878,6 +2938,78 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "marketplace_searches_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_source_runs: {
+        Row: {
+          alerted: number
+          baseline: boolean
+          created_at: string
+          duration_ms: number | null
+          error: string | null
+          finished_at: string | null
+          id: string
+          listings_seen: number
+          new_listings: number
+          qualified: number
+          rate_limited: boolean
+          search_id: string
+          source: string
+          started_at: string
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          alerted?: number
+          baseline?: boolean
+          created_at?: string
+          duration_ms?: number | null
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          listings_seen?: number
+          new_listings?: number
+          qualified?: number
+          rate_limited?: boolean
+          search_id: string
+          source: string
+          started_at?: string
+          status: string
+          workspace_id: string
+        }
+        Update: {
+          alerted?: number
+          baseline?: boolean
+          created_at?: string
+          duration_ms?: number | null
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          listings_seen?: number
+          new_listings?: number
+          qualified?: number
+          rate_limited?: boolean
+          search_id?: string
+          source?: string
+          started_at?: string
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_source_runs_search_id_fkey"
+            columns: ["search_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_searches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_source_runs_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
