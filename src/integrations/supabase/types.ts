@@ -2583,6 +2583,114 @@ export type Database = {
           },
         ]
       }
+      marketplace_listings: {
+        Row: {
+          attributes: Json
+          category: string | null
+          created_at: string
+          currency: string
+          description: string | null
+          dismissed_at: string | null
+          distance_miles: number | null
+          duplicate_confidence: number | null
+          duplicate_group: string | null
+          external_id: string | null
+          first_seen_at: string
+          id: string
+          listing_url: string
+          location_text: string | null
+          match_breakdown: Json
+          match_score: number
+          photos: string[]
+          posted_at: string | null
+          posted_at_reliable: boolean
+          price: number | null
+          saved_at: string | null
+          saved_lead_id: string | null
+          search_id: string | null
+          seller: Json
+          source: string
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          attributes?: Json
+          category?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          dismissed_at?: string | null
+          distance_miles?: number | null
+          duplicate_confidence?: number | null
+          duplicate_group?: string | null
+          external_id?: string | null
+          first_seen_at?: string
+          id?: string
+          listing_url: string
+          location_text?: string | null
+          match_breakdown?: Json
+          match_score?: number
+          photos?: string[]
+          posted_at?: string | null
+          posted_at_reliable?: boolean
+          price?: number | null
+          saved_at?: string | null
+          saved_lead_id?: string | null
+          search_id?: string | null
+          seller?: Json
+          source: string
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          attributes?: Json
+          category?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          dismissed_at?: string | null
+          distance_miles?: number | null
+          duplicate_confidence?: number | null
+          duplicate_group?: string | null
+          external_id?: string | null
+          first_seen_at?: string
+          id?: string
+          listing_url?: string
+          location_text?: string | null
+          match_breakdown?: Json
+          match_score?: number
+          photos?: string[]
+          posted_at?: string | null
+          posted_at_reliable?: boolean
+          price?: number | null
+          saved_at?: string | null
+          saved_lead_id?: string | null
+          search_id?: string | null
+          seller?: Json
+          source?: string
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_listings_search_id_fkey"
+            columns: ["search_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_searches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_listings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_searches: {
         Row: {
           alert_threshold: number

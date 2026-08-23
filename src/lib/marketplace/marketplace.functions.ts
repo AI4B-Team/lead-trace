@@ -101,3 +101,50 @@ export const deleteMarketplaceSearch = createServerFn({ method: "POST" })
     const s = await import("./searches.server");
     return s.deleteSearch(context.supabase, data.id, data.workspaceId);
   });
+
+export const listMarketplaceDeals = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        workspaceId: z.string().uuid(),
+        searchId: z.string().uuid().nullable().default(null),
+        category: z.string().nullable().default(null),
+        source: z.string().nullable().default(null),
+        minScore: z.number().int().min(0).max(100).default(0),
+        location: z.string().max(120).nullable().default(null),
+        freshnessHours: z.number().int().min(0).max(8760).default(0),
+        query: z.string().max(200).nullable().default(null),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const s = await import("./listings.server");
+    return { listings: await s.listDeals(context.supabase, data) };
+  });
+
+export const dismissMarketplaceListing = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        workspaceId: z.string().uuid(),
+        dismissed: z.boolean().default(true),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const s = await import("./listings.server");
+    return s.setDismissed(context.supabase, data.id, data.workspaceId, data.dismissed);
+  });
+
+export const saveMarketplaceListingAsLead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: z.string().uuid(), workspaceId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const s = await import("./listings.server");
+    return s.saveListingAsLead(context.supabase, data.id, data.workspaceId);
+  });
