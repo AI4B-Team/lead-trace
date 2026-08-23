@@ -422,7 +422,14 @@ export function validateAgainstProfile(
   profile: SourceProfile,
   search: {
     category: string;
-    criteria: { targets: string[]; keywords: string[]; priceMin?: number | null; priceMax?: number | null; attributes: Record<string, string | number> };
+    criteria: {
+      targets: string[];
+      keywords: string[];
+      exclusions?: string[];
+      priceMin?: number | null;
+      priceMax?: number | null;
+      attributes: Record<string, string | number>;
+    };
     location: string | null;
     radiusMiles: number | null;
   },
