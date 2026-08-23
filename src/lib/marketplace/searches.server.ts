@@ -16,6 +16,11 @@ export type MarketplaceSearchRow = {
   status: string;
   lastCheckedAt: string | null;
   nextCheckAt: string | null;
+  alertThreshold: number;
+  notifyInApp: boolean;
+  notifyEmail: boolean;
+  matchesFound: number;
+  attentionNote: string | null;
   createdAt: string;
 };
 
@@ -34,6 +39,11 @@ function toRow(r: any): MarketplaceSearchRow {
     status: r.status,
     lastCheckedAt: r.last_checked_at ?? null,
     nextCheckAt: r.next_check_at ?? null,
+    alertThreshold: r.alert_threshold ?? 1,
+    notifyInApp: r.notify_in_app ?? true,
+    notifyEmail: r.notify_email ?? false,
+    matchesFound: r.matches_found ?? 0,
+    attentionNote: r.attention_note ?? null,
     createdAt: r.created_at,
   };
 }

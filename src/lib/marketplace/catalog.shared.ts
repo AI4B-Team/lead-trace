@@ -257,3 +257,105 @@ export function criteriaSummary(
   if (criteria.exclusions.length) rows.push({ label: "Excluded", values: criteria.exclusions });
   return rows;
 }
+
+/* ------------------------------------------------------------------ status */
+
+export type MarketplaceStatusKey =
+  | "active"
+  | "paused"
+  | "needs_attention"
+  | "source_unavailable"
+  | "setup_incomplete";
+
+export type MarketplaceStatusDisplay = {
+  key: MarketplaceStatusKey;
+  label: string;
+  tone: "success" | "muted" | "warn" | "danger";
+  /** Why the search is in this state — shown under the badge, never invented. */
+  detail: string | null;
+};
+
+/**
+ * Truthful status. "Active" is only ever shown when a real source adapter is
+ * running; until then a stored `active` row reads as Source Unavailable.
+ */
+export function searchStatus(s: {
+  status: string;
+  sources: string[];
+  criteria: MarketplaceCriteria;
+  attentionNote?: string | null;
+}): MarketplaceStatusDisplay {
+  if (s.status === "paused") {
+    return { key: "paused", label: "Paused", tone: "muted", detail: "You paused this search." };
+  }
+  const hasCriteria =
+    s.criteria.targets.length > 0 ||
+    s.criteria.keywords.length > 0 ||
+    Object.keys(s.criteria.attributes).length > 0;
+  if (!s.sources.length || !hasCriteria) {
+    return {
+      key: "setup_incomplete",
+      label: "Setup Incomplete",
+      tone: "warn",
+      detail: !s.sources.length ? "No marketplaces selected." : "No criteria to match on.",
+    };
+  }
+  if (s.attentionNote) {
+    return { key: "needs_attention", label: "Needs Attention", tone: "danger", detail: s.attentionNote };
+  }
+  const live = s.sources.filter((k) =>
+    MARKETPLACE_SOURCES.some((m) => m.key === k && m.status === "live"),
+  );
+  if (!live.length) {
+    return {
+      key: "source_unavailable",
+      label: "Source Unavailable",
+      tone: "muted",
+      detail: "No marketplace connection is live yet, so nothing is being collected.",
+    };
+  }
+  return { key: "active", label: "Active", tone: "success", detail: null };
+}
+
+/** "2 Min Ago" — Title Case, never a bare timestamp in a card row. */
+export function relativeTime(iso: string | null): string {
+  if (!iso) return "Never";
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms)) return "Never";
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return "Just Now";
+  if (mins < 60) return `${mins} Min Ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} Hr Ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days} Day${days === 1 ? "" : "s"} Ago`;
+  return new Date(iso).toLocaleDateString("en-US");
+}
+
+/** Compact criteria lines for a search card: "2015–2021", "Under $8,000"… */
+export function criteriaLines(category: MarketplaceCategory, criteria: MarketplaceCriteria): string[] {
+  const lines: string[] = [];
+  const yMin = criteria.attributes.year_min;
+  const yMax = criteria.attributes.year_max;
+  if (yMin && yMax) lines.push(`${yMin}–${yMax}`);
+  else if (yMin) lines.push(`${yMin} & Newer`);
+  else if (yMax) lines.push(`${yMax} & Older`);
+
+  if (criteria.priceMin != null && criteria.priceMax != null) {
+    lines.push(`${formatMoney(criteria.priceMin)}–${formatMoney(criteria.priceMax)}`);
+  } else if (criteria.priceMax != null) lines.push(`Under ${formatMoney(criteria.priceMax)}`);
+  else if (criteria.priceMin != null) lines.push(`Over ${formatMoney(criteria.priceMin)}`);
+
+  const mileage = criteria.attributes.mileage_max;
+  if (mileage) lines.push(`Under ${formatAttrValue(mileage)} Miles`);
+  const hours = criteria.attributes.hours_max;
+  if (hours) lines.push(`Under ${formatAttrValue(hours)} Hours`);
+
+  for (const attr of CATEGORY_ATTRIBUTES[category] ?? []) {
+    if (["year_min", "year_max", "mileage_max", "hours_max"].includes(attr.key)) continue;
+    const v = criteria.attributes[attr.key];
+    if (v === undefined || v === "" || v === null) continue;
+    lines.push(attr.key === "title_status" ? `${formatAttrValue(v)} Title` : formatAttrValue(v));
+  }
+  return lines.slice(0, 6);
+}
