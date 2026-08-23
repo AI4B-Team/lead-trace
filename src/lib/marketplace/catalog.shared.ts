@@ -186,6 +186,15 @@ export function attributeLabel(category: MarketplaceCategory, key: string): stri
   return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/** Display polish: Title Case words, thousands separators on plain numbers. */
+export function formatAttrValue(v: string | number): string {
+  if (typeof v === "number") return v.toLocaleString("en-US");
+  const trimmed = v.trim();
+  if (/^\d{4,}$/.test(trimmed)) return Number(trimmed).toLocaleString("en-US");
+  if (/^\d{4}$/.test(trimmed)) return trimmed;
+  return trimmed.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export function formatMoney(n: number): string {
   return `$${n.toLocaleString("en-US")}`;
 }
@@ -229,13 +238,13 @@ export function criteriaSummary(
     if (attr.key === "year_min" || attr.key === "year_max") continue;
     const v = criteria.attributes[attr.key];
     if (v === undefined || v === "" || v === null) continue;
-    rows.push({ label: attr.label, values: [String(v)] });
+    rows.push({ label: attr.label, values: [formatAttrValue(v)] });
   }
   // Attributes the AI invented outside the category slot list still show up.
   const known = new Set((CATEGORY_ATTRIBUTES[category] ?? []).map((a) => a.key));
   for (const [k, v] of Object.entries(criteria.attributes)) {
     if (known.has(k) || v === "" || v === null) continue;
-    rows.push({ label: attributeLabel(category, k), values: [String(v)] });
+    rows.push({ label: attributeLabel(category, k), values: [formatAttrValue(v)] });
   }
 
   if (criteria.priceMin != null) rows.push({ label: "Min Price", values: [formatMoney(criteria.priceMin)] });
