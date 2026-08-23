@@ -113,8 +113,8 @@ export function normalizeFacebookRecord(raw: unknown): AdapterListing | null {
   const state = firstString(pick(r, ["location", "reverse_geocode", "state"]));
   const location =
     firstString(pick(r, ["location", "reverse_geocode", "city_page", "display_name"])) ??
-    [city, state].filter(Boolean).join(", ") ||
-    null;
+    (firstString([city, state].filter(Boolean).join(", ")) || null);
+
 
   const image = firstString(pick(r, ["primary_listing_photo", "image", "uri"]));
   const images = Array.isArray(r["listing_photos"])
