@@ -291,6 +291,13 @@ async function processSourceListings(
         last_seen_at: nowIso,
         seen_count: 1,
         is_baseline: isBaseline,
+        // Adapter-normalized extras. Only stored when the source actually
+        // published them; the bridge nulls them out otherwise.
+        latitude: listing.latitude ?? null,
+        longitude: listing.longitude ?? null,
+        seller_name: listing.sellerName ?? null,
+        source_metadata: listing.sourceMetadata ?? {},
+
         // Slow path picks these up; the alert never waits for it.
         enrichment_state: "pending",
         // alerted_at is set by the analyzer for eligibility; suppress it for a
