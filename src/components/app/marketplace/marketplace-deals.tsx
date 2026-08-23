@@ -183,7 +183,7 @@ export function MarketplaceDeals({
             </SelectContent>
           </Select>
           <Select value={String(minScore)} onValueChange={(v) => setMinScore(Number(v))}>
-            <SelectTrigger className="h-9 w-[9.5rem] shrink-0"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-9 w-[10.5rem] shrink-0"><SelectValue /></SelectTrigger>
             <SelectContent>
               {MATCH_SCORE_OPTIONS.map((o) => (
                 <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
