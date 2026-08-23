@@ -35,6 +35,14 @@ export const EXTRACTION_FIELDS: Record<MarketplaceCategory, string[]> = {
   other: ["item_type", "brand", "model", "condition", "seller_type"],
 };
 
+/** Only used to confirm a make the listing itself states — never to guess one. */
+export const VEHICLE_MAKES = [
+  "Toyota", "Honda", "Ford", "Chevrolet", "Chevy", "Nissan", "Hyundai", "Kia", "Subaru",
+  "Mazda", "Volkswagen", "BMW", "Mercedes-Benz", "Mercedes", "Audi", "Lexus", "Acura",
+  "Infiniti", "Jeep", "Dodge", "Ram", "GMC", "Buick", "Cadillac", "Chrysler", "Volvo",
+  "Tesla", "Porsche", "Mitsubishi", "Land Rover", "Jaguar", "Lincoln", "Genesis", "Mini",
+];
+
 function put(
   out: ExtractedAttributes,
   key: string,
@@ -68,6 +76,16 @@ export function extractDeterministic(
   const year = title.match(/\b(19[5-9]\d|20[0-4]\d)\b/);
   if (year && (category === "vehicles" || category === "heavy_equipment")) {
     put(out, "year", Number(year[1]), "high");
+  }
+
+  if (category === "vehicles") {
+    // Make/model only when the listing title names a make we recognize.
+    const makeHit = VEHICLE_MAKES.find((m) => new RegExp(`\\b${m.replace(/ /g, "\\s")}\\b`, "i").test(title));
+    if (makeHit) {
+      put(out, "make", makeHit, "high");
+      const after = title.match(new RegExp(`${makeHit}\\s+([A-Za-z0-9-]+)`, "i"));
+      if (after) put(out, "model", after[1], "medium");
+    }
   }
 
   if (category === "vehicles" || category === "heavy_equipment") {
