@@ -32,6 +32,7 @@ import {
   MARKETPLACE_CATEGORIES, MARKETPLACE_SOURCES, categoryLabel, criteriaLines, relativeTime,
   formatAttrValue, sourceLabel, type MarketplaceCategory,
 } from "@/lib/marketplace/catalog.shared";
+import { monitorHealth } from "@/lib/marketplace/monitor.shared";
 import {
   FRESHNESS_OPTIONS, MATCH_SCORE_OPTIONS, formatPrice, freshnessLabel, groupDeals,
   matchScoreTone, metaLine, agoLabel, type DealGroup, type MarketplaceListingRow,

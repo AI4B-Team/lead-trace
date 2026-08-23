@@ -23,6 +23,7 @@ import {
   categoryLabel, criteriaLines, relativeTime, sourceLabel,
   type MarketplaceCategory,
 } from "@/lib/marketplace/catalog.shared";
+import { monitorHealth, intervalLabel, POLL_TIERS, type MonitorHealth } from "@/lib/marketplace/monitor.shared";
 import {
   deleteMarketplaceSearch, duplicateMarketplaceSearch, updateMarketplaceSearch,
 } from "@/lib/marketplace/marketplace.functions";
