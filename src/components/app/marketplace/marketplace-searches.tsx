@@ -17,7 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   categoryLabel, criteriaLines, relativeTime, sourceLabel,
@@ -25,7 +26,8 @@ import {
 } from "@/lib/marketplace/catalog.shared";
 import { monitorHealth, intervalLabel, POLL_TIERS, type MonitorHealth } from "@/lib/marketplace/monitor.shared";
 import {
-  deleteMarketplaceSearch, duplicateMarketplaceSearch, updateMarketplaceSearch,
+  deleteMarketplaceSearch, duplicateMarketplaceSearch, runMarketplaceCheckNow,
+  updateMarketplaceSearch,
 } from "@/lib/marketplace/marketplace.functions";
 import type { MarketplaceSearchRow } from "@/lib/marketplace/searches.server";
 
@@ -58,7 +60,34 @@ export function MarketplaceSearchList({
   const update = useServerFn(updateMarketplaceSearch);
   const duplicate = useServerFn(duplicateMarketplaceSearch);
   const remove = useServerFn(deleteMarketplaceSearch);
+  const checkNow = useServerFn(runMarketplaceCheckNow);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [checkingId, setCheckingId] = useState<string | null>(null);
+
+  // Frequency is a real schedule change: it takes effect on the next tick.
+  const setInterval = useMutation({
+    mutationFn: (v: { row: MarketplaceSearchRow; seconds: number }) =>
+      update({ data: { id: v.row.id, workspaceId: workspaceId!, checkIntervalSeconds: v.seconds } }),
+    onSuccess: (_r, v) => {
+      toast.success(`Checking Every ${intervalLabel(v.seconds)}`);
+      onChanged();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not change the check frequency."),
+  });
+
+  const check = useMutation({
+    mutationFn: (row: MarketplaceSearchRow) =>
+      checkNow({ data: { id: row.id, workspaceId: workspaceId! } }),
+    onMutate: (row) => setCheckingId(row.id),
+    onSuccess: (res) => {
+      // Honest feedback: say nothing ran when no source could be reached.
+      if (!res.ran) toast.info(res.reason ?? "Nothing to check yet.");
+      else toast.success("Check Complete");
+      onChanged();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not run this check."),
+    onSettled: () => setCheckingId(null),
+  });
 
   const toggle = useMutation({
     mutationFn: (row: MarketplaceSearchRow) =>
@@ -154,6 +183,7 @@ export function MarketplaceSearchList({
                 <div className="flex flex-col items-end gap-2">
                   <div className="text-right text-xs text-muted-foreground">
                     <p>Last Checked: {relativeTime(row.lastCheckedAt)}</p>
+                    <p>Every {intervalLabel(row.checkIntervalSeconds)}</p>
                     <p className="text-sm font-semibold text-foreground">
                       {row.matchesFound.toLocaleString("en-US")} {row.matchesFound === 1 ? "Match" : "Matches"}
                     </p>
@@ -169,6 +199,19 @@ export function MarketplaceSearchList({
                   <div className="flex items-center gap-1.5">
                     <Button size="sm" variant="outline" onClick={() => onViewResults(row)}>
                       View Results
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={checkingId === row.id || !workspaceId || row.status === "paused"}
+                      onClick={() => check.mutate(row)}
+                    >
+                      {checkingId === row.id ? (
+                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                      )}
+                      Check Now
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => onEdit(row)}>
                       <Pencil className="mr-1.5 h-3.5 w-3.5" />
@@ -196,6 +239,17 @@ export function MarketplaceSearchList({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        {POLL_TIERS.map((tier) => (
+                          <DropdownMenuItem
+                            key={tier.seconds}
+                            disabled={!workspaceId || tier.seconds === row.checkIntervalSeconds}
+                            onClick={() => setInterval.mutate({ row, seconds: tier.seconds })}
+                          >
+                            <Timer className="mr-2 h-4 w-4" />
+                            Check Every {tier.label}
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem disabled={!workspaceId} onClick={() => copy.mutate(row)}>
                           <Copy className="mr-2 h-4 w-4" />
                           Duplicate
