@@ -2685,8 +2685,10 @@ export type Database = {
           is_baseline: boolean
           last_alerted_at: string | null
           last_seen_at: string
+          latitude: number | null
           listing_url: string
           location_text: string | null
+          longitude: number | null
           market_position: string
           market_position_note: string | null
           match_breakdown: Json
@@ -2702,9 +2704,11 @@ export type Database = {
           search_id: string | null
           seen_count: number
           seller: Json
+          seller_name: string | null
           seller_signals: Json
           source: string
           source_listing_id: string | null
+          source_metadata: Json
           title: string
           updated_at: string
           workspace_id: string
@@ -2738,8 +2742,10 @@ export type Database = {
           is_baseline?: boolean
           last_alerted_at?: string | null
           last_seen_at?: string
+          latitude?: number | null
           listing_url: string
           location_text?: string | null
+          longitude?: number | null
           market_position?: string
           market_position_note?: string | null
           match_breakdown?: Json
@@ -2755,9 +2761,11 @@ export type Database = {
           search_id?: string | null
           seen_count?: number
           seller?: Json
+          seller_name?: string | null
           seller_signals?: Json
           source: string
           source_listing_id?: string | null
+          source_metadata?: Json
           title: string
           updated_at?: string
           workspace_id: string
@@ -2791,8 +2799,10 @@ export type Database = {
           is_baseline?: boolean
           last_alerted_at?: string | null
           last_seen_at?: string
+          latitude?: number | null
           listing_url?: string
           location_text?: string | null
+          longitude?: number | null
           market_position?: string
           market_position_note?: string | null
           match_breakdown?: Json
@@ -2808,9 +2818,11 @@ export type Database = {
           search_id?: string | null
           seen_count?: number
           seller?: Json
+          seller_name?: string | null
           seller_signals?: Json
           source?: string
           source_listing_id?: string | null
+          source_metadata?: Json
           title?: string
           updated_at?: string
           workspace_id?: string
