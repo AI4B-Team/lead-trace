@@ -4,6 +4,7 @@
  */
 import { EMPTY_CRITERIA, type MarketplaceCriteria } from "./catalog.shared";
 import { DEFAULT_MIN_MATCH_SCORE } from "./match.shared";
+import { DEFAULT_CHECK_INTERVAL_SECONDS, normalizeInterval } from "./monitor.shared";
 
 export type MarketplaceSearchRow = {
   id: string;
@@ -25,6 +26,18 @@ export type MarketplaceSearchRow = {
   matchesFound: number;
   attentionNote: string | null;
   createdAt: string;
+  /** Monitoring schedule + health, straight from the run bookkeeping. */
+  checkIntervalSeconds: number;
+  baselineState: "pending" | "established";
+  baselineAt: string | null;
+  baselineCount: number;
+  alertExistingMatches: boolean;
+  lastSuccessAt: string | null;
+  lastError: string | null;
+  lastErrorAt: string | null;
+  consecutiveFailures: number;
+  rateLimitedUntil: string | null;
+  lastAlertedAt: string | null;
 };
 
 type Client = { from: (t: string) => any };
@@ -49,6 +62,17 @@ function toRow(r: any): MarketplaceSearchRow {
     matchesFound: r.matches_found ?? 0,
     attentionNote: r.attention_note ?? null,
     createdAt: r.created_at,
+    checkIntervalSeconds: r.check_interval_seconds ?? DEFAULT_CHECK_INTERVAL_SECONDS,
+    baselineState: (r.baseline_state ?? "pending") as "pending" | "established",
+    baselineAt: r.baseline_at ?? null,
+    baselineCount: r.baseline_count ?? 0,
+    alertExistingMatches: r.alert_existing_matches ?? false,
+    lastSuccessAt: r.last_success_at ?? null,
+    lastError: r.last_error ?? null,
+    lastErrorAt: r.last_error_at ?? null,
+    consecutiveFailures: r.consecutive_failures ?? 0,
+    rateLimitedUntil: r.rate_limited_until ?? null,
+    lastAlertedAt: r.last_alerted_at ?? null,
   };
 }
 
@@ -68,6 +92,8 @@ export async function insertSearch(
     minMatchScore?: number;
     notifyInApp?: boolean;
     notifyEmail?: boolean;
+    checkIntervalSeconds?: number;
+    alertExistingMatches?: boolean;
   },
 ): Promise<MarketplaceSearchRow> {
   const { data, error } = await supabase
@@ -86,6 +112,12 @@ export async function insertSearch(
       min_match_score: input.minMatchScore ?? DEFAULT_MIN_MATCH_SCORE,
       notify_in_app: input.notifyInApp ?? true,
       notify_email: input.notifyEmail ?? false,
+      check_interval_seconds: normalizeInterval(input.checkIntervalSeconds),
+      alert_existing_matches: input.alertExistingMatches ?? false,
+      // A brand new search always takes a baseline before it alerts.
+      baseline_state: "pending",
+      // Due immediately: the first check establishes the baseline.
+      next_check_at: new Date().toISOString(),
       status: "active",
     })
     .select("*")
@@ -123,6 +155,8 @@ export type SearchPatch = {
   notifyInApp?: boolean;
   notifyEmail?: boolean;
   status?: string;
+  checkIntervalSeconds?: number;
+  alertExistingMatches?: boolean;
 };
 
 /** Edit in place — a search is never recreated to change its definition. */
@@ -144,7 +178,23 @@ export async function updateSearch(
   if (patch.minMatchScore !== undefined) payload.min_match_score = patch.minMatchScore;
   if (patch.notifyInApp !== undefined) payload.notify_in_app = patch.notifyInApp;
   if (patch.notifyEmail !== undefined) payload.notify_email = patch.notifyEmail;
-  if (patch.status !== undefined) payload.status = patch.status;
+  if (patch.checkIntervalSeconds !== undefined) {
+    payload.check_interval_seconds = normalizeInterval(patch.checkIntervalSeconds);
+    // A frequency change takes effect on the next tick, not in an hour.
+    payload.next_check_at = new Date().toISOString();
+  }
+  if (patch.alertExistingMatches !== undefined) {
+    payload.alert_existing_matches = patch.alertExistingMatches;
+  }
+  if (patch.status !== undefined) {
+    payload.status = patch.status;
+    // Resuming clears the failure streak so health reflects real evidence again.
+    if (patch.status === "active") {
+      payload.consecutive_failures = 0;
+      payload.last_error = null;
+      payload.next_check_at = new Date().toISOString();
+    }
+  }
 
   const { data, error } = await supabase
     .from("marketplace_searches")
@@ -184,6 +234,8 @@ export async function duplicateSearch(
     minMatchScore: row.minMatchScore,
     notifyInApp: row.notifyInApp,
     notifyEmail: row.notifyEmail,
+    checkIntervalSeconds: row.checkIntervalSeconds,
+    alertExistingMatches: row.alertExistingMatches,
   });
 }
 
