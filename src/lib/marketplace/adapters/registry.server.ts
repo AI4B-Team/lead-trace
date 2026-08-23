@@ -214,7 +214,7 @@ export function toSourceListing(
   const posted = postedTimeFor(adapter, listing);
   const identity = identityFor(adapter, listing);
   const supportsSeller = adapter.profile.capabilities.includes("seller_metadata");
-  const supportsCoords = adapter.profile.capabilities.includes("map_coordinates");
+  const supportsCoords = adapter.profile.capabilities.includes("geo_coordinates");
   return {
     source: listing.source,
     externalId: identity.sourceListingId,
