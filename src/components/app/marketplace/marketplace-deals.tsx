@@ -13,6 +13,7 @@
  */
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft, Check, CircleHelp, ExternalLink, EyeOff, Image as ImageIcon, Loader2, MapPin, Radar,
@@ -117,8 +118,8 @@ export function MarketplaceDeals({
     if (!workspaceId) return;
     setBusyId(row.id);
     try {
-      await saveLead({ data: { id: row.id, workspaceId } });
-      toast.success("Saved To Your Leads");
+      const res = await saveLead({ data: { id: row.id, workspaceId } });
+      toast.success(res.alreadyLinked ? "Already In Your Leads" : "Saved To Your Leads");
       await deals.refetch();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not save this listing as a lead.");
@@ -414,10 +415,19 @@ function DealCard({
                   <ExternalLink className="ml-2 h-3.5 w-3.5" />
                 </a>
               </Button>
-              <Button size="sm" variant="ghost" disabled={busy} onClick={onSaveLead}>
-                <UserPlus className="mr-2 h-3.5 w-3.5" />
-                Save As Lead
-              </Button>
+              {row.savedLeadId ? (
+                <Button size="sm" variant="ghost" asChild>
+                  <Link to="/app/leads" search={{ lead: row.savedLeadId }}>
+                    <UserPlus className="mr-2 h-3.5 w-3.5" />
+                    View Lead
+                  </Link>
+                </Button>
+              ) : (
+                <Button size="sm" variant="ghost" disabled={busy} onClick={onSaveLead}>
+                  <UserPlus className="mr-2 h-3.5 w-3.5" />
+                  Save As Lead
+                </Button>
+              )}
               <Button size="sm" variant="ghost" disabled={busy} onClick={onDismiss}>
                 <EyeOff className="mr-2 h-3.5 w-3.5" />
                 Dismiss
@@ -491,9 +501,15 @@ function DealDetail({
         <Button size="sm" variant="outline" onClick={onCheckComps}>
           {compsCtaLabel(row.compCount)}
         </Button>
-        <Button size="sm" variant="ghost" disabled={busy} onClick={onSaveLead}>
-          Save As Lead
-        </Button>
+        {row.savedLeadId ? (
+          <Button size="sm" variant="ghost" asChild>
+            <Link to="/app/leads" search={{ lead: row.savedLeadId }}>View Lead</Link>
+          </Button>
+        ) : (
+          <Button size="sm" variant="ghost" disabled={busy} onClick={onSaveLead}>
+            Save As Lead
+          </Button>
+        )}
         <Button size="sm" variant="ghost" disabled={busy} onClick={onDismiss}>
           Dismiss
         </Button>
