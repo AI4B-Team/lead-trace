@@ -109,6 +109,7 @@ import { Route as ApiPublicHooksTickRegistrationsRouteImport } from './routes/ap
 import { Route as ApiPublicHooksTickRecordsRequestsRouteImport } from './routes/api/public/hooks/tick-records-requests'
 import { Route as ApiPublicHooksTickRealeflowSourcingRouteImport } from './routes/api/public/hooks/tick-realeflow-sourcing'
 import { Route as ApiPublicHooksTickPlanRenewalRouteImport } from './routes/api/public/hooks/tick-plan-renewal'
+import { Route as ApiPublicHooksTickMarketplaceRouteImport } from './routes/api/public/hooks/tick-marketplace'
 import { Route as ApiPublicHooksTickJobsRouteImport } from './routes/api/public/hooks/tick-jobs'
 import { Route as ApiPublicHooksTickDistressFeedRouteImport } from './routes/api/public/hooks/tick-distress-feed'
 import { Route as ApiPublicHooksTickComplianceDigestRouteImport } from './routes/api/public/hooks/tick-compliance-digest'
@@ -666,6 +667,12 @@ const ApiPublicHooksTickPlanRenewalRoute =
     path: '/api/public/hooks/tick-plan-renewal',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksTickMarketplaceRoute =
+  ApiPublicHooksTickMarketplaceRouteImport.update({
+    id: '/api/public/hooks/tick-marketplace',
+    path: '/api/public/hooks/tick-marketplace',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksTickJobsRoute = ApiPublicHooksTickJobsRouteImport.update({
   id: '/api/public/hooks/tick-jobs',
   path: '/api/public/hooks/tick-jobs',
@@ -879,6 +886,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/tick-compliance-digest': typeof ApiPublicHooksTickComplianceDigestRoute
   '/api/public/hooks/tick-distress-feed': typeof ApiPublicHooksTickDistressFeedRoute
   '/api/public/hooks/tick-jobs': typeof ApiPublicHooksTickJobsRoute
+  '/api/public/hooks/tick-marketplace': typeof ApiPublicHooksTickMarketplaceRoute
   '/api/public/hooks/tick-plan-renewal': typeof ApiPublicHooksTickPlanRenewalRoute
   '/api/public/hooks/tick-realeflow-sourcing': typeof ApiPublicHooksTickRealeflowSourcingRoute
   '/api/public/hooks/tick-records-requests': typeof ApiPublicHooksTickRecordsRequestsRoute
@@ -998,6 +1006,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/tick-compliance-digest': typeof ApiPublicHooksTickComplianceDigestRoute
   '/api/public/hooks/tick-distress-feed': typeof ApiPublicHooksTickDistressFeedRoute
   '/api/public/hooks/tick-jobs': typeof ApiPublicHooksTickJobsRoute
+  '/api/public/hooks/tick-marketplace': typeof ApiPublicHooksTickMarketplaceRoute
   '/api/public/hooks/tick-plan-renewal': typeof ApiPublicHooksTickPlanRenewalRoute
   '/api/public/hooks/tick-realeflow-sourcing': typeof ApiPublicHooksTickRealeflowSourcingRoute
   '/api/public/hooks/tick-records-requests': typeof ApiPublicHooksTickRecordsRequestsRoute
@@ -1121,6 +1130,7 @@ export interface FileRoutesById {
   '/api/public/hooks/tick-compliance-digest': typeof ApiPublicHooksTickComplianceDigestRoute
   '/api/public/hooks/tick-distress-feed': typeof ApiPublicHooksTickDistressFeedRoute
   '/api/public/hooks/tick-jobs': typeof ApiPublicHooksTickJobsRoute
+  '/api/public/hooks/tick-marketplace': typeof ApiPublicHooksTickMarketplaceRoute
   '/api/public/hooks/tick-plan-renewal': typeof ApiPublicHooksTickPlanRenewalRoute
   '/api/public/hooks/tick-realeflow-sourcing': typeof ApiPublicHooksTickRealeflowSourcingRoute
   '/api/public/hooks/tick-records-requests': typeof ApiPublicHooksTickRecordsRequestsRoute
@@ -1244,6 +1254,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/tick-compliance-digest'
     | '/api/public/hooks/tick-distress-feed'
     | '/api/public/hooks/tick-jobs'
+    | '/api/public/hooks/tick-marketplace'
     | '/api/public/hooks/tick-plan-renewal'
     | '/api/public/hooks/tick-realeflow-sourcing'
     | '/api/public/hooks/tick-records-requests'
@@ -1363,6 +1374,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/tick-compliance-digest'
     | '/api/public/hooks/tick-distress-feed'
     | '/api/public/hooks/tick-jobs'
+    | '/api/public/hooks/tick-marketplace'
     | '/api/public/hooks/tick-plan-renewal'
     | '/api/public/hooks/tick-realeflow-sourcing'
     | '/api/public/hooks/tick-records-requests'
@@ -1485,6 +1497,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/tick-compliance-digest'
     | '/api/public/hooks/tick-distress-feed'
     | '/api/public/hooks/tick-jobs'
+    | '/api/public/hooks/tick-marketplace'
     | '/api/public/hooks/tick-plan-renewal'
     | '/api/public/hooks/tick-realeflow-sourcing'
     | '/api/public/hooks/tick-records-requests'
@@ -1569,6 +1582,7 @@ export interface RootRouteChildren {
   ApiPublicHooksTickComplianceDigestRoute: typeof ApiPublicHooksTickComplianceDigestRoute
   ApiPublicHooksTickDistressFeedRoute: typeof ApiPublicHooksTickDistressFeedRoute
   ApiPublicHooksTickJobsRoute: typeof ApiPublicHooksTickJobsRoute
+  ApiPublicHooksTickMarketplaceRoute: typeof ApiPublicHooksTickMarketplaceRoute
   ApiPublicHooksTickPlanRenewalRoute: typeof ApiPublicHooksTickPlanRenewalRoute
   ApiPublicHooksTickRealeflowSourcingRoute: typeof ApiPublicHooksTickRealeflowSourcingRoute
   ApiPublicHooksTickRecordsRequestsRoute: typeof ApiPublicHooksTickRecordsRequestsRoute
@@ -2292,6 +2306,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTickPlanRenewalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/tick-marketplace': {
+      id: '/api/public/hooks/tick-marketplace'
+      path: '/api/public/hooks/tick-marketplace'
+      fullPath: '/api/public/hooks/tick-marketplace'
+      preLoaderRoute: typeof ApiPublicHooksTickMarketplaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/tick-jobs': {
       id: '/api/public/hooks/tick-jobs'
       path: '/api/public/hooks/tick-jobs'
@@ -2631,6 +2652,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicHooksTickComplianceDigestRoute,
   ApiPublicHooksTickDistressFeedRoute: ApiPublicHooksTickDistressFeedRoute,
   ApiPublicHooksTickJobsRoute: ApiPublicHooksTickJobsRoute,
+  ApiPublicHooksTickMarketplaceRoute: ApiPublicHooksTickMarketplaceRoute,
   ApiPublicHooksTickPlanRenewalRoute: ApiPublicHooksTickPlanRenewalRoute,
   ApiPublicHooksTickRealeflowSourcingRoute:
     ApiPublicHooksTickRealeflowSourcingRoute,

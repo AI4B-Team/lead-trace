@@ -40,6 +40,8 @@ export const createMarketplaceSearch = createServerFn({ method: "POST" })
         location: z.string().max(200).nullable().default(null),
         radiusMiles: z.number().int().nullable().default(null),
         minMatchScore: z.number().int().min(0).max(100).optional(),
+        checkIntervalSeconds: z.number().int().min(60).max(86400).optional(),
+        alertExistingMatches: z.boolean().optional(),
       })
       .parse(input),
   )
@@ -73,6 +75,8 @@ const patchSchema = z.object({
   notifyInApp: z.boolean().optional(),
   notifyEmail: z.boolean().optional(),
   status: z.enum(["active", "paused"]).optional(),
+  checkIntervalSeconds: z.number().int().min(60).max(86400).optional(),
+  alertExistingMatches: z.boolean().optional(),
 });
 
 export const updateMarketplaceSearch = createServerFn({ method: "POST" })
@@ -183,4 +187,69 @@ export const getMarketplaceComps = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const s = await import("./comps.server");
     return s.checkComps(context.supabase, data.workspaceId, data.id, { refresh: data.refresh });
+  });
+
+/**
+ * Manual "Check Now". Runs the same fast path the scheduler runs — collect,
+ * dedupe against previously seen listings, filter, score, alert. Membership is
+ * verified through the caller's RLS-scoped client before the engine runs with
+ * elevated rights.
+ */
+export const runMarketplaceCheckNow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: z.string().uuid(), workspaceId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
+      .from("marketplace_searches")
+      .select("id")
+      .eq("id", data.id)
+      .eq("workspace_id", data.workspaceId)
+      .maybeSingle();
+    if (error || !row) throw new Error("That marketplace search no longer exists.");
+
+    const { collectableSources } = await import("./collectors.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: full } = await supabaseAdmin
+      .from("marketplace_searches")
+      .select("*")
+      .eq("id", data.id)
+      .single();
+    if (!full) throw new Error("That marketplace search no longer exists.");
+    if (!collectableSources((full as any).sources ?? []).length) {
+      // Never pretend a check ran against a source we cannot reach.
+      return {
+        ran: false,
+        reason: "No marketplace connection is live yet, so there is nothing to check.",
+        runs: [],
+      };
+    }
+    const { runSearchCheck } = await import("./monitor.server");
+    const result = await runSearchCheck(supabaseAdmin as never, full);
+    return { ran: true, reason: null, runs: result.runs };
+  });
+
+/** Recent per-source check history for one search — the health evidence trail. */
+export const listMarketplaceSourceRuns = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        workspaceId: z.string().uuid(),
+        searchId: z.string().uuid(),
+        limit: z.number().int().min(1).max(50).default(15),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("marketplace_source_runs")
+      .select("*")
+      .eq("workspace_id", data.workspaceId)
+      .eq("search_id", data.searchId)
+      .order("started_at", { ascending: false })
+      .limit(data.limit);
+    if (error) throw new Error(error.message);
+    return { runs: rows ?? [] };
   });

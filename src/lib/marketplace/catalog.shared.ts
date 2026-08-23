@@ -262,62 +262,10 @@ export function criteriaSummary(
 
 /* ------------------------------------------------------------------ status */
 
-export type MarketplaceStatusKey =
-  | "active"
-  | "paused"
-  | "needs_attention"
-  | "source_unavailable"
-  | "setup_incomplete";
+// Search status now lives in monitor.shared.ts, where it can also account for
+// real monitoring evidence (last successful check, failures, rate limits).
+// Import `monitorHealth` / `MonitorHealth` from there.
 
-export type MarketplaceStatusDisplay = {
-  key: MarketplaceStatusKey;
-  label: string;
-  tone: "success" | "muted" | "warn" | "danger";
-  /** Why the search is in this state — shown under the badge, never invented. */
-  detail: string | null;
-};
-
-/**
- * Truthful status. "Active" is only ever shown when a real source adapter is
- * running; until then a stored `active` row reads as Source Unavailable.
- */
-export function searchStatus(s: {
-  status: string;
-  sources: string[];
-  criteria: MarketplaceCriteria;
-  attentionNote?: string | null;
-}): MarketplaceStatusDisplay {
-  if (s.status === "paused") {
-    return { key: "paused", label: "Paused", tone: "muted", detail: "You paused this search." };
-  }
-  const hasCriteria =
-    s.criteria.targets.length > 0 ||
-    s.criteria.keywords.length > 0 ||
-    Object.keys(s.criteria.attributes).length > 0;
-  if (!s.sources.length || !hasCriteria) {
-    return {
-      key: "setup_incomplete",
-      label: "Setup Incomplete",
-      tone: "warn",
-      detail: !s.sources.length ? "No marketplaces selected." : "No criteria to match on.",
-    };
-  }
-  if (s.attentionNote) {
-    return { key: "needs_attention", label: "Needs Attention", tone: "danger", detail: s.attentionNote };
-  }
-  const live = s.sources.filter((k) =>
-    MARKETPLACE_SOURCES.some((m) => m.key === k && m.status === "live"),
-  );
-  if (!live.length) {
-    return {
-      key: "source_unavailable",
-      label: "Source Unavailable",
-      tone: "muted",
-      detail: "No marketplace connection is live yet, so nothing is being collected.",
-    };
-  }
-  return { key: "active", label: "Active", tone: "success", detail: null };
-}
 
 /** "2 Min Ago" — Title Case, never a bare timestamp in a card row. */
 export function relativeTime(iso: string | null): string {

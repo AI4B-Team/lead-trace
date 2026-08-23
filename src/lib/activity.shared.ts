@@ -37,6 +37,8 @@ export const ACTIVITY_TYPES = [
   // Spend/export approvals: who asked, who decided.
   "approval_requested",
   "approval_decided",
+  // A Marketplace Search found a qualifying new listing and alerted the user.
+  "marketplace_match",
 ] as const;
 
 
@@ -61,6 +63,7 @@ export const ACTIVITY_GROUPS: Array<{ key: string; label: string; types: Activit
   { key: "numbers", label: "Numbers", types: ["number_added", "number_cooled", "brand_status"] },
   { key: "compliance", label: "Compliance", types: ["compliance_digest"] },
   { key: "agents", label: "Agents", types: ["agent_decision"] },
+  { key: "marketplace", label: "Marketplace", types: ["marketplace_match"] },
   {
     key: "team",
     label: "Team",
@@ -98,6 +101,7 @@ export const ACTIVITY_ICON: Record<string, string> = {
   webhook_failed: "webhook",
   approval_requested: "gauge",
   approval_decided: "shield-check",
+  marketplace_match: "store",
 };
 
 /** Where a row navigates when clicked. Returns null when there's no detail view. */
@@ -127,6 +131,8 @@ export function activityLink(
       return "/app/team";
     case "approval":
       return "/app/team";
+    case "marketplace":
+      return "/app/assistant?template=marketplace-deals";
     default:
       return null;
   }
