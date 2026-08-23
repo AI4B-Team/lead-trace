@@ -14,9 +14,7 @@
  *  - Too little evidence returns `insufficient`. The caller still shows the
  *    comps that were found.
  */
-import {
-  CATEGORY_ATTRIBUTES, attributeLabel, formatMoney, type MarketplaceCategory,
-} from "./catalog.shared";
+import { attributeLabel, formatMoney, type MarketplaceCategory } from "./catalog.shared";
 
 /* ------------------------------------------------------------------- types */
 
@@ -335,7 +333,10 @@ function fieldSimilarity(
   const sn = num(s);
   const cn = num(c);
   if (sn == null || cn == null) {
-    return { key: field.key, sim: null, note: { key: field.key, label, state: "unknown", detail: "Not Comparable" } } as any;
+    return {
+      sim: null,
+      note: { key: field.key, label, state: "unknown", detail: "Not Comparable" },
+    };
   }
   const diff = Math.abs(sn - cn);
   const tolerance =
@@ -375,7 +376,6 @@ export function rankComps(subject: CompSubject, candidates: CompCandidate[]): Co
     let weighted = 0;
     let weight = 0;
     let identityConflict: string | null = null;
-    let knownFields = 0;
     let comparedFields = 0;
 
     for (const field of rules.fields) {
@@ -391,7 +391,6 @@ export function rankComps(subject: CompSubject, candidates: CompCandidate[]): Co
         weight += field.weight * 0.5;
         continue;
       }
-      knownFields += 1;
       comparedFields += 1;
       weight += field.weight;
       weighted += field.weight * sim;
@@ -440,7 +439,6 @@ export function rankComps(subject: CompSubject, candidates: CompCandidate[]): Co
             ? `Similarity Below ${rules.usableFloor}%`
             : null,
     });
-    void knownFields;
   }
   return out.sort((a, b) => b.similarity - a.similarity || a.price - b.price);
 }
@@ -692,5 +690,3 @@ export function compSubjectLine(subject: CompSubject): string[] {
 export function compDisplayFields(category: MarketplaceCategory): CompField[] {
   return compRules(category).fields;
 }
-
-void CATEGORY_ATTRIBUTES;
