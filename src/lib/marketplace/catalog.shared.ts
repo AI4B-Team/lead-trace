@@ -190,8 +190,9 @@ export function attributeLabel(category: MarketplaceCategory, key: string): stri
 export function formatAttrValue(v: string | number): string {
   if (typeof v === "number") return v.toLocaleString("en-US");
   const trimmed = v.trim();
-  if (/^\d{4,}$/.test(trimmed)) return Number(trimmed).toLocaleString("en-US");
+  // Years stay bare; longer numbers (mileage, hours) get separators.
   if (/^\d{4}$/.test(trimmed)) return trimmed;
+  if (/^\d{5,}$/.test(trimmed)) return Number(trimmed).toLocaleString("en-US");
   return trimmed.replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
