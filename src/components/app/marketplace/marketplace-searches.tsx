@@ -20,7 +20,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  categoryLabel, criteriaLines, radiusLabel, relativeTime, searchStatus, sourceLabel,
+  categoryLabel, criteriaLines, relativeTime, searchStatus, sourceLabel,
   type MarketplaceCategory, type MarketplaceStatusDisplay,
 } from "@/lib/marketplace/catalog.shared";
 import {
