@@ -33,7 +33,7 @@ import {
   formatAttrValue, searchStatus, sourceLabel, type MarketplaceCategory,
 } from "@/lib/marketplace/catalog.shared";
 import {
-  FRESHNESS_OPTIONS, MATCH_SCORE_OPTIONS, compsUrl, formatPrice, freshnessLabel, groupDeals,
+  FRESHNESS_OPTIONS, MATCH_SCORE_OPTIONS, formatPrice, freshnessLabel, groupDeals,
   matchScoreTone, metaLine, agoLabel, type DealGroup, type MarketplaceListingRow,
 } from "@/lib/marketplace/deals.shared";
 import {
@@ -44,6 +44,8 @@ import {
   dismissMarketplaceListing, listMarketplaceDeals, saveMarketplaceListingAsLead,
 } from "@/lib/marketplace/marketplace.functions";
 import type { MarketplaceSearchRow } from "@/lib/marketplace/searches.server";
+import { compsCtaLabel } from "@/lib/marketplace/comps.shared";
+import { CompsDrawer } from "./comps-drawer";
 
 export function MarketplaceDeals({
   workspaceId, searches, initialSearchId = null, onBack, onEditSearch,
@@ -66,6 +68,7 @@ export function MarketplaceDeals({
   const [location, setLocation] = useState("");
   const [query, setQuery] = useState("");
   const [detail, setDetail] = useState<DealGroup | null>(null);
+  const [compsFor, setCompsFor] = useState<MarketplaceListingRow | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const filters = {
@@ -238,6 +241,7 @@ export function MarketplaceDeals({
               onOpenDetail={() => setDetail(group)}
               onDismiss={() => void onDismiss(group.listing)}
               onSaveLead={() => void onSaveLead(group.listing)}
+              onCheckComps={() => setCompsFor(group.listing)}
             />
           ))}
         </div>
@@ -252,10 +256,18 @@ export function MarketplaceDeals({
               busy={busyId === detail.listing.id}
               onDismiss={() => void onDismiss(detail.listing)}
               onSaveLead={() => void onSaveLead(detail.listing)}
+              onCheckComps={() => setCompsFor(detail.listing)}
             />
           )}
         </SheetContent>
       </Sheet>
+
+      <CompsDrawer
+        listing={compsFor}
+        workspaceId={workspaceId}
+        open={Boolean(compsFor)}
+        onOpenChange={(open) => !open && setCompsFor(null)}
+      />
     </div>
   );
 }
@@ -271,13 +283,14 @@ function MatchScoreBadge({ score }: { score: number }) {
 }
 
 function DealCard({
-  group, busy, onOpenDetail, onDismiss, onSaveLead,
+  group, busy, onOpenDetail, onDismiss, onSaveLead, onCheckComps,
 }: {
   group: DealGroup;
   busy: boolean;
   onOpenDetail: () => void;
   onDismiss: () => void;
   onSaveLead: () => void;
+  onCheckComps: () => void;
 }) {
   const row = group.listing;
   // Prefer the four-state explanation; fall back to the legacy compact breakdown.
@@ -391,10 +404,8 @@ function DealCard({
             )}
 
             <div className="flex flex-wrap items-center gap-2 pt-1">
-              <Button size="sm" variant="outline" asChild>
-                <a href={compsUrl(row)} target="_blank" rel="noreferrer noopener">
-                  Check Comps
-                </a>
+              <Button size="sm" variant="outline" onClick={onCheckComps}>
+                {compsCtaLabel(row.compCount)}
               </Button>
               <Button size="sm" asChild>
                 <a href={row.listingUrl} target="_blank" rel="noreferrer noopener">
@@ -419,13 +430,14 @@ function DealCard({
 }
 
 function DealDetail({
-  group, searchName, busy, onDismiss, onSaveLead,
+  group, searchName, busy, onDismiss, onSaveLead, onCheckComps,
 }: {
   group: DealGroup;
   searchName: string | null;
   busy: boolean;
   onDismiss: () => void;
   onSaveLead: () => void;
+  onCheckComps: () => void;
 }) {
   const row = group.listing;
   const sellerEntries = Object.entries(row.seller ?? {}).filter(
@@ -475,10 +487,8 @@ function DealDetail({
             <ExternalLink className="ml-2 h-3.5 w-3.5" />
           </a>
         </Button>
-        <Button size="sm" variant="outline" asChild>
-          <a href={compsUrl(row)} target="_blank" rel="noreferrer noopener">
-            Check Comps
-          </a>
+        <Button size="sm" variant="outline" onClick={onCheckComps}>
+          {compsCtaLabel(row.compCount)}
         </Button>
         <Button size="sm" variant="ghost" disabled={busy} onClick={onSaveLead}>
           Save As Lead
