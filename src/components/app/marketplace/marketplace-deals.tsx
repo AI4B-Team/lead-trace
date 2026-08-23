@@ -15,8 +15,8 @@ import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import {
-  ArrowLeft, Check, ExternalLink, EyeOff, Image as ImageIcon, Loader2, MapPin, Radar, Search,
-  TriangleAlert, UserPlus,
+  ArrowLeft, Check, CircleHelp, ExternalLink, EyeOff, Image as ImageIcon, Loader2, MapPin, Radar,
+  Search, TriangleAlert, UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -434,6 +434,10 @@ function DealDetail({
   const attributeEntries = Object.entries(row.attributes ?? {}).filter(
     ([, v]) => v !== null && v !== "" && v !== undefined,
   );
+  const detailCriteria = row.matchCriteria.length
+    ? row.matchCriteria
+    : legacyToCriteria(row.matchBreakdown);
+  const detailGroups = groupCriteria(detailCriteria);
 
   return (
     <div className="space-y-4">
@@ -677,5 +681,55 @@ function DealsEmptyState({ searches }: { searches: MarketplaceSearchRow[] }) {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+/**
+ * Rows stored before the matching layer existed only have a matched/not-matched
+ * flag. They render as-is rather than being upgraded with invented states.
+ */
+function legacyToCriteria(breakdown: MarketplaceListingRow["matchBreakdown"]): MatchCriterion[] {
+  return breakdown.map((m, i) => ({
+    key: `legacy.${i}.${m.label}`,
+    label: m.label,
+    state: m.ok ? "matched" : "not_matched",
+    detail: m.note ?? null,
+    weight: 1,
+    fromCriteria: true,
+  }));
+}
+
+function CriterionList({
+  title, items, tone,
+}: {
+  title: string;
+  items: MatchCriterion[];
+  tone: "matched" | "mismatch" | "unknown";
+}) {
+  if (!items.length) return null;
+  const Icon = tone === "matched" ? Check : tone === "mismatch" ? TriangleAlert : CircleHelp;
+  const color =
+    tone === "matched" ? "text-success" : tone === "mismatch" ? "text-warn" : "text-muted-foreground";
+  return (
+    <div className="space-y-1">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
+      <ul className="space-y-1">
+        {items.map((c) => (
+          <li key={c.key} className="flex items-start gap-2 text-sm">
+            <Icon className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${color}`} />
+            <span className={tone === "matched" ? "text-foreground" : color}>
+              {c.label}
+              {c.detail ? ` — ${c.detail}` : ""}
+              {c.confidence && c.confidence !== "high" && (
+                <span className="text-muted-foreground">
+                  {" "}
+                  (Confidence: {CONFIDENCE_LABEL[c.confidence]})
+                </span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
