@@ -293,5 +293,6 @@ export function nextCheckInterval(input: {
 /** Bounded exponential backoff with jitter, used for job polling. */
 export function pollDelayMs(attempt: number, baseMs = 2000, maxMs = 15000): number {
   const raw = Math.min(baseMs * 2 ** Math.max(attempt, 0), maxMs);
-  return Math.round(raw * (0.75 + Math.random() * 0.5));
+  // Jitter inside the cap, so the delay never exceeds `maxMs`.
+  return Math.min(maxMs, Math.round(raw * (0.75 + Math.random() * 0.5)));
 }
