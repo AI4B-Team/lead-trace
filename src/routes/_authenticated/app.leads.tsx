@@ -14,7 +14,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Link } from "@tanstack/react-router";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search, Users, ShieldCheck, ShieldAlert, Ban, Sparkles, Layers, HelpCircle, Wand2, Loader2, Download, Star } from "lucide-react";
+import { Search, Users, ShieldCheck, ShieldAlert, Ban, Sparkles, Layers, HelpCircle, Wand2, Loader2, Download, Star, Radar } from "lucide-react";
 import { useWorkspaceId } from "@/hooks/use-workspace";
 import { formatLocation } from "@/lib/location";
 import { listLeadRecords, getLeadListMemberships, exportLeadRecords } from "@/lib/monitoring.functions";
