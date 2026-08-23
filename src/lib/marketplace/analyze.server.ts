@@ -50,9 +50,17 @@ export type SourceListing = {
   seller?: Record<string, string | boolean | number>;
   postedAt?: string | null;
   postedAtReliable?: boolean;
+  /** Map coordinates, only when the source publishes them. */
+  latitude?: number | null;
+  longitude?: number | null;
+  /** Publicly displayed seller name, when the source exposes one. */
+  sellerName?: string | null;
+  /** Source-specific leftovers, kept for provenance only. */
+  sourceMetadata?: Record<string, unknown>;
   duplicateGroup?: string | null;
   duplicateConfidence?: number | null;
 };
+
 
 export type AnalysisOutput = {
   score: number;

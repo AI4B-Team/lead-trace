@@ -17,6 +17,7 @@
  */
 import { analyzeAndStoreListing, type SourceListing } from "./analyze.server";
 import { collectableSources, getCollector, SourceRateLimitedError } from "./collectors.server";
+import { canonicalListingUrl } from "./adapters/contract.shared";
 import { EMPTY_CRITERIA } from "./catalog.shared";
 import { buildMatchAlert, normalizeInterval } from "./monitor.shared";
 
@@ -47,8 +48,12 @@ export type SearchCheckResult = {
 
 /** Source identity for a listing: the marketplace's own id when it gave us one. */
 function identity(listing: SourceListing): string {
-  return (listing.externalId ?? listing.listingUrl ?? "").trim();
+  // Same rule the adapter contract uses: the source's own id when it has one,
+  // otherwise the canonical (tracking-stripped) listing URL.
+  return (listing.externalId?.trim() || canonicalListingUrl(listing.listingUrl || "")).trim();
 }
+
+
 
 async function logSourceRun(
   supabase: Client,
@@ -286,6 +291,13 @@ async function processSourceListings(
         last_seen_at: nowIso,
         seen_count: 1,
         is_baseline: isBaseline,
+        // Adapter-normalized extras. Only stored when the source actually
+        // published them; the bridge nulls them out otherwise.
+        latitude: listing.latitude ?? null,
+        longitude: listing.longitude ?? null,
+        seller_name: listing.sellerName ?? null,
+        source_metadata: listing.sourceMetadata ?? {},
+
         // Slow path picks these up; the alert never waits for it.
         enrichment_state: "pending",
         // alerted_at is set by the analyzer for eligibility; suppress it for a
