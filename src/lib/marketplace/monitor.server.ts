@@ -320,7 +320,26 @@ async function processSourceListings(
       });
       if (sent) alerted += 1;
     }
+
+    // Opt-in only: a search must be explicitly set to auto_above_score. A
+    // baseline run never creates leads, and outreach is never started.
+    if (
+      !isBaseline &&
+      search.lead_creation_mode === "auto_above_score" &&
+      stored.analysis.alertEligible &&
+      stored.analysis.score >= Number(search.auto_lead_min_score ?? 85)
+    ) {
+      try {
+        await saveListingAsLead(supabase, stored.listingId, workspaceId, {
+          origin: "auto_above_score",
+        });
+      } catch {
+        // A lead-creation failure must not fail the discovery run; the match is
+        // already in the feed and can still be saved by hand.
+      }
+    }
   }
+
 
   return { newListings, qualified, alerted, baselineRecorded };
 }
