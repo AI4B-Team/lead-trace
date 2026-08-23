@@ -47,8 +47,15 @@ export type SearchCheckResult = {
 
 /** Source identity for a listing: the marketplace's own id when it gave us one. */
 function identity(listing: SourceListing): string {
-  return (listing.externalId ?? listing.listingUrl ?? "").trim();
+  // Same rule the adapter contract uses: the source's own id when it has one,
+  // otherwise the canonical (tracking-stripped) listing URL.
+  return listingIdentity({
+    source: listing.source,
+    sourceListingId: listing.externalId ?? null,
+    sourceUrl: listing.listingUrl,
+  }).value;
 }
+
 
 async function logSourceRun(
   supabase: Client,
