@@ -3,6 +3,7 @@
  * Supabase client so RLS scopes every row to their workspace — never admin.
  */
 import { EMPTY_CRITERIA, type MarketplaceCriteria } from "./catalog.shared";
+import { DEFAULT_MIN_MATCH_SCORE } from "./match.shared";
 
 export type MarketplaceSearchRow = {
   id: string;
@@ -17,6 +18,8 @@ export type MarketplaceSearchRow = {
   lastCheckedAt: string | null;
   nextCheckAt: string | null;
   alertThreshold: number;
+  /** Minimum Match Score a listing must reach before it alerts. */
+  minMatchScore: number;
   notifyInApp: boolean;
   notifyEmail: boolean;
   matchesFound: number;
@@ -40,6 +43,7 @@ function toRow(r: any): MarketplaceSearchRow {
     lastCheckedAt: r.last_checked_at ?? null,
     nextCheckAt: r.next_check_at ?? null,
     alertThreshold: r.alert_threshold ?? 1,
+    minMatchScore: r.min_match_score ?? DEFAULT_MIN_MATCH_SCORE,
     notifyInApp: r.notify_in_app ?? true,
     notifyEmail: r.notify_email ?? false,
     matchesFound: r.matches_found ?? 0,
@@ -61,6 +65,7 @@ export async function insertSearch(
     location: string | null;
     radiusMiles: number | null;
     alertThreshold?: number;
+    minMatchScore?: number;
     notifyInApp?: boolean;
     notifyEmail?: boolean;
   },
@@ -78,6 +83,7 @@ export async function insertSearch(
       location: input.location,
       radius_miles: input.radiusMiles,
       alert_threshold: input.alertThreshold ?? 1,
+      min_match_score: input.minMatchScore ?? DEFAULT_MIN_MATCH_SCORE,
       notify_in_app: input.notifyInApp ?? true,
       notify_email: input.notifyEmail ?? false,
       status: "active",
@@ -113,6 +119,7 @@ export type SearchPatch = {
   location?: string | null;
   radiusMiles?: number | null;
   alertThreshold?: number;
+  minMatchScore?: number;
   notifyInApp?: boolean;
   notifyEmail?: boolean;
   status?: string;
@@ -134,6 +141,7 @@ export async function updateSearch(
   if (patch.location !== undefined) payload.location = patch.location;
   if (patch.radiusMiles !== undefined) payload.radius_miles = patch.radiusMiles;
   if (patch.alertThreshold !== undefined) payload.alert_threshold = patch.alertThreshold;
+  if (patch.minMatchScore !== undefined) payload.min_match_score = patch.minMatchScore;
   if (patch.notifyInApp !== undefined) payload.notify_in_app = patch.notifyInApp;
   if (patch.notifyEmail !== undefined) payload.notify_email = patch.notifyEmail;
   if (patch.status !== undefined) payload.status = patch.status;
@@ -173,6 +181,7 @@ export async function duplicateSearch(
     location: row.location,
     radiusMiles: row.radiusMiles,
     alertThreshold: row.alertThreshold,
+    minMatchScore: row.minMatchScore,
     notifyInApp: row.notifyInApp,
     notifyEmail: row.notifyEmail,
   });
