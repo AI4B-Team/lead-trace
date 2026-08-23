@@ -49,12 +49,9 @@ export type SearchCheckResult = {
 function identity(listing: SourceListing): string {
   // Same rule the adapter contract uses: the source's own id when it has one,
   // otherwise the canonical (tracking-stripped) listing URL.
-  return listingIdentity({
-    source: listing.source,
-    sourceListingId: listing.externalId ?? null,
-    sourceUrl: listing.listingUrl,
-  }).value;
+  return (listing.externalId?.trim() || canonicalListingUrl(listing.listingUrl || "")).trim();
 }
+
 
 
 async function logSourceRun(
