@@ -188,7 +188,9 @@ export function attributeLabel(category: MarketplaceCategory, key: string): stri
 
 /** Display polish: Title Case words, thousands separators on plain numbers. */
 export function formatAttrValue(v: string | number): string {
-  if (typeof v === "number") return v.toLocaleString("en-US");
+  // Years (4-digit) stay bare so 2018 never renders as "2,018".
+  if (typeof v === "number")
+    return Number.isInteger(v) && v >= 1000 && v <= 9999 ? String(v) : v.toLocaleString("en-US");
   const trimmed = v.trim();
   // Years stay bare; longer numbers (mileage, hours) get separators.
   if (/^\d{4}$/.test(trimmed)) return trimmed;
