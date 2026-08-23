@@ -27,6 +27,9 @@ import {
   type MarketplaceCategory, type MarketplaceCriteria,
 } from "@/lib/marketplace/catalog.shared";
 import {
+  DEFAULT_MIN_MATCH_SCORE, MATCH_THRESHOLD_PRESETS,
+} from "@/lib/marketplace/match.shared";
+import {
   createMarketplaceSearch, listMarketplaceSearches, parseMarketplaceRequest,
   updateMarketplaceSearch,
 } from "@/lib/marketplace/marketplace.functions";
