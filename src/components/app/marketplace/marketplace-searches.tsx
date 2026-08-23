@@ -20,22 +20,22 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  categoryLabel, criteriaLines, relativeTime, searchStatus, sourceLabel,
-  type MarketplaceCategory, type MarketplaceStatusDisplay,
+  categoryLabel, criteriaLines, relativeTime, sourceLabel,
+  type MarketplaceCategory,
 } from "@/lib/marketplace/catalog.shared";
 import {
   deleteMarketplaceSearch, duplicateMarketplaceSearch, updateMarketplaceSearch,
 } from "@/lib/marketplace/marketplace.functions";
 import type { MarketplaceSearchRow } from "@/lib/marketplace/searches.server";
 
-const TONE: Record<MarketplaceStatusDisplay["tone"], string> = {
+const TONE: Record<MonitorHealth["tone"], string> = {
   success: "bg-success/10 text-success border-success/20",
   muted: "bg-surface-muted text-muted-foreground border-border",
   warn: "bg-warn/10 text-warn border-warn/20",
   danger: "bg-danger/10 text-danger border-danger/20",
 };
 
-export function StatusBadge({ status }: { status: MarketplaceStatusDisplay }) {
+export function StatusBadge({ status }: { status: MonitorHealth }) {
   return (
     <Badge variant="outline" className={`${TONE[status.tone]} uppercase tracking-wide`}>
       {status.label}
@@ -112,7 +112,7 @@ export function MarketplaceSearchList({
   return (
     <div className="space-y-3">
       {rows.map((row) => {
-        const status = searchStatus(row);
+        const status = monitorHealth(row);
         const lines = criteriaLines(row.category as MarketplaceCategory, row.criteria);
         const busy = pendingId === row.id;
         return (
@@ -256,7 +256,7 @@ export function MarketplaceSearchResults({
   onBack: () => void;
   onEdit: () => void;
 }) {
-  const status = searchStatus(row);
+  const status = monitorHealth(row);
   const lines = criteriaLines(row.category as MarketplaceCategory, row.criteria);
   return (
     <div className="space-y-4">

@@ -30,7 +30,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Separator } from "@/components/ui/separator";
 import {
   MARKETPLACE_CATEGORIES, MARKETPLACE_SOURCES, categoryLabel, criteriaLines, relativeTime,
-  formatAttrValue, searchStatus, sourceLabel, type MarketplaceCategory,
+  formatAttrValue, sourceLabel, type MarketplaceCategory,
 } from "@/lib/marketplace/catalog.shared";
 import {
   FRESHNESS_OPTIONS, MATCH_SCORE_OPTIONS, formatPrice, freshnessLabel, groupDeals,
@@ -663,7 +663,7 @@ function DealsEmptyState({ searches }: { searches: MarketplaceSearchRow[] }) {
               Active Marketplace Searches
             </p>
             {searches.map((s) => {
-              const status = searchStatus(s);
+              const status = monitorHealth(s);
               const lines = criteriaLines(s.category as MarketplaceCategory, s.criteria);
               return (
                 <div
