@@ -21,6 +21,7 @@ import { canonicalListingUrl } from "./adapters/contract.shared";
 import { saveListingAsLead } from "./listings.server";
 import { EMPTY_CRITERIA } from "./catalog.shared";
 import { buildMatchAlert, normalizeInterval } from "./monitor.shared";
+import { nextCheckInterval } from "./providers/contract.shared";
 
 type Client = { from: (t: string) => any };
 
@@ -37,6 +38,17 @@ export type SourceRunSummary = {
   baseline: boolean;
   rateLimited: boolean;
   error?: string | null;
+  /** Which collection provider ran the retrieval, and what it cost. */
+  provider?: string | null;
+  providerJobId?: string | null;
+  providerRequests?: number;
+  providerRecords?: number;
+  /** Records dropped by hard filters BEFORE any AI work. */
+  filteredOut?: number;
+  /** AI calls this run made. The fast path is deterministic, so normally zero. */
+  aiCalls?: number;
+  truncated?: boolean;
+  errorCategory?: string | null;
 };
 
 export type SearchCheckResult = {
@@ -79,6 +91,14 @@ async function logSourceRun(
       baseline: summary.baseline,
       rate_limited: summary.rateLimited,
       error: summary.error ?? null,
+      provider: summary.provider ?? null,
+      provider_job_id: summary.providerJobId ?? null,
+      provider_requests: summary.providerRequests ?? 0,
+      provider_records: summary.providerRecords ?? 0,
+      filtered_out: summary.filteredOut ?? 0,
+      ai_calls: summary.aiCalls ?? 0,
+      truncated: Boolean(summary.truncated),
+      error_category: summary.errorCategory ?? null,
     });
   } catch (err) {
     console.error("[marketplace] could not log source run:", err);
@@ -138,6 +158,16 @@ export async function runSearchCheck(
       });
       const listings = (result.listings ?? []).slice(0, MAX_LISTINGS_PER_SOURCE);
       summary.listingsSeen = listings.length;
+      if (result.collection) {
+        summary.provider = result.collection.provider;
+        summary.providerJobId = result.collection.jobId;
+        summary.providerRequests = result.collection.requests;
+        summary.providerRecords = result.collection.records;
+        // Hard filters (sold/hidden/malformed/duplicate) run during
+        // normalization, i.e. BEFORE any analysis or AI spend.
+        summary.filteredOut = Math.max(0, result.collection.records - listings.length);
+      }
+      summary.truncated = Boolean(result.truncated);
       if (result.rateLimited) {
         summary.rateLimited = true;
         rateLimitedSeconds = Math.max(rateLimitedSeconds, RATE_LIMIT_BACKOFF_SECONDS);
@@ -159,6 +189,9 @@ export async function runSearchCheck(
         rateLimitedSeconds = Math.max(rateLimitedSeconds, err.retryAfterSeconds);
       }
       summary.error = err instanceof Error ? err.message : "Source check failed.";
+      summary.errorCategory =
+        (err as { category?: string } | null)?.category ??
+        (err instanceof SourceRateLimitedError ? "rate_limited" : "provider_error");
       lastError = summary.error;
       console.error(`[marketplace] ${source} check failed for ${search.id}:`, summary.error);
     }
@@ -167,10 +200,24 @@ export async function runSearchCheck(
   }
 
   const now = new Date();
-  const backoff = rateLimitedSeconds > 0 ? rateLimitedSeconds : interval;
+  // VARIABLE POLLING: a search that is producing is checked at the fast end of
+  // its window; a search that has been quiet drifts toward the slow end. Cost
+  // stays bounded and no source is hit faster than its adapter allows.
+  const newThisCheck = runs.reduce((n, r) => n + r.newListings, 0);
+  const quietChecks = newThisCheck > 0 ? 0 : Number(search.quiet_checks ?? 0) + 1;
+  const adaptive = nextCheckInterval({
+    baseSeconds: interval,
+    newListings: newThisCheck,
+    quietChecks,
+    rateLimited: rateLimitedSeconds > 0,
+    retryAfterSeconds: rateLimitedSeconds || null,
+  });
+  const backoff = rateLimitedSeconds > 0 ? Math.max(rateLimitedSeconds, adaptive) : adaptive;
   const patch: Record<string, unknown> = {
     last_checked_at: now.toISOString(),
     next_check_at: new Date(now.getTime() + backoff * 1000).toISOString(),
+    quiet_checks: quietChecks,
+    effective_interval_seconds: backoff,
   };
   if (anySuccess) {
     patch.last_success_at = now.toISOString();
