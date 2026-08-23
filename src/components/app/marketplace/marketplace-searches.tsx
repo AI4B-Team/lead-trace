@@ -131,7 +131,7 @@ export function MarketplaceSearchList({
                   <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5" />
                     {row.location ? `${row.location} · ` : ""}
-                    {row.radiusMiles == null ? "Nationwide" : `Within ${radiusLabel(row.radiusMiles)}`}
+                    {row.radiusMiles == null ? "Nationwide" : `Within ${row.radiusMiles.toLocaleString("en-US")} Miles`}
                   </p>
                   {lines.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 pt-0.5">
@@ -271,7 +271,7 @@ export function MarketplaceSearchResults({
           </div>
           <p className="text-sm text-muted-foreground">
             {row.location ? `${row.location} · ` : ""}
-            {row.radiusMiles == null ? "Nationwide" : `Within ${radiusLabel(row.radiusMiles)}`} · Last
+            {row.radiusMiles == null ? "Nationwide" : `Within ${row.radiusMiles.toLocaleString("en-US")} Miles`} · Last
             Checked: {relativeTime(row.lastCheckedAt)}
           </p>
           {lines.length > 0 && (
