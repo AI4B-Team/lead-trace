@@ -30,7 +30,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Separator } from "@/components/ui/separator";
 import {
   MARKETPLACE_CATEGORIES, MARKETPLACE_SOURCES, categoryLabel, criteriaLines, relativeTime,
-  searchStatus, sourceLabel, type MarketplaceCategory,
+  formatAttrValue, searchStatus, sourceLabel, type MarketplaceCategory,
 } from "@/lib/marketplace/catalog.shared";
 import {
   FRESHNESS_OPTIONS, MATCH_SCORE_OPTIONS, compsUrl, formatPrice, freshnessLabel, groupDeals,
@@ -506,7 +506,9 @@ function DealDetail({
                 <dt className="text-muted-foreground">
                   {k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                 </dt>
-                <dd className="text-right font-medium text-foreground">{String(v)}</dd>
+                <dd className="text-right font-medium text-foreground">
+                  {formatAttrValue(v as string | number)}
+                </dd>
               </div>
             ))}
           </dl>
