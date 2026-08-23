@@ -10,6 +10,11 @@
  *    high confidence; low confidence stays as separate cards.
  */
 
+import type {
+  ExtractionConfidence, MarketPosition, MatchCriterion, SellerSignal,
+} from "./match.shared";
+
+/** Legacy compact breakdown, still written for older rendering paths. */
 export type MatchCheck = {
   label: string;
   /** true = criterion met, false = potential mismatch / unspecified by seller. */
@@ -35,6 +40,16 @@ export type MarketplaceListingRow = {
   seller: Record<string, string | number | boolean>;
   matchScore: number;
   matchBreakdown: MatchCheck[];
+  /** Full four-state explanation produced by the matching layer. */
+  matchCriteria: MatchCriterion[];
+  attributeConfidence: Record<string, ExtractionConfidence>;
+  sellerSignals: SellerSignal[];
+  /** Independent of the Match Score. Never derived from it. */
+  marketPosition: MarketPosition;
+  marketPositionNote: string | null;
+  disqualifiedReason: string | null;
+  aiAnalysisUsed: boolean;
+  analyzedAt: string | null;
   postedAt: string | null;
   postedAtReliable: boolean;
   firstSeenAt: string;

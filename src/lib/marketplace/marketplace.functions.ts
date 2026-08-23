@@ -39,6 +39,7 @@ export const createMarketplaceSearch = createServerFn({ method: "POST" })
         sources: z.array(z.string()).default([]),
         location: z.string().max(200).nullable().default(null),
         radiusMiles: z.number().int().nullable().default(null),
+        minMatchScore: z.number().int().min(0).max(100).optional(),
       })
       .parse(input),
   )
@@ -68,6 +69,7 @@ const patchSchema = z.object({
   location: z.string().max(200).nullable().optional(),
   radiusMiles: z.number().int().nullable().optional(),
   alertThreshold: z.number().int().min(1).max(100).optional(),
+  minMatchScore: z.number().int().min(0).max(100).optional(),
   notifyInApp: z.boolean().optional(),
   notifyEmail: z.boolean().optional(),
   status: z.enum(["active", "paused"]).optional(),
@@ -147,4 +149,18 @@ export const saveMarketplaceListingAsLead = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const s = await import("./listings.server");
     return s.saveListingAsLead(context.supabase, data.id, data.workspaceId);
+  });
+
+/**
+ * Re-run the matching layer for one stored listing. Used after a search's
+ * criteria change so the Match Score and explanation stay in step with them.
+ */
+export const reanalyzeMarketplaceListing = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: z.string().uuid(), workspaceId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const s = await import("./analyze.server");
+    return s.reanalyzeStoredListing(context.supabase, data.workspaceId, data.id);
   });

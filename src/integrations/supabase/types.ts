@@ -2585,12 +2585,18 @@ export type Database = {
       }
       marketplace_listings: {
         Row: {
+          ai_analysis_used: boolean
+          alerted_at: string | null
+          analysis_version: number
+          analyzed_at: string | null
+          attribute_confidence: Json
           attributes: Json
           category: string | null
           created_at: string
           currency: string
           description: string | null
           dismissed_at: string | null
+          disqualified_reason: string | null
           distance_miles: number | null
           duplicate_confidence: number | null
           duplicate_group: string | null
@@ -2599,7 +2605,10 @@ export type Database = {
           id: string
           listing_url: string
           location_text: string | null
+          market_position: string
+          market_position_note: string | null
           match_breakdown: Json
+          match_criteria: Json
           match_score: number
           photos: string[]
           posted_at: string | null
@@ -2609,18 +2618,25 @@ export type Database = {
           saved_lead_id: string | null
           search_id: string | null
           seller: Json
+          seller_signals: Json
           source: string
           title: string
           updated_at: string
           workspace_id: string
         }
         Insert: {
+          ai_analysis_used?: boolean
+          alerted_at?: string | null
+          analysis_version?: number
+          analyzed_at?: string | null
+          attribute_confidence?: Json
           attributes?: Json
           category?: string | null
           created_at?: string
           currency?: string
           description?: string | null
           dismissed_at?: string | null
+          disqualified_reason?: string | null
           distance_miles?: number | null
           duplicate_confidence?: number | null
           duplicate_group?: string | null
@@ -2629,7 +2645,10 @@ export type Database = {
           id?: string
           listing_url: string
           location_text?: string | null
+          market_position?: string
+          market_position_note?: string | null
           match_breakdown?: Json
+          match_criteria?: Json
           match_score?: number
           photos?: string[]
           posted_at?: string | null
@@ -2639,18 +2658,25 @@ export type Database = {
           saved_lead_id?: string | null
           search_id?: string | null
           seller?: Json
+          seller_signals?: Json
           source: string
           title: string
           updated_at?: string
           workspace_id: string
         }
         Update: {
+          ai_analysis_used?: boolean
+          alerted_at?: string | null
+          analysis_version?: number
+          analyzed_at?: string | null
+          attribute_confidence?: Json
           attributes?: Json
           category?: string | null
           created_at?: string
           currency?: string
           description?: string | null
           dismissed_at?: string | null
+          disqualified_reason?: string | null
           distance_miles?: number | null
           duplicate_confidence?: number | null
           duplicate_group?: string | null
@@ -2659,7 +2685,10 @@ export type Database = {
           id?: string
           listing_url?: string
           location_text?: string | null
+          market_position?: string
+          market_position_note?: string | null
           match_breakdown?: Json
+          match_criteria?: Json
           match_score?: number
           photos?: string[]
           posted_at?: string | null
@@ -2669,6 +2698,7 @@ export type Database = {
           saved_lead_id?: string | null
           search_id?: string | null
           seller?: Json
+          seller_signals?: Json
           source?: string
           title?: string
           updated_at?: string
@@ -2703,6 +2733,7 @@ export type Database = {
           last_checked_at: string | null
           location: string | null
           matches_found: number
+          min_match_score: number
           name: string
           next_check_at: string | null
           notify_email: boolean
@@ -2725,6 +2756,7 @@ export type Database = {
           last_checked_at?: string | null
           location?: string | null
           matches_found?: number
+          min_match_score?: number
           name: string
           next_check_at?: string | null
           notify_email?: boolean
@@ -2747,6 +2779,7 @@ export type Database = {
           last_checked_at?: string | null
           location?: string | null
           matches_found?: number
+          min_match_score?: number
           name?: string
           next_check_at?: string | null
           notify_email?: boolean
