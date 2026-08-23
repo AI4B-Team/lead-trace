@@ -107,6 +107,8 @@ const BY_CATEGORY: Record<TemplateCategory, BuilderField[]> = {
   business: ["niche", "state", "counties"],
   directories: ["niche", "state", "counties"],
   search: ["keyword", "state", "counties"],
+  // Marketplace Deals runs its own setup flow, not the standard builder fields.
+  marketplace: ["keyword"],
   reviews: ["niche", "state", "counties"],
   realestate: ["state", "counties", "listingFilter"],
   social: ["keyword", "audienceFilter"],
