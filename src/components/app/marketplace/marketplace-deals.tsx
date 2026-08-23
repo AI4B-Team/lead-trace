@@ -337,7 +337,7 @@ function DealCard({
               </span>
               {row.savedAt && (
                 <Badge variant="outline" className="border-success/20 bg-success/10 text-success">
-                  Saved As Lead
+                  {row.leadCreatedAutomatically ? "Auto-Created Lead" : "Saved As Lead"}
                 </Badge>
               )}
             </div>
