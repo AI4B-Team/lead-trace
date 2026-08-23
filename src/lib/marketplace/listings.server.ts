@@ -123,14 +123,87 @@ function splitLocation(text: string | null): { city: string | null; state: strin
 }
 
 /**
+ * A marketplace listing maps to exactly one lead in the EXISTING Leads
+ * library — there is no separate Marketplace CRM. This key is what keeps a
+ * listing from producing two leads no matter how it was saved (by hand, by the
+ * opt-in automatic rule, or by a second click on a slow connection).
+ */
+export function marketplaceDedupeKey(listing: {
+  source: string;
+  externalId: string | null;
+  listingUrl: string;
+}): string {
+  return `marketplace:${listing.source}:${listing.externalId ?? listing.listingUrl}`;
+}
+
+/** One-line, human-readable reason this listing matched the saved search. */
+function matchExplanation(listing: MarketplaceListingRow): string {
+  const matched = listing.matchCriteria.filter((c) => c.state === "matched").map((c) => c.label);
+  const missed = listing.matchCriteria
+    .filter((c) => c.state === "mismatched")
+    .map((c) => c.label);
+  const parts: string[] = [];
+  if (matched.length) parts.push(`Matched: ${matched.join(", ")}`);
+  if (missed.length) parts.push(`Potential Mismatch: ${missed.join(", ")}`);
+  return parts.join(" · ");
+}
+
+/**
+ * Everything marketplace-specific lives in `source_meta`. The universal lead
+ * schema never grows a vehicle/electronics/furniture column.
+ */
+function leadSourceMeta(
+  listing: MarketplaceListingRow,
+  search: { id: string | null; name: string | null } | null,
+  origin: "manual_save" | "auto_above_score",
+): Record<string, unknown> {
+  return {
+    lead_source: "Marketplace Deals",
+    marketplace: listing.source,
+    marketplace_search_id: search?.id ?? listing.searchId,
+    marketplace_search_name: search?.name ?? null,
+    marketplace_listing_id: listing.id,
+    listing_url: listing.listingUrl,
+    listing_title: listing.title,
+    item_category: listing.category,
+    asking_price: listing.price,
+    currency: listing.currency,
+    location: listing.locationText,
+    distance_miles: listing.distanceMiles,
+    description: listing.description,
+    images: listing.photos.slice(0, 12),
+    seller_name: typeof listing.seller.name === "string" ? listing.seller.name : null,
+    // Category-specific facts stay in their own bag, keyed by category.
+    attributes: listing.attributes,
+    market_position: listing.marketPosition,
+    market_position_note: listing.marketPositionNote,
+    match_score: listing.matchScore,
+    match_explanation: matchExplanation(listing),
+    first_seen_at: listing.firstSeenAt,
+    // "Posted" is only claimed when the marketplace gave a time we trust.
+    posted_at: listing.postedAtReliable ? listing.postedAt : null,
+    saved_via: origin,
+  };
+}
+
+export type SaveLeadResult = {
+  leadId: string;
+  /** True when this listing was already in the Leads library. */
+  alreadyLinked: boolean;
+};
+
+/**
  * Save a marketplace listing into the workspace Leads library. Contact details
- * are only written when the source actually provided them.
+ * are only written when the source actually provided them, and outreach is
+ * never started — this phase ends at "open the original listing".
  */
 export async function saveListingAsLead(
   supabase: Client,
   id: string,
   workspaceId: string,
-): Promise<{ leadId: string }> {
+  opts: { origin?: "manual_save" | "auto_above_score" } = {},
+): Promise<SaveLeadResult> {
+  const origin = opts.origin ?? "manual_save";
   const { data: row, error } = await supabase
     .from("marketplace_listings")
     .select("*")
@@ -139,11 +212,35 @@ export async function saveListingAsLead(
     .single();
   if (error || !row) throw new Error(error?.message ?? "That listing no longer exists.");
 
+  // Already linked: hand back the same lead instead of making a second one.
+  if (row.saved_lead_id) return { leadId: String(row.saved_lead_id), alreadyLinked: true };
+
   const listing = toRow(row);
   const seller = listing.seller ?? {};
   const { city, state } = splitLocation(listing.locationText);
-  const dedupeKey = `marketplace:${listing.source}:${listing.externalId ?? listing.listingUrl}`;
+  const dedupeKey = marketplaceDedupeKey(listing);
 
+  let search: { id: string | null; name: string | null } | null = null;
+  if (listing.searchId) {
+    const { data: s } = await supabase
+      .from("marketplace_searches")
+      .select("id, name")
+      .eq("id", listing.searchId)
+      .eq("workspace_id", workspaceId)
+      .maybeSingle();
+    if (s) search = { id: String(s.id), name: s.name ?? null };
+  }
+
+  // A lead may already exist from an earlier save of the same listing even if
+  // this row lost its pointer (re-discovered under a different search).
+  const { data: existingLead } = await supabase
+    .from("lead_records")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .eq("dedupe_key", dedupeKey)
+    .maybeSingle();
+
+  const nowIso = new Date().toISOString();
   const { data: lead, error: insertError } = await supabase
     .from("lead_records")
     .upsert(
@@ -161,15 +258,8 @@ export async function saveListingAsLead(
         source_types: ["marketplace"],
         record_types: ["marketplace_deal"],
         data_provenance: "verified_source",
-        source_meta: {
-          marketplace_source: listing.source,
-          listing_url: listing.listingUrl,
-          match_score: listing.matchScore,
-          asking_price: listing.price,
-          marketplace_search_id: listing.searchId,
-          attributes: listing.attributes,
-        },
-        last_seen_at: new Date().toISOString(),
+        source_meta: leadSourceMeta(listing, search, origin),
+        last_seen_at: nowIso,
       },
       { onConflict: "workspace_id,dedupe_key" },
     )
@@ -181,9 +271,13 @@ export async function saveListingAsLead(
 
   await supabase
     .from("marketplace_listings")
-    .update({ saved_lead_id: lead.id, saved_at: new Date().toISOString() })
+    .update({
+      saved_lead_id: lead.id,
+      saved_at: nowIso,
+      lead_created_automatically: origin === "auto_above_score",
+    })
     .eq("id", id)
     .eq("workspace_id", workspaceId);
 
-  return { leadId: lead.id };
+  return { leadId: String(lead.id), alreadyLinked: Boolean(existingLead) };
 }
