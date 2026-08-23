@@ -59,6 +59,7 @@ import { loadRecentTemplates, touchRecentTemplate, type RecentTemplate } from "@
 import { takeStashedHandoff, clearStashedPrompt } from "@/lib/prompt-handoff";
 import { useTeamContext } from "@/hooks/use-team-context";
 import { denialMessage } from "@/lib/team-roles.shared";
+import { MarketplaceSetup } from "@/components/app/marketplace/marketplace-setup";
 
 export const Route = createFileRoute("/_authenticated/app/assistant")({
   validateSearch: z.object({
@@ -79,8 +80,18 @@ export const Route = createFileRoute("/_authenticated/app/assistant")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Assistant,
+  component: AssistantRoute,
 });
+
+/**
+ * Marketplace Deals is a Template Library card that opens its own focused setup
+ * flow inside this surface — it does not use the List Builder spec at all.
+ */
+function AssistantRoute() {
+  const { template } = Route.useSearch();
+  if (template === "marketplace-deals") return <MarketplaceSetup />;
+  return <Assistant />;
+}
 
 /** The starter grid is curated, not array order: featured templates only. */
 const DEFAULT_GRID_IDS = featuredTemplates().map((t) => t.id);
