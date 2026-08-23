@@ -533,7 +533,7 @@ export const TEMPLATES: Template[] = [
     featured: true,
     featuredOrder: 1,
     shortTitle: "Distress Feed",
-    shortSubtitle: "Pulled Nightly",
+    shortSubtitle: "Pre-Foreclosures, Tax Defaults & More",
     title: "Distress Feed",
     // Honest scope: only the record types with a verified adapter get named.
     subtitle: "Pre-Foreclosures, Tax Defaults & More",
