@@ -14,7 +14,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Link } from "@tanstack/react-router";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search, Users, ShieldCheck, ShieldAlert, Ban, Sparkles, Layers, HelpCircle, Wand2, Loader2, Download, Star } from "lucide-react";
+import { Search, Users, ShieldCheck, ShieldAlert, Ban, Sparkles, Layers, HelpCircle, Wand2, Loader2, Download, Star, Radar } from "lucide-react";
 import { useWorkspaceId } from "@/hooks/use-workspace";
 import { formatLocation } from "@/lib/location";
 import { listLeadRecords, getLeadListMemberships, exportLeadRecords } from "@/lib/monitoring.functions";
@@ -295,20 +295,30 @@ function LeadsPageInner() {
         title="Leads"
         description="Every Record You Own, De-Duplicated Across Every List."
         actions={
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="rounded-full" disabled={exporting || rows.length === 0}>
-                {exporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                Export
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => void onExport("csv")}>Download CSV</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => void onExport("xlsx")}>Download Excel</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => void onExport("both")}>Download Both</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            {/* Contextual entry to Marketplace Searches — no new nav item. */}
+            <Button asChild variant="ghost" className="rounded-full">
+              <Link to="/app/assistant" search={{ template: "marketplace-deals" }}>
+                <Radar className="mr-2 h-4 w-4" />
+                Marketplace Searches
+              </Link>
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="rounded-full" disabled={exporting || rows.length === 0}>
+                  {exporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => void onExport("csv")}>Download CSV</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => void onExport("xlsx")}>Download Excel</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => void onExport("both")}>Download Both</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         }
+
       />
 
       {/* The worklist: who the Scout says to work today, dismissed inline. */}

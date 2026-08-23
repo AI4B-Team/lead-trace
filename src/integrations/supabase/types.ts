@@ -2585,6 +2585,8 @@ export type Database = {
       }
       marketplace_searches: {
         Row: {
+          alert_threshold: number
+          attention_note: string | null
           category: string
           created_at: string
           created_by: string
@@ -2592,8 +2594,11 @@ export type Database = {
           id: string
           last_checked_at: string | null
           location: string | null
+          matches_found: number
           name: string
           next_check_at: string | null
+          notify_email: boolean
+          notify_in_app: boolean
           prompt: string
           radius_miles: number | null
           sources: string[]
@@ -2602,6 +2607,8 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          alert_threshold?: number
+          attention_note?: string | null
           category: string
           created_at?: string
           created_by?: string
@@ -2609,8 +2616,11 @@ export type Database = {
           id?: string
           last_checked_at?: string | null
           location?: string | null
+          matches_found?: number
           name: string
           next_check_at?: string | null
+          notify_email?: boolean
+          notify_in_app?: boolean
           prompt?: string
           radius_miles?: number | null
           sources?: string[]
@@ -2619,6 +2629,8 @@ export type Database = {
           workspace_id: string
         }
         Update: {
+          alert_threshold?: number
+          attention_note?: string | null
           category?: string
           created_at?: string
           created_by?: string
@@ -2626,8 +2638,11 @@ export type Database = {
           id?: string
           last_checked_at?: string | null
           location?: string | null
+          matches_found?: number
           name?: string
           next_check_at?: string | null
+          notify_email?: boolean
+          notify_in_app?: boolean
           prompt?: string
           radius_miles?: number | null
           sources?: string[]

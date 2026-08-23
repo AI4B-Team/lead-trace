@@ -10,7 +10,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
-  ArrowLeft, CheckCircle2, Loader2, MapPin, Pencil, Radar, Send, Sparkles, X,
+  ArrowLeft, CheckCircle2, List, Loader2, MapPin, Pencil, Plus, Radar, Send, Sparkles, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/app/page-header";
@@ -28,21 +28,26 @@ import {
 } from "@/lib/marketplace/catalog.shared";
 import {
   createMarketplaceSearch, listMarketplaceSearches, parseMarketplaceRequest,
+  updateMarketplaceSearch,
 } from "@/lib/marketplace/marketplace.functions";
+import {
+  MarketplaceSearchList, MarketplaceSearchResults,
+} from "@/components/app/marketplace/marketplace-searches";
 import type { MarketplaceSearchRow } from "@/lib/marketplace/searches.server";
 
 const EXAMPLE =
   "Find Toyota Camrys and Honda Accords from 2015–2021 within 75 miles, under 130k miles, clean title, private sellers only, under $8,000.";
 
-type Step = "describe" | "review" | "active";
+type Mode = "manage" | "describe" | "review" | "active" | "results";
 
-export function MarketplaceSetup() {
+export function MarketplaceSetup({ initialMode = "manage" }: { initialMode?: "manage" | "describe" }) {
   const { workspaceId } = useWorkspaceId();
   const parse = useServerFn(parseMarketplaceRequest);
   const create = useServerFn(createMarketplaceSearch);
+  const update = useServerFn(updateMarketplaceSearch);
   const listSearches = useServerFn(listMarketplaceSearches);
 
-  const [step, setStep] = useState<Step>("describe");
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [prompt, setPrompt] = useState("");
   const [category, setCategory] = useState<MarketplaceCategory | null>(null);
   const [criteria, setCriteria] = useState<MarketplaceCriteria>(EMPTY_CRITERIA);
@@ -50,9 +55,15 @@ export function MarketplaceSetup() {
   const [radius, setRadius] = useState<number | null>(50);
   const [sources, setSources] = useState<string[]>(MARKETPLACE_SOURCES.map((s) => s.key));
   const [name, setName] = useState("");
+  const [alertThreshold, setAlertThreshold] = useState(1);
+  const [notifyInApp, setNotifyInApp] = useState(true);
+  const [notifyEmail, setNotifyEmail] = useState(false);
   const [busy, setBusy] = useState(false);
   const [degraded, setDegraded] = useState(false);
   const [saved, setSaved] = useState<MarketplaceSearchRow | null>(null);
+  /** Set while editing an existing search — the row is patched, never recreated. */
+  const [editing, setEditing] = useState<MarketplaceSearchRow | null>(null);
+  const [selected, setSelected] = useState<MarketplaceSearchRow | null>(null);
 
   const existing = useQuery({
     queryKey: ["marketplace-searches", workspaceId],
@@ -68,6 +79,44 @@ export function MarketplaceSetup() {
     setSources((prev) => prev.filter((k) => available.some((s) => s.key === k)));
   }, [available]);
 
+  function resetForm() {
+    setEditing(null);
+    setSaved(null);
+    setPrompt("");
+    setCriteria(EMPTY_CRITERIA);
+    setCategory(null);
+    setName("");
+    setLocation("");
+    setRadius(50);
+    setSources(MARKETPLACE_SOURCES.map((s) => s.key));
+    setAlertThreshold(1);
+    setNotifyInApp(true);
+    setNotifyEmail(false);
+    setDegraded(false);
+  }
+
+  function startCreate() {
+    resetForm();
+    setMode("describe");
+  }
+
+  function startEdit(row: MarketplaceSearchRow) {
+    setEditing(row);
+    setSaved(null);
+    setDegraded(false);
+    setName(row.name);
+    setPrompt(row.prompt);
+    setCategory(row.category as MarketplaceCategory);
+    setCriteria(row.criteria);
+    setLocation(row.location ?? "");
+    setRadius(row.radiusMiles);
+    setSources(row.sources);
+    setAlertThreshold(row.alertThreshold);
+    setNotifyInApp(row.notifyInApp);
+    setNotifyEmail(row.notifyEmail);
+    setMode("review");
+  }
+
   async function handleInterpret() {
     if (prompt.trim().length < 3) {
       toast.error("Describe what you're looking for first.");
@@ -81,8 +130,8 @@ export function MarketplaceSetup() {
       setDegraded(res.degraded);
       if (res.location) setLocation(res.location);
       if (res.radiusMiles !== null) setRadius(res.radiusMiles);
-      setName(suggestSearchName(res.category, res.criteria));
-      setStep("review");
+      if (!editing) setName(suggestSearchName(res.category, res.criteria));
+      setMode("review");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not interpret that request.");
     } finally {
@@ -97,21 +146,31 @@ export function MarketplaceSetup() {
     }
     setBusy(true);
     try {
-      const row = await create({
-        data: {
-          workspaceId,
-          name: name.trim() || suggestSearchName(effectiveCategory, criteria),
-          category: effectiveCategory,
-          prompt: prompt.trim(),
-          criteria,
-          sources,
-          location: location.trim() || null,
-          radiusMiles: radius,
-        },
-      });
-      setSaved(row);
-      setStep("active");
-      void existing.refetch();
+      const payload = {
+        name: name.trim() || suggestSearchName(effectiveCategory, criteria),
+        category: effectiveCategory,
+        prompt: prompt.trim(),
+        criteria,
+        sources,
+        location: location.trim() || null,
+        radiusMiles: radius,
+        alertThreshold,
+        notifyInApp,
+        notifyEmail,
+      };
+      if (editing) {
+        const row = await update({ data: { id: editing.id, workspaceId, ...payload } });
+        toast.success("Marketplace Search Updated");
+        await existing.refetch();
+        setSelected(row);
+        setEditing(null);
+        setMode("manage");
+      } else {
+        const row = await create({ data: { workspaceId, ...payload } });
+        setSaved(row);
+        setMode("active");
+        void existing.refetch();
+      }
     } catch (e) {
       // Persistence failed — stay on Review, no success state.
       toast.error(e instanceof Error ? e.message : "Could not save this search.");
@@ -120,31 +179,93 @@ export function MarketplaceSetup() {
     }
   }
 
-  if (step === "active" && saved) {
-    return <ActiveState search={saved} onAnother={() => resetTo("describe")} />;
+  if (mode === "results" && selected) {
+    return (
+      <div>
+        <PageHeader title={selected.name} description="Matches for this Marketplace Search." />
+        <MarketplaceSearchResults
+          row={selected}
+          onBack={() => setMode("manage")}
+          onEdit={() => startEdit(selected)}
+        />
+      </div>
+    );
   }
 
-  function resetTo(s: Step) {
-    setSaved(null);
-    setPrompt("");
-    setCriteria(EMPTY_CRITERIA);
-    setCategory(null);
-    setName("");
-    setStep(s);
+  if (mode === "active" && saved) {
+    return (
+      <ActiveState
+        search={saved}
+        onAnother={startCreate}
+        onManage={() => {
+          setSaved(null);
+          setMode("manage");
+        }}
+      />
+    );
+  }
+
+  if (mode === "manage") {
+    const rows = existing.data?.searches ?? [];
+    return (
+      <div>
+        <PageHeader
+          title="Marketplace Searches"
+          description="Saved searches LeadTrace monitors for new listings that match your criteria."
+          actions={
+            rows.length ? (
+              <Button onClick={startCreate}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Marketplace Search
+              </Button>
+            ) : undefined
+          }
+        />
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+          <MarketplaceSearchList
+            rows={rows}
+            loading={existing.isLoading}
+            workspaceId={workspaceId ?? null}
+            onCreate={startCreate}
+            onEdit={startEdit}
+            onViewResults={(row) => {
+              setSelected(row);
+              setMode("results");
+            }}
+            onChanged={() => void existing.refetch()}
+          />
+          <div className="space-y-4">
+            <IntegrationNotice />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div>
       <PageHeader
-        title={step === "review" ? "Review Your Search" : "What Are You Looking For?"}
+        title={
+          mode === "review"
+            ? editing
+              ? "Edit Marketplace Search"
+              : "Review Your Search"
+            : "What Are You Looking For?"
+        }
         description={
-          step === "review"
+          mode === "review"
             ? "Check the criteria LeadTrace pulled from your request. Edit anything before you start monitoring."
             : "Describe what you want and LeadTrace will turn it into a search you can monitor across available marketplaces."
         }
+        actions={
+          <Button variant="outline" onClick={() => setMode("manage")}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Marketplace Searches
+          </Button>
+        }
       />
 
-      {step === "describe" && (
+      {mode === "describe" && (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
           <div className="space-y-4">
             <Card>
@@ -220,12 +341,12 @@ export function MarketplaceSetup() {
 
           <div className="space-y-4">
             <IntegrationNotice />
-            <ExistingSearches rows={existing.data?.searches ?? []} />
+            <ExistingSearches rows={existing.data?.searches ?? []} onManage={() => setMode("manage")} />
           </div>
         </div>
       )}
 
-      {step === "review" && (
+      {mode === "review" && (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
           <div className="space-y-4">
             {degraded && (
@@ -240,6 +361,22 @@ export function MarketplaceSetup() {
                   <span className="text-sm font-medium text-foreground">Search Name</span>
                   <Input value={name} onChange={(e) => setName(e.target.value)} />
                 </label>
+                <label className="space-y-1.5 block">
+                  <span className="text-sm font-medium text-foreground">Your Request</span>
+                  <Textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    rows={3}
+                    className="resize-none"
+                    placeholder={EXAMPLE}
+                  />
+                </label>
+                {editing && (
+                  <Button variant="outline" size="sm" onClick={handleInterpret} disabled={busy}>
+                    {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                    Re-Interpret My Request
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
@@ -255,6 +392,15 @@ export function MarketplaceSetup() {
             />
 
             <SourcePicker available={available} sources={sources} setSources={setSources} />
+
+            <AlertSettings
+              alertThreshold={alertThreshold}
+              setAlertThreshold={setAlertThreshold}
+              notifyInApp={notifyInApp}
+              setNotifyInApp={setNotifyInApp}
+              notifyEmail={notifyEmail}
+              setNotifyEmail={setNotifyEmail}
+            />
 
             <Card>
               <CardContent className="space-y-3 p-4">
@@ -273,11 +419,15 @@ export function MarketplaceSetup() {
             <div className="flex flex-wrap items-center gap-2">
               <Button onClick={handleStart} disabled={busy}>
                 {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Radar className="mr-2 h-4 w-4" />}
-                Start Monitoring
+                {editing ? "Save Changes" : "Start Monitoring"}
               </Button>
-              <Button variant="outline" onClick={() => setStep("describe")} disabled={busy}>
+              <Button
+                variant="outline"
+                onClick={() => setMode(editing ? "manage" : "describe")}
+                disabled={busy}
+              >
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
+                {editing ? "Cancel" : "Back"}
               </Button>
             </div>
           </div>
@@ -290,6 +440,52 @@ export function MarketplaceSetup() {
     </div>
   );
 }
+
+/** Alert threshold + notification preferences, editable at create and edit time. */
+function AlertSettings({
+  alertThreshold, setAlertThreshold, notifyInApp, setNotifyInApp, notifyEmail, setNotifyEmail,
+}: {
+  alertThreshold: number;
+  setAlertThreshold: (n: number) => void;
+  notifyInApp: boolean;
+  setNotifyInApp: (v: boolean) => void;
+  notifyEmail: boolean;
+  setNotifyEmail: (v: boolean) => void;
+}) {
+  return (
+    <Card>
+      <CardContent className="grid gap-3 p-4 sm:grid-cols-2">
+        <label className="space-y-1.5">
+          <span className="text-sm font-medium text-foreground">Alert Threshold</span>
+          <Input
+            inputMode="numeric"
+            value={alertThreshold}
+            onChange={(e) => {
+              const n = Number(e.target.value.replace(/[^0-9]/g, ""));
+              setAlertThreshold(Math.min(100, Math.max(1, n || 1)));
+            }}
+          />
+          <span className="block text-xs text-muted-foreground">
+            Alert Me After This Many New Matches.
+          </span>
+        </label>
+        <div className="space-y-1.5">
+          <span className="text-sm font-medium text-foreground">Notify Me By</span>
+          <div className="flex flex-wrap gap-1.5">
+            <Pill active={notifyInApp} onClick={() => setNotifyInApp(!notifyInApp)}>In-App</Pill>
+            <Pill active={notifyEmail} onClick={() => setNotifyEmail(!notifyEmail)}>Email</Pill>
+          </div>
+          {!notifyInApp && !notifyEmail && (
+            <span className="block text-xs text-muted-foreground">
+              Notifications Off — Matches Still Collect Silently.
+            </span>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 
 function Pill({
   active, onClick, children,
@@ -375,7 +571,7 @@ function IntegrationNotice() {
   );
 }
 
-function ExistingSearches({ rows }: { rows: MarketplaceSearchRow[] }) {
+function ExistingSearches({ rows, onManage }: { rows: MarketplaceSearchRow[]; onManage: () => void }) {
   if (!rows.length) return null;
   return (
     <Card>
@@ -394,12 +590,18 @@ function ExistingSearches({ rows }: { rows: MarketplaceSearchRow[] }) {
             </li>
           ))}
         </ul>
+        <Button variant="ghost" size="sm" onClick={onManage}>
+          <List className="mr-2 h-4 w-4" />
+          Manage All Searches
+        </Button>
       </CardContent>
     </Card>
   );
 }
 
-function ActiveState({ search, onAnother }: { search: MarketplaceSearchRow; onAnother: () => void }) {
+function ActiveState({
+  search, onAnother, onManage,
+}: { search: MarketplaceSearchRow; onAnother: () => void; onManage: () => void }) {
   const rows = criteriaSummary(
     search.category as MarketplaceCategory,
     search.criteria,
@@ -454,7 +656,11 @@ function ActiveState({ search, onAnother }: { search: MarketplaceSearchRow; onAn
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <Button asChild variant="outline">
+              <Button variant="outline" onClick={onManage}>
+                <List className="mr-2 h-4 w-4" />
+                All Marketplace Searches
+              </Button>
+              <Button asChild variant="ghost">
                 <Link to="/app/templates">Back To Template Library</Link>
               </Button>
               <Button variant="ghost" onClick={onAnother}>
