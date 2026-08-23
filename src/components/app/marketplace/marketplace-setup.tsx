@@ -30,9 +30,8 @@ import {
   createMarketplaceSearch, listMarketplaceSearches, parseMarketplaceRequest,
   updateMarketplaceSearch,
 } from "@/lib/marketplace/marketplace.functions";
-import {
-  MarketplaceSearchList, MarketplaceSearchResults,
-} from "@/components/app/marketplace/marketplace-searches";
+import { MarketplaceSearchList } from "@/components/app/marketplace/marketplace-searches";
+import { MarketplaceDeals } from "@/components/app/marketplace/marketplace-deals";
 import type { MarketplaceSearchRow } from "@/lib/marketplace/searches.server";
 
 const EXAMPLE =
@@ -179,18 +178,21 @@ export function MarketplaceSetup({ initialMode = "manage" }: { initialMode?: "ma
     }
   }
 
-  if (mode === "results" && selected) {
+  if (mode === "results") {
     return (
-      <div>
-        <PageHeader title={selected.name} description="Matches for this Marketplace Search." />
-        <MarketplaceSearchResults
-          row={selected}
-          onBack={() => setMode("manage")}
-          onEdit={() => startEdit(selected)}
-        />
-      </div>
+      <MarketplaceDeals
+        workspaceId={workspaceId ?? null}
+        searches={existing.data?.searches ?? []}
+        initialSearchId={selected?.id ?? null}
+        onBack={() => {
+          setSelected(null);
+          setMode("manage");
+        }}
+        onEditSearch={startEdit}
+      />
     );
   }
+
 
   if (mode === "active" && saved) {
     return (
@@ -214,10 +216,22 @@ export function MarketplaceSetup({ initialMode = "manage" }: { initialMode?: "ma
           description="Saved searches LeadTrace monitors for new listings that match your criteria."
           actions={
             rows.length ? (
-              <Button onClick={startCreate}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Marketplace Search
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelected(null);
+                    setMode("results");
+                  }}
+                >
+                  <Radar className="mr-2 h-4 w-4" />
+                  Marketplace Deals
+                </Button>
+                <Button onClick={startCreate}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Marketplace Search
+                </Button>
+              </div>
             ) : undefined
           }
         />
