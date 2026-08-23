@@ -57,6 +57,9 @@ export type MarketplaceListingRow = {
   duplicateConfidence: number | null;
   dismissedAt: string | null;
   savedAt: string | null;
+  /** Set once the listing is in the Leads library — drives View Lead vs Save. */
+  savedLeadId: string | null;
+  leadCreatedAutomatically: boolean;
   /** Comparable Listings cache pointers — null until comps are checked once. */
   compCount: number | null;
   compConfidence: string | null;

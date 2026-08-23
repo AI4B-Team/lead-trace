@@ -2686,6 +2686,7 @@ export type Database = {
           last_alerted_at: string | null
           last_seen_at: string
           latitude: number | null
+          lead_created_automatically: boolean
           listing_url: string
           location_text: string | null
           longitude: number | null
@@ -2743,6 +2744,7 @@ export type Database = {
           last_alerted_at?: string | null
           last_seen_at?: string
           latitude?: number | null
+          lead_created_automatically?: boolean
           listing_url: string
           location_text?: string | null
           longitude?: number | null
@@ -2800,6 +2802,7 @@ export type Database = {
           last_alerted_at?: string | null
           last_seen_at?: string
           latitude?: number | null
+          lead_created_automatically?: boolean
           listing_url?: string
           location_text?: string | null
           longitude?: number | null
@@ -2849,6 +2852,7 @@ export type Database = {
           alert_existing_matches: boolean
           alert_threshold: number
           attention_note: string | null
+          auto_lead_min_score: number
           baseline_at: string | null
           baseline_count: number
           baseline_state: string
@@ -2864,6 +2868,7 @@ export type Database = {
           last_error: string | null
           last_error_at: string | null
           last_success_at: string | null
+          lead_creation_mode: string
           location: string | null
           matches_found: number
           min_match_score: number
@@ -2883,6 +2888,7 @@ export type Database = {
           alert_existing_matches?: boolean
           alert_threshold?: number
           attention_note?: string | null
+          auto_lead_min_score?: number
           baseline_at?: string | null
           baseline_count?: number
           baseline_state?: string
@@ -2898,6 +2904,7 @@ export type Database = {
           last_error?: string | null
           last_error_at?: string | null
           last_success_at?: string | null
+          lead_creation_mode?: string
           location?: string | null
           matches_found?: number
           min_match_score?: number
@@ -2917,6 +2924,7 @@ export type Database = {
           alert_existing_matches?: boolean
           alert_threshold?: number
           attention_note?: string | null
+          auto_lead_min_score?: number
           baseline_at?: string | null
           baseline_count?: number
           baseline_state?: string
@@ -2932,6 +2940,7 @@ export type Database = {
           last_error?: string | null
           last_error_at?: string | null
           last_success_at?: string | null
+          lead_creation_mode?: string
           location?: string | null
           matches_found?: number
           min_match_score?: number

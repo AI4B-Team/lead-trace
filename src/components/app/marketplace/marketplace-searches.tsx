@@ -10,7 +10,7 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation } from "@tanstack/react-query";
 import {
-  ArrowLeft, Copy, Loader2, MapPin, MoreHorizontal, Pause, Pencil, Play, Plus, Radar, RefreshCw, Search, Timer, Trash2,
+  ArrowLeft, Copy, Loader2, MapPin, MoreHorizontal, Pause, Pencil, Play, Plus, Radar, RefreshCw, Search, Timer, Trash2, UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -73,6 +73,27 @@ export function MarketplaceSearchList({
       onChanged();
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Could not change the check frequency."),
+  });
+
+  // Automatic lead creation is opt-in per search and never starts outreach.
+  const setLeadMode = useMutation({
+    mutationFn: (row: MarketplaceSearchRow) =>
+      update({
+        data: {
+          id: row.id,
+          workspaceId: workspaceId!,
+          leadCreationMode: row.leadCreationMode === "auto_above_score" ? "manual" : "auto_above_score",
+        },
+      }),
+    onSuccess: (_r, row) => {
+      toast.success(
+        row.leadCreationMode === "auto_above_score"
+          ? "Auto-Create Off — Save Matches Yourself"
+          : `Auto-Create On Above ${row.autoLeadMinScore}% Match`,
+      );
+      onChanged();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not change lead creation."),
   });
 
   const check = useMutation({
@@ -184,6 +205,11 @@ export function MarketplaceSearchList({
                   <div className="text-right text-xs text-muted-foreground">
                     <p>Last Checked: {relativeTime(row.lastCheckedAt)}</p>
                     <p>Every {intervalLabel(row.checkIntervalSeconds)}</p>
+                    {row.leadCreationMode === "auto_above_score" && (
+                      <p className="text-xs text-muted-foreground">
+                        Auto-Creates Leads Above {row.autoLeadMinScore}% Match
+                      </p>
+                    )}
                     <p className="text-sm font-semibold text-foreground">
                       {row.matchesFound.toLocaleString("en-US")} {row.matchesFound === 1 ? "Match" : "Matches"}
                     </p>
@@ -250,6 +276,12 @@ export function MarketplaceSearchList({
                           </DropdownMenuItem>
                         ))}
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem disabled={!workspaceId} onClick={() => setLeadMode.mutate(row)}>
+                          <UserPlus className="mr-2 h-4 w-4" />
+                          {row.leadCreationMode === "auto_above_score"
+                            ? "Turn Off Auto-Create Leads"
+                            : `Auto-Create Leads Above ${row.autoLeadMinScore}% Match`}
+                        </DropdownMenuItem>
                         <DropdownMenuItem disabled={!workspaceId} onClick={() => copy.mutate(row)}>
                           <Copy className="mr-2 h-4 w-4" />
                           Duplicate

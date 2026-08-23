@@ -38,7 +38,15 @@ export type MarketplaceSearchRow = {
   consecutiveFailures: number;
   rateLimitedUntil: string | null;
   lastAlertedAt: string | null;
+  /** Opt-in only. 'manual' means a person must press Save As Lead. */
+  leadCreationMode: LeadCreationMode;
+  autoLeadMinScore: number;
 };
+
+/** When qualified matches should enter the Leads library. */
+export type LeadCreationMode = "manual" | "auto_above_score";
+export const DEFAULT_LEAD_CREATION_MODE: LeadCreationMode = "manual";
+export const DEFAULT_AUTO_LEAD_MIN_SCORE = 85;
 
 type Client = { from: (t: string) => any };
 
@@ -73,6 +81,8 @@ function toRow(r: any): MarketplaceSearchRow {
     consecutiveFailures: r.consecutive_failures ?? 0,
     rateLimitedUntil: r.rate_limited_until ?? null,
     lastAlertedAt: r.last_alerted_at ?? null,
+    leadCreationMode: (r.lead_creation_mode ?? DEFAULT_LEAD_CREATION_MODE) as LeadCreationMode,
+    autoLeadMinScore: r.auto_lead_min_score ?? DEFAULT_AUTO_LEAD_MIN_SCORE,
   };
 }
 
@@ -94,6 +104,8 @@ export async function insertSearch(
     notifyEmail?: boolean;
     checkIntervalSeconds?: number;
     alertExistingMatches?: boolean;
+    leadCreationMode?: LeadCreationMode;
+    autoLeadMinScore?: number;
   },
 ): Promise<MarketplaceSearchRow> {
   const { data, error } = await supabase
@@ -114,6 +126,9 @@ export async function insertSearch(
       notify_email: input.notifyEmail ?? false,
       check_interval_seconds: normalizeInterval(input.checkIntervalSeconds),
       alert_existing_matches: input.alertExistingMatches ?? false,
+      // Automatic lead creation is never on unless the user turns it on.
+      lead_creation_mode: input.leadCreationMode ?? DEFAULT_LEAD_CREATION_MODE,
+      auto_lead_min_score: input.autoLeadMinScore ?? DEFAULT_AUTO_LEAD_MIN_SCORE,
       // A brand new search always takes a baseline before it alerts.
       baseline_state: "pending",
       // Due immediately: the first check establishes the baseline.
@@ -157,6 +172,8 @@ export type SearchPatch = {
   status?: string;
   checkIntervalSeconds?: number;
   alertExistingMatches?: boolean;
+  leadCreationMode?: LeadCreationMode;
+  autoLeadMinScore?: number;
 };
 
 /** Edit in place — a search is never recreated to change its definition. */
@@ -183,6 +200,8 @@ export async function updateSearch(
     // A frequency change takes effect on the next tick, not in an hour.
     payload.next_check_at = new Date().toISOString();
   }
+  if (patch.leadCreationMode !== undefined) payload.lead_creation_mode = patch.leadCreationMode;
+  if (patch.autoLeadMinScore !== undefined) payload.auto_lead_min_score = patch.autoLeadMinScore;
   if (patch.alertExistingMatches !== undefined) {
     payload.alert_existing_matches = patch.alertExistingMatches;
   }
@@ -236,6 +255,8 @@ export async function duplicateSearch(
     notifyEmail: row.notifyEmail,
     checkIntervalSeconds: row.checkIntervalSeconds,
     alertExistingMatches: row.alertExistingMatches,
+    leadCreationMode: row.leadCreationMode,
+    autoLeadMinScore: row.autoLeadMinScore,
   });
 }
 
