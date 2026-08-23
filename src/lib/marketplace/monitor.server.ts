@@ -17,6 +17,7 @@
  */
 import { analyzeAndStoreListing, type SourceListing } from "./analyze.server";
 import { collectableSources, getCollector, SourceRateLimitedError } from "./collectors.server";
+import { canonicalListingUrl } from "./adapters/contract.shared";
 import { EMPTY_CRITERIA } from "./catalog.shared";
 import { buildMatchAlert, normalizeInterval } from "./monitor.shared";
 
