@@ -16,8 +16,9 @@ import type { MarketplaceCriteria } from "./catalog.shared";
 import { EMPTY_CRITERIA } from "./catalog.shared";
 import {
   adapterBackedSources, collectFromAdapter, getAdapter, hasAnyAdapter,
-  type AdapterSearch,
+  type AdapterSearch, type CollectionRunMetrics,
 } from "./adapters/registry.server";
+import { isSourceCollectable } from "./providers/registry.server";
 
 export type CollectorSearch = {
   id: string;
@@ -34,6 +35,10 @@ export type CollectResult = {
   retryAfterSeconds?: number;
   /** Source-side note worth surfacing in the run log. */
   note?: string | null;
+  /** Which collection provider ran it, and what it cost. Opaque to core. */
+  collection?: CollectionRunMetrics | null;
+  /** True when the provider capped the result set. */
+  truncated?: boolean;
 };
 
 export type MarketplaceCollector = {
@@ -90,14 +95,25 @@ export function getCollector(source: string): MarketplaceCollector | null {
         rateLimited: result.rateLimited,
         ...(result.retryAfterSeconds ? { retryAfterSeconds: result.retryAfterSeconds } : {}),
         note: result.note,
+        collection: result.collection,
       };
     },
   };
 }
 
-/** Sources that both claim `live` in the catalog and have an adapter registered. */
+/**
+ * Sources that are collectable RIGHT NOW: a `live` catalog entry, a registered
+ * adapter, AND — for adapters that collect through a provider — a configured
+ * collection provider. An adapter with no provider behind it collects nothing,
+ * so the search reports Source Unavailable instead of silently returning empty.
+ */
 export function collectableSources(sources: string[]): string[] {
-  return adapterBackedSources(sources);
+  return adapterBackedSources(sources).filter((key) => {
+    const adapter = getAdapter(key);
+    // Adapters that need credentials collect through a provider.
+    if (!adapter?.profile.requiresCredentials) return true;
+    return isSourceCollectable(key);
+  });
 }
 
 export function hasAnyCollector(): boolean {

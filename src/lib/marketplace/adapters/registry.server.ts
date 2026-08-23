@@ -48,6 +48,23 @@ export type AdapterSearchResult = {
   /** True when more pages exist but were intentionally not fetched. */
   truncated?: boolean;
   note?: string | null;
+  /**
+   * How the retrieval was performed. Set by adapters that use a collection
+   * provider; recorded in run history for cost and reliability metrics. Core
+   * treats it as opaque and never branches on the provider.
+   */
+  collection?: CollectionRunMetrics;
+};
+
+/** Provider-neutral retrieval metrics for one adapter run. */
+export type CollectionRunMetrics = {
+  provider: string;
+  jobId: string | null;
+  /** Requests spent at the provider. */
+  requests: number;
+  /** Raw records the provider returned, before normalization or filtering. */
+  records: number;
+  durationMs: number;
 };
 
 /**
@@ -254,6 +271,7 @@ export async function collectFromAdapter(
   rateLimited: boolean;
   retryAfterSeconds?: number;
   note: string | null;
+  collection: CollectionRunMetrics | null;
 }> {
   const adapter = getAdapter(source);
   if (!adapter) throw new Error(`No integration exists for ${source} yet.`);
@@ -286,6 +304,7 @@ export async function collectFromAdapter(
     rateLimited: Boolean(result.rateLimited),
     ...(result.retryAfterSeconds ? { retryAfterSeconds: result.retryAfterSeconds } : {}),
     note: result.note ?? (result.truncated ? "More results were available than were collected." : null),
+    collection: result.collection ?? null,
   };
 }
 
