@@ -162,7 +162,13 @@ function Settings() {
                 </div>
               </div>
 
-              <Button className="rounded-full">Save Changes</Button>
+              <Button
+                className="rounded-full"
+                disabled={!workspaceId || settingsQ.isLoading || save.isPending}
+                onClick={() => save.mutate()}
+              >
+                {save.isPending ? "Saving…" : "Save Changes"}
+              </Button>
             </CardContent>
           </Card>
 
