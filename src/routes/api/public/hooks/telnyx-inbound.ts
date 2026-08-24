@@ -24,7 +24,9 @@ export const Route = createFileRoute("/api/public/hooks/telnyx-inbound")({
         try {
           eventType = (JSON.parse(raw) as { data?: { event_type?: string } }).data?.event_type ?? "";
         } catch {
-          eventType = "";
+          // An unparseable body is a bad request, not an inbound message; the
+          // old code fell through and let parseInbound throw a 500.
+          return new Response("Invalid payload", { status: 400 });
         }
         if (eventType && eventType !== "message.received") {
           const { handleTelnyxDlr } = await import("@/lib/sms/dlr-handler.server");
