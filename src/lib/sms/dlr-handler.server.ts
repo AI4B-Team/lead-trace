@@ -31,14 +31,27 @@ export async function handleTelnyxDlr(request: Request, raw: string): Promise<Re
     (m) => m.status === "delivered" || m.status === "failed",
   );
 
-  await admin
-    .from("messages")
-    .update({
-      status: dlr.status,
-      error_code: dlr.errorCode ?? null,
-      ...(dlr.carrier ? { carrier: dlr.carrier } : {}),
-    })
-    .eq("provider_sid", dlr.providerSid);
+  // Once a message is terminal (delivered/failed) its status is final. A late or
+  // replayed receipt must not flip it backwards — the delivery counters already
+  // ignore it, and letting the row change would put status and counters out of
+  // sync. Carrier info is still worth keeping if this receipt carries it.
+  if (alreadyTerminal) {
+    if (dlr.carrier) {
+      await admin
+        .from("messages")
+        .update({ carrier: dlr.carrier })
+        .eq("provider_sid", dlr.providerSid);
+    }
+  } else {
+    await admin
+      .from("messages")
+      .update({
+        status: dlr.status,
+        error_code: dlr.errorCode ?? null,
+        ...(dlr.carrier ? { carrier: dlr.carrier } : {}),
+      })
+      .eq("provider_sid", dlr.providerSid);
+  }
 
   let paused = false;
   if (!alreadyTerminal && (dlr.status === "delivered" || dlr.status === "failed")) {
