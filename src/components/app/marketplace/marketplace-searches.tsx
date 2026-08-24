@@ -69,7 +69,7 @@ export function MarketplaceSearchList({
     mutationFn: (v: { row: MarketplaceSearchRow; seconds: number }) =>
       update({ data: { id: v.row.id, workspaceId: workspaceId!, checkIntervalSeconds: v.seconds } }),
     onSuccess: (_r, v) => {
-      toast.success(`Checking Every ${intervalLabel(v.seconds)}`);
+      toast.success(`Checking ${intervalLabel(v.seconds)}`);
       onChanged();
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Could not change the check frequency."),
@@ -204,7 +204,7 @@ export function MarketplaceSearchList({
                 <div className="flex flex-col items-end gap-2">
                   <div className="text-right text-xs text-muted-foreground">
                     <p>Last Checked: {relativeTime(row.lastCheckedAt)}</p>
-                    <p>Every {intervalLabel(row.checkIntervalSeconds)}</p>
+                    <p>{intervalLabel(row.checkIntervalSeconds)}</p>
                     {row.leadCreationMode === "auto_above_score" && (
                       <p className="text-xs text-muted-foreground">
                         Auto-Creates Leads Above {row.autoLeadMinScore}% Match
@@ -272,7 +272,7 @@ export function MarketplaceSearchList({
                             onClick={() => setInterval.mutate({ row, seconds: tier.seconds })}
                           >
                             <Timer className="mr-2 h-4 w-4" />
-                            Check Every {tier.label}
+                            Check {tier.label}
                           </DropdownMenuItem>
                         ))}
                         <DropdownMenuSeparator />
