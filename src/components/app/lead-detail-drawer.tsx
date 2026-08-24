@@ -3,7 +3,7 @@
  * contact channels, skip-trace / property intel, list memberships, message
  * and call history, disposition, tags, and team notes.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -101,6 +101,11 @@ export function LeadDetailDrawer({
   const runAddNote = useServerFn(addLeadNote);
   const runDeleteNote = useServerFn(deleteLeadNote);
   const [note, setNote] = useState("");
+  // Drawer stays mounted between leads, so an unsent draft would otherwise
+  // follow the operator onto the next lead and get filed against it.
+  useEffect(() => {
+    setNote("");
+  }, [leadRecordId]);
 
   const open = !!leadRecordId && !!workspaceId;
   const { data, isLoading } = useQuery({
