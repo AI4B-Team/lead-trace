@@ -456,6 +456,14 @@ export async function runSequenceTick(workspaceId?: string): Promise<{
         body,
         provider_sid: res.providerSid ?? null,
       });
+      {
+        const { chargeSmsCredits } = await import("@/lib/sms/charge.server");
+        await chargeSmsCredits({
+          workspaceId: row.workspace_id,
+          body,
+          reason: "sms_sequence_send",
+        });
+      }
       num.sentToday += 1;
 
       let nextIndex = stepIndex + 1;
