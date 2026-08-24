@@ -215,7 +215,7 @@ function LeadsPageInner() {
   // A fresh query from the sidebar search lands as a new ?q= while this page
   // is already mounted, so mirror the param into the local filter.
   useEffect(() => {
-    if (typeof qParam === "string") setQ(qParam);
+    setQ(qParam ?? "");
   }, [qParam]);
   const [disposition, setDisposition] = useState<"all" | "clean" | "dnc" | "litigator">("all");
   const [sourceType, setSourceType] = useState("all");
