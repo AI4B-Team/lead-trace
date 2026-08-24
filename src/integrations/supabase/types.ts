@@ -5282,6 +5282,7 @@ export type Database = {
           billing_plan: string
           card_on_file: boolean
           created_at: string
+          default_state: string | null
           free_records_used: number
           human_pause_days: number
           id: string
@@ -5296,11 +5297,13 @@ export type Database = {
           real_elite_linked_at: string | null
           real_elite_org_id: string | null
           refund_email_threshold: number
+          timezone: string
         }
         Insert: {
           billing_plan?: string
           card_on_file?: boolean
           created_at?: string
+          default_state?: string | null
           free_records_used?: number
           human_pause_days?: number
           id?: string
@@ -5315,11 +5318,13 @@ export type Database = {
           real_elite_linked_at?: string | null
           real_elite_org_id?: string | null
           refund_email_threshold?: number
+          timezone?: string
         }
         Update: {
           billing_plan?: string
           card_on_file?: boolean
           created_at?: string
+          default_state?: string | null
           free_records_used?: number
           human_pause_days?: number
           id?: string
@@ -5334,6 +5339,7 @@ export type Database = {
           real_elite_linked_at?: string | null
           real_elite_org_id?: string | null
           refund_email_threshold?: number
+          timezone?: string
         }
         Relationships: []
       }
