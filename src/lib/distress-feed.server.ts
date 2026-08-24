@@ -10,7 +10,7 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { countyKey, RECORD_TYPES, type DistressRecordType } from "./distress-feed.shared";
+import { countyKey, dedupeFeedRows, RECORD_TYPES, type DistressRecordType } from "./distress-feed.shared";
 import {
   deriveSurplus, surplusEnabledFor, EMPTY_SURPLUS_COUNTERS,
   type SurplusBasis, type SurplusCounters,
@@ -553,24 +553,36 @@ export async function ingestDistressRecords(
     raw: (f.raw ?? {}) as never,
   }));
 
-  // A single county pull can legitimately surface the same document twice
-  // (paginated overlap, or two parcels sharing a derived doc number). Postgres
-  // rejects an upsert that touches the same conflict target twice, which would
-  // throw away the whole batch, so collapse duplicates here and keep the last
-  // sighting of each key.
-  const deduped = Array.from(
-    rows
-      .reduce((map, row) => {
-        map.set(`${row.fips}|${row.record_type}|${row.doc_number}`, row);
-        return map;
-      }, new Map<string, (typeof rows)[number]>())
-      .values(),
-  );
+  // A single county pull can legitimately surface the same property twice, which
+  // Postgres rejects for the whole batch ("ON CONFLICT DO UPDATE command cannot
+  // affect row a second time"). dedupeFeedRows collapses both the doc_number and
+  // the parcel_apn duplicate shapes; see its doc comment for why vacancy (two
+  // lead types) is the one that trips this. Kept pure + shared so it is unit
+  // tested without a database.
+  const deduped = dedupeFeedRows(rows);
 
   const { error, count } = await supabase
     .from("distress_records")
     .upsert(deduped as never, { onConflict: "fips,record_type,doc_number", count: "exact" });
-  if (error) throw new Error(error.message);
+  if (error) {
+    // Defence in depth: if a duplicate shape we did not anticipate still trips
+    // the "cannot affect row a second time" batch error (e.g. a live constraint
+    // or trigger the migrations do not describe), fall back to per-row upserts.
+    // Each row is then its own statement, so a later row simply updates the
+    // earlier one instead of colliding, and one bad row cannot sink the county.
+    if (/affect row a second time/i.test(error.message)) {
+      let saved = 0;
+      for (const row of deduped) {
+        const { error: rowErr } = await supabase
+          .from("distress_records")
+          .upsert(row as never, { onConflict: "fips,record_type,doc_number" });
+        if (!rowErr) saved += 1;
+      }
+      await reconcileFilings(target, fips, filings);
+      return saved;
+    }
+    throw new Error(error.message);
+  }
 
   // The feed table is a flat per-pull log; the case spine is the deduplicated
   // truth an operator works from. Every adapter row goes through the

@@ -74,6 +74,43 @@ export function countyKey(state: string, county: string): string {
 }
 
 /**
+ * Collapse duplicate feed rows before an upsert so one statement never touches
+ * the same conflict-target row twice ("ON CONFLICT DO UPDATE command cannot
+ * affect row a second time"), which Postgres rejects for the WHOLE batch.
+ *
+ * Two shapes of duplicate cause that error and both are collapsed here, keeping
+ * the last sighting of each:
+ *   1. Same (fips, record_type, doc_number) — the declared conflict target
+ *      (paginated overlap, or two lead types returning the same address hash).
+ *   2. Same (fips, record_type, parcel_apn) with a DIFFERENT doc_number — the
+ *      same physical property surfaced under two lead types (e.g. ZOMBIE_PROPERTY
+ *      + VACANCY) with two address hashes. This slips past the doc_number pass
+ *      but collides on the live (fips, parcel_apn) unique index.
+ *
+ * Rows without a parcel_apn cannot collide on the parcel index and pass through
+ * untouched. A shared parcel_apn is the same property, not two leads, so nothing
+ * real is dropped. Pure and order-preserving so it can be unit tested.
+ */
+export function dedupeFeedRows<
+  T extends { fips: string; record_type: string; doc_number: string; parcel_apn?: string | null },
+>(rows: readonly T[]): T[] {
+  const byDoc = new Map<string, T>();
+  for (const row of rows) {
+    byDoc.set(`${row.fips}|${row.record_type}|${row.doc_number}`, row);
+  }
+  const byParcel = new Map<string, T>();
+  const passthrough: T[] = [];
+  for (const row of byDoc.values()) {
+    if (row.parcel_apn) {
+      byParcel.set(`${row.fips}|${row.record_type}|${row.parcel_apn}`, row);
+    } else {
+      passthrough.push(row);
+    }
+  }
+  return [...passthrough, ...byParcel.values()];
+}
+
+/**
  * Owner masking for every public (unauthenticated) surface. The database
  * already truncates the surname; this is the display-side guarantee.
  */
