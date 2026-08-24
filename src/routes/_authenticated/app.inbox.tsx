@@ -304,8 +304,20 @@ function ConversationsPage() {
   );
 
   useEffect(() => {
-    if (!selected && threads[0]) setSelected(threads[0].thread_key);
+    if (!threads.length) return;
+    // Also re-point when a filter/tag change drops the open thread out of view,
+    // otherwise the list highlights nothing while the reading pane keeps the
+    // old conversation on screen.
+    if (!selected || !threads.some((t) => t.thread_key === selected)) {
+      setSelected(threads[0]!.thread_key);
+    }
   }, [threads, selected]);
+
+  // Never carry an unsent draft from one conversation into the next.
+  useEffect(() => {
+    setReply("");
+    setSlashOpen(false);
+  }, [selected]);
 
   useEffect(() => {
     if (!workspaceId || !selected) return;
