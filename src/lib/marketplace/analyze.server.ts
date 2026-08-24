@@ -26,6 +26,7 @@ import {
   type MatchSearchSpec, type NormalizedListing, type SellerSignal,
 } from "./match.shared";
 import { EMPTY_CRITERIA } from "./catalog.shared";
+import { canonicalListingUrl } from "./adapters/contract.shared";
 
 /** Bump when scoring or extraction changes so stale rows can be re-analyzed. */
 export const ANALYSIS_VERSION = 1;
