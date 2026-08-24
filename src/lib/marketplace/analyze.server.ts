@@ -198,7 +198,11 @@ export async function analyzeAndStoreListing(
   search: AnalyzableSearch & { id: string },
   options: { allowAi?: boolean; force?: boolean } = {},
 ): Promise<{ stored: boolean; listingId: string | null; analysis: AnalysisOutput | null; skipped?: string }> {
-  const externalKey = listing.externalId ?? listing.listingUrl;
+  // Must match monitor.server.ts `identity()` exactly: the source's own id when
+  // present, otherwise the tracking-stripped canonical URL. Using the raw URL
+  // here made the "already seen" lookup miss, so listings without an external id
+  // were re-alerted as new on every check.
+  const externalKey = (listing.externalId?.trim() || canonicalListingUrl(listing.listingUrl || "")).trim();
 
   const { data: existing } = await supabase
     .from("marketplace_listings")
