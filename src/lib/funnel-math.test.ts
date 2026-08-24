@@ -41,16 +41,16 @@ describe("funnel arithmetic", () => {
   it("drops the carrier/scrub captions when phones are pending", () => {
     // A records run that produced rows but no phone (no phone vendor yet). The
     // funnel component shows "0" on Mobile Verified (a local carrier check that
-    // truly verified 0 numbers), "Coming Soon" on the vendor-gated Skip Trace
-    // box, and "Awaiting Phone" on Scrub, so the caption under each card is
-    // blank to avoid repeating it.
+    // truly verified 0 numbers) with a caption explaining why, "Coming Soon" on
+    // the vendor-gated Skip Trace box, and "Awaiting Phone" on Scrub (its
+    // caption stays blank because the box label already says it).
     const pending = buildFunnel(
       { found: 206, deduped: 206, verified: 206, traced: 0, scrubbed: 206, clean: 0 },
       { phonesPending: true },
     );
     const verified = pending.find((s) => s.key === "verified")!;
     const scrubbed = pending.find((s) => s.key === "scrubbed")!;
-    expect(verified.annotation).toBeNull();
+    expect(verified.annotation).toBe("No Phone Numbers Yet");
     expect(scrubbed.annotation).toBeNull();
     // Skip Traced shows its pass-through count and an honest pending caption —
     // never "Not Needed", which would contradict the count on the box.

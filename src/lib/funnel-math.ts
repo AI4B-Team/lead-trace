@@ -139,9 +139,9 @@ export function buildFunnel(
         })
       : stage("verified", "Mobile Verified", verified, deduped, {
           // Carrier check is a local line-type classifier, not a vendor API. On
-          // a phoneless run it truly verified 0 numbers, and the box itself
-          // shows that "0", so the caption is left blank to avoid clutter.
-          annotation: phonesPending ? undefined : "Carrier Checked",
+          // a phoneless run it truly verified 0 numbers, so the box shows "0"
+          // and the caption explains why rather than claiming "Carrier Checked".
+          annotation: phonesPending ? "No Phone Numbers Yet" : "Carrier Checked",
         }),
     ...(variant === "creator"
       ? []
