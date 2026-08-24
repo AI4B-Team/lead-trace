@@ -375,31 +375,41 @@ function JobDetail() {
           <>
         <Stat
           label={isCreatorRun ? "Email Found" : "Mobile Verified"}
+          // The carrier check is a local line-type classifier, not a vendor API.
+          // On a phoneless run it genuinely verified 0 numbers (there are none
+          // to check yet), so show the real 0 with a plain caption explaining
+          // why — not a fabricated pass-through count.
           value={
             !isCreatorRun && phonesPending
-              ? "Coming Soon"
+              ? "0"
               : funnel[2]!.remaining.toLocaleString()
           }
           muted={!isCreatorRun && phonesPending}
+          sub={
+            !isCreatorRun && phonesPending
+              ? "No phone numbers in these leads yet"
+              : undefined
+          }
         />
         {isCreatorRun ? (
           <Stat label="Contact Emails" value={counts.clean.toLocaleString()} />
         ) : (
           <Stat
             label="Skip Traced"
-            // Real traced count when we have one. On a phoneless property run
-            // every kept row is queued for skip trace, so show that pending
-            // count (matches the funnel box) instead of "Not Needed" — a bare
-            // number reads as active, not a dead card. Only a genuinely
-            // phone-complete run with nothing to trace says "Not Needed".
+            // Real traced count when we have one. Skip Trace is the only stage
+            // gated on a phone vendor, so when none is connected the honest
+            // reading is "Coming Soon" — never the pass-through record count,
+            // which would look like that many numbers were actually traced (they
+            // were not: rows_skiptraced is 0). Only a genuinely phone-complete
+            // run with nothing left to trace says "Not Needed".
             value={
               traced > 0
                 ? traced.toLocaleString()
                 : phonesPending
-                  ? funnel[3]!.remaining.toLocaleString()
+                  ? "Coming Soon"
                   : "Not Needed"
             }
-            muted={traced === 0 && !phonesPending}
+            muted={traced === 0}
           />
         )}
           </>
@@ -1079,7 +1089,18 @@ function DetailRow({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
-function Stat({ label, value, muted = false }: { label: string; value: string; muted?: boolean }) {
+function Stat({
+  label,
+  value,
+  muted = false,
+  sub,
+}: {
+  label: string;
+  value: string;
+  muted?: boolean;
+  /** Optional small caption under the number, e.g. why a count is zero. */
+  sub?: string;
+}) {
   return (
     <Card>
       <CardContent className="pt-6">
@@ -1091,6 +1112,7 @@ function Stat({ label, value, muted = false }: { label: string; value: string; m
         >
           {value}
         </div>
+        {sub && <div className="mt-1 text-xs leading-tight text-muted-foreground">{sub}</div>}
       </CardContent>
     </Card>
   );

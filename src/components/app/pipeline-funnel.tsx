@@ -107,15 +107,23 @@ export function PipelineFunnel({
                     animate={animate}
                     index={i}
                     // Phone-pending records runs never actually ran the carrier
-                    // check or DNC scrub on a number, so show an honest badge ON
-                    // the box instead of a count that would look verified. Skip
-                    // Traced keeps its real pass-through count.
+                    // check, skip trace, or DNC scrub on a real number, so show
+                    // an honest badge ON each box instead of a count that would
+                    // look verified/traced.
                     text={
+                      // Carrier check is a local line-type classifier (no phone
+                      // vendor API): on a phoneless run it truly verified 0
+                      // numbers, so show "0" (matches the KPI strip) instead of
+                      // the 206 pass-through count that would look verified. Skip
+                      // Trace is the one vendor-gated stage, so it reads "Coming
+                      // Soon". Scrub had no numbers to check → "Awaiting Phone".
                       phonesPending && s.key === "verified"
-                        ? "Coming Soon"
-                        : phonesPending && s.key === "scrubbed"
-                          ? "Awaiting Phone"
-                          : null
+                        ? "0"
+                        : phonesPending && s.key === "skipTraced"
+                          ? "Coming Soon"
+                          : phonesPending && s.key === "scrubbed"
+                            ? "Awaiting Phone"
+                            : null
                     }
                   />
                 )}
