@@ -924,6 +924,11 @@ function LeadsBrowser({ jobId, templateId, outputFields, disabled, open, onOpenC
   useEffect(() => {
     if (open) markReviewed({ data: { reviewedCleanList: true } }).catch(() => {});
   }, [open, markReviewed]);
+  // A lead opened from one bucket must not stay on screen after the operator
+  // switches buckets or runs — it would read as a DNC lead sitting in Clean.
+  useEffect(() => {
+    setActive(null);
+  }, [bucket, jobId, open]);
   const { data, isFetching } = useQuery({
     queryKey: ["job-leads", jobId, bucket, q],
     queryFn: () => fetchLeads({ data: { jobId, bucket, search: q || undefined, limit: 100 } }),

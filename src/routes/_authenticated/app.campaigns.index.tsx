@@ -68,7 +68,8 @@ function Campaigns() {
     (acc, c) => {
       const s = (stats as Record<string, any>)[c.id] ?? emptyStats();
       const status = (c.status ?? "draft").toLowerCase();
-      if (status === "running" || status === "active" || status === "sending") acc.active += 1;
+      // "sending" is the only live status the backend ever persists.
+      if (status === "sending") acc.active += 1;
       if (status === "draft") acc.draft += 1;
       acc.sent += s.sent ?? 0;
       acc.replies += s.replies ?? 0;

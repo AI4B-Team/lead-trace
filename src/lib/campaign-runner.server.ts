@@ -332,6 +332,14 @@ async function tickOne(campaign: {
       body,
       provider_sid: providerSid,
     } as never);
+    if (status !== "failed") {
+      const { chargeSmsCredits } = await import("@/lib/sms/charge.server");
+      await chargeSmsCredits({
+        workspaceId: campaign.workspace_id,
+        body,
+        reason: "sms_send",
+      });
+    }
     // Hand the lead to the sequence runner: touch 1 is done, schedule touch 2.
     try {
       const { recordSequenceSend } = await import("@/lib/sequence-runner.server");

@@ -1,5 +1,9 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import { getWorkspaceSettings, updateWorkspaceSettings } from "@/lib/workspace-settings.functions";
 import {
   Building2, Home, Sun, Shield, Wrench, Briefcase, MoreHorizontal, Check,
 } from "lucide-react";
@@ -37,11 +41,54 @@ const TIMEZONES = [
 const STATES = ["FL", "TX", "GA", "NC", "AZ", "CA", "OH", "PA"];
 
 function Settings() {
-  const { workspaceName } = useWorkspaceId();
+  const { workspaceId, workspaceName } = useWorkspaceId();
   const { industries } = useReferenceData();
+  const qc = useQueryClient();
+  const loadSettings = useServerFn(getWorkspaceSettings);
+  const saveSettings = useServerFn(updateWorkspaceSettings);
+
+  const settingsQ = useQuery({
+    queryKey: ["workspace-settings", workspaceId],
+    queryFn: () => loadSettings({ data: { workspaceId: workspaceId! } }),
+    enabled: !!workspaceId,
+  });
+
+  const [name, setName] = useState("");
   const [industry, setIndustry] = useState("real_estate");
   const [timezone, setTimezone] = useState("America/New_York");
   const [state, setState] = useState("FL");
+
+  // Hydrate the form from the saved record; without this the page always shows
+  // defaults and "Save Changes" would overwrite real settings with them.
+  useEffect(() => {
+    const s = settingsQ.data;
+    if (!s) return;
+    setName(s.name);
+    setIndustry(s.industry);
+    setTimezone(s.timezone);
+    setState(s.defaultState);
+  }, [settingsQ.data]);
+
+  const save = useMutation({
+    mutationFn: () =>
+      saveSettings({
+        data: {
+          workspaceId: workspaceId!,
+          name: name.trim() || (workspaceName ?? "Workspace"),
+          industry,
+          timezone,
+          defaultState: state,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Workspace Settings Saved");
+      qc.invalidateQueries({ queryKey: ["workspace-settings", workspaceId] });
+      qc.invalidateQueries({ queryKey: ["workspaces"] });
+    },
+    onError: (e: unknown) =>
+      toast.error((e as Error).message || "Could Not Save Workspace Settings"),
+  });
+
 
   return (
     <div className="mx-auto max-w-[1400px]">
@@ -60,7 +107,7 @@ function Settings() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <Label htmlFor="ws-name">Workspace Name</Label>
-                  <Input id="ws-name" key={workspaceName ?? "ws"} defaultValue={workspaceName ?? ""} className="mt-1" />
+                  <Input id="ws-name" value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
                 </div>
                 <div>
                   <Label>Timezone</Label>
@@ -115,7 +162,13 @@ function Settings() {
                 </div>
               </div>
 
-              <Button className="rounded-full">Save Changes</Button>
+              <Button
+                className="rounded-full"
+                disabled={!workspaceId || settingsQ.isLoading || save.isPending}
+                onClick={() => save.mutate()}
+              >
+                {save.isPending ? "Saving…" : "Save Changes"}
+              </Button>
             </CardContent>
           </Card>
 
