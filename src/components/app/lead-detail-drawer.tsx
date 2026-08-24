@@ -101,6 +101,11 @@ export function LeadDetailDrawer({
   const runAddNote = useServerFn(addLeadNote);
   const runDeleteNote = useServerFn(deleteLeadNote);
   const [note, setNote] = useState("");
+  // Drawer stays mounted between leads, so an unsent draft would otherwise
+  // follow the operator onto the next lead and get filed against it.
+  useEffect(() => {
+    setNote("");
+  }, [leadRecordId]);
 
   const open = !!leadRecordId && !!workspaceId;
   const { data, isLoading } = useQuery({
