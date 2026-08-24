@@ -101,7 +101,14 @@ export async function finishRun(
       } as never)
       .eq("id", runId);
   }
-  const failures = out.status === "failed" ? agent.consecutive_failures + 1 : 0;
+  // Only a genuine success clears the streak. A "skipped" run did no work, so it
+  // must not mask an ongoing failure streak.
+  const failures =
+    out.status === "failed"
+      ? agent.consecutive_failures + 1
+      : out.status === "skipped"
+        ? agent.consecutive_failures
+        : 0;
   await db
     .from("background_agents")
     .update({
