@@ -156,7 +156,8 @@ export async function runSearchCheck(
         location: search.location ?? null,
         radiusMiles: search.radius_miles ?? null,
       });
-      const listings = (result.listings ?? []).slice(0, MAX_LISTINGS_PER_SOURCE);
+      const collected = result.listings ?? [];
+      const listings = collected.slice(0, MAX_LISTINGS_PER_SOURCE);
       summary.listingsSeen = listings.length;
       if (result.collection) {
         summary.provider = result.collection.provider;
@@ -164,10 +165,11 @@ export async function runSearchCheck(
         summary.providerRequests = result.collection.requests;
         summary.providerRecords = result.collection.records;
         // Hard filters (sold/hidden/malformed/duplicate) run during
-        // normalization, i.e. BEFORE any analysis or AI spend.
-        summary.filteredOut = Math.max(0, result.collection.records - listings.length);
+        // normalization, i.e. BEFORE any analysis or AI spend. Compare against
+        // the pre-slice count so our own truncation is not misreported here.
+        summary.filteredOut = Math.max(0, result.collection.records - collected.length);
       }
-      summary.truncated = Boolean(result.truncated);
+      summary.truncated = Boolean(result.truncated) || collected.length > listings.length;
       if (result.rateLimited) {
         summary.rateLimited = true;
         rateLimitedSeconds = Math.max(rateLimitedSeconds, RATE_LIMIT_BACKOFF_SECONDS);
