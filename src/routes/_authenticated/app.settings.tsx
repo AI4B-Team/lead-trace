@@ -37,11 +37,54 @@ const TIMEZONES = [
 const STATES = ["FL", "TX", "GA", "NC", "AZ", "CA", "OH", "PA"];
 
 function Settings() {
-  const { workspaceName } = useWorkspaceId();
+  const { workspaceId, workspaceName } = useWorkspaceId();
   const { industries } = useReferenceData();
+  const qc = useQueryClient();
+  const loadSettings = useServerFn(getWorkspaceSettings);
+  const saveSettings = useServerFn(updateWorkspaceSettings);
+
+  const settingsQ = useQuery({
+    queryKey: ["workspace-settings", workspaceId],
+    queryFn: () => loadSettings({ data: { workspaceId: workspaceId! } }),
+    enabled: !!workspaceId,
+  });
+
+  const [name, setName] = useState("");
   const [industry, setIndustry] = useState("real_estate");
   const [timezone, setTimezone] = useState("America/New_York");
   const [state, setState] = useState("FL");
+
+  // Hydrate the form from the saved record; without this the page always shows
+  // defaults and "Save Changes" would overwrite real settings with them.
+  useEffect(() => {
+    const s = settingsQ.data;
+    if (!s) return;
+    setName(s.name);
+    setIndustry(s.industry);
+    setTimezone(s.timezone);
+    setState(s.defaultState);
+  }, [settingsQ.data]);
+
+  const save = useMutation({
+    mutationFn: () =>
+      saveSettings({
+        data: {
+          workspaceId: workspaceId!,
+          name: name.trim() || (workspaceName ?? "Workspace"),
+          industry,
+          timezone,
+          defaultState: state,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Workspace Settings Saved");
+      qc.invalidateQueries({ queryKey: ["workspace-settings", workspaceId] });
+      qc.invalidateQueries({ queryKey: ["workspaces"] });
+    },
+    onError: (e: unknown) =>
+      toast.error((e as Error).message || "Could Not Save Workspace Settings"),
+  });
+
 
   return (
     <div className="mx-auto max-w-[1400px]">
