@@ -318,7 +318,8 @@ export async function runSequenceTick(workspaceId?: string): Promise<{
       campaignCache.set(row.campaign_id, data ?? null);
     }
     const campaign = campaignCache.get(row.campaign_id);
-    if (!campaign || !["sending", "active"].includes(campaign.status)) {
+    // Only "sending" campaigns push touches; draft/paused/completed all wait.
+    if (!campaign || campaign.status !== "sending") {
       // Paused/draft campaigns can resume later, so keep the row active but
       // out of the way for an hour.
       await parkFor(row.id, 60);
