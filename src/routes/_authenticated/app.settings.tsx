@@ -107,7 +107,7 @@ function Settings() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <Label htmlFor="ws-name">Workspace Name</Label>
-                  <Input id="ws-name" key={workspaceName ?? "ws"} defaultValue={workspaceName ?? ""} className="mt-1" />
+                  <Input id="ws-name" value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
                 </div>
                 <div>
                   <Label>Timezone</Label>
