@@ -30,11 +30,23 @@ export class RealeflowError extends Error {
   }
 }
 
-function getConfig() {
+/**
+ * Per-request account scoping (RealeFlow "account-per-user" rule, Tyler
+ * 2026-08-24): the Partner API key is shared at the integration level, but
+ * X-RF-Partner-Account-Id must identify the user on whose behalf the call is
+ * made. During testing everything runs on the single env account; at launch
+ * each caller passes its user's own RealElite account id here.
+ */
+export type RfRequestOptions = {
+  /** RealElite account id (ExternalAccountId or numeric). Defaults to env REALEFLOW_ACCOUNT_ID. */
+  accountId?: string;
+};
+
+function getConfig(overrideAccountId?: string) {
   // Read per-request (not module scope) — required on edge runtimes.
   const baseUrl = process.env.REALEFLOW_BASE_URL?.replace(/\/+$/, "");
   const apiKey = process.env.REALEFLOW_API_KEY;
-  const accountId = process.env.REALEFLOW_ACCOUNT_ID;
+  const accountId = overrideAccountId?.trim() || process.env.REALEFLOW_ACCOUNT_ID;
   if (!baseUrl || !apiKey || !accountId) {
     throw new RealeflowError(
       500,
@@ -47,9 +59,9 @@ function getConfig() {
 async function rfFetch<T>(
   method: "GET" | "POST",
   path: string,
-  opts: { query?: Record<string, string>; body?: unknown } = {},
+  opts: { query?: Record<string, string>; body?: unknown; accountId?: string } = {},
 ): Promise<T> {
-  const { baseUrl, apiKey, accountId } = getConfig();
+  const { baseUrl, apiKey, accountId } = getConfig(opts.accountId);
   let url = `${baseUrl}${API_PREFIX}${path}`;
   if (opts.query) url += `?${new URLSearchParams(opts.query).toString()}`;
 
@@ -96,8 +108,8 @@ async function rfFetch<T>(
 // ── Endpoint wrappers ─────────────────────────────────────────────────────
 
 /** GET /autocomplete — free-text address/place suggestions. Empty array = no match. */
-export function rfAutocomplete(q: string): Promise<AutocompleteResult[]> {
-  return rfFetch<AutocompleteResult[]>("GET", "/autocomplete", { query: { q } });
+export function rfAutocomplete(q: string, opts: RfRequestOptions = {}): Promise<AutocompleteResult[]> {
+  return rfFetch<AutocompleteResult[]>("GET", "/autocomplete", { query: { q }, accountId: opts.accountId });
 }
 
 /** GET /details/{hash} — full property record with optional includes.
@@ -106,11 +118,12 @@ export function rfAutocomplete(q: string): Promise<AutocompleteResult[]> {
 export async function rfDetails(
   identifier: string,
   withIncludes: DetailsInclude[] = ["history", "parcel", "preforeclosures", "liens"],
+  opts: RfRequestOptions = {},
 ): Promise<DetailsResponse> {
   const res = await rfFetch<{ data: DetailsResponse } | DetailsResponse>(
     "GET",
     `/details/${encodeURIComponent(identifier)}`,
-    { query: { with: withIncludes.join(",") } },
+    { query: { with: withIncludes.join(",") }, accountId: opts.accountId },
   );
   if (res && typeof res === "object" && "data" in res && !("property_value" in res)) {
     return (res as { data: DetailsResponse }).data;
@@ -119,16 +132,23 @@ export async function rfDetails(
 }
 
 /** POST /comps/{hash} — comparable properties for a subject identified by hash. */
-export function rfCompsByHash(identifier: string, body: CompsRequest = {}): Promise<CompsResponse> {
-  return rfFetch<CompsResponse>("POST", `/comps/${encodeURIComponent(identifier)}`, { body });
+export function rfCompsByHash(
+  identifier: string,
+  body: CompsRequest = {},
+  opts: RfRequestOptions = {},
+): Promise<CompsResponse> {
+  return rfFetch<CompsResponse>("POST", `/comps/${encodeURIComponent(identifier)}`, {
+    body,
+    accountId: opts.accountId,
+  });
 }
 
 /** POST /comps — comparable properties for a subject described by address. */
-export function rfCompsByAddress(body: CompsRequest): Promise<CompsResponse> {
-  return rfFetch<CompsResponse>("POST", "/comps", { body });
+export function rfCompsByAddress(body: CompsRequest, opts: RfRequestOptions = {}): Promise<CompsResponse> {
+  return rfFetch<CompsResponse>("POST", "/comps", { body, accountId: opts.accountId });
 }
 
 /** POST /search — multi-filter property search. Requires a geographic anchor. */
-export function rfSearch(body: SearchRequest): Promise<SearchResponse> {
-  return rfFetch<SearchResponse>("POST", "/search", { body });
+export function rfSearch(body: SearchRequest, opts: RfRequestOptions = {}): Promise<SearchResponse> {
+  return rfFetch<SearchResponse>("POST", "/search", { body, accountId: opts.accountId });
 }

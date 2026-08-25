@@ -50,20 +50,23 @@ export const REALEFLOW_LEAD_CONFIGS: readonly RealeflowLeadConfig[] = [
     enabled: true,
   },
   {
+    // Entitlement fixed by RealeFlow (Tyler, 2026-08-24) and verified live on
+    // account 192423 (probe 2026-08-25: /search 200 with rows). Single-account
+    // testing approved by RealeFlow leadership; per-user account routing is
+    // required before public launch (see RfRequestOptions in client.server.ts).
     recordType: "pre_foreclosure",
     label: "Pre-Foreclosure",
     docPrefix: "PFC",
     filter: { leadTypes: { include: ["PRE_FORECLOSURE"] } },
-    enabled: false,
-    disabledReason: "awaiting RealeFlow entitlement: PRE_FORECLOSURE",
+    enabled: true,
   },
   {
+    // Same entitlement fix + verification as pre_foreclosure above.
     recordType: "tax_delinquent",
     label: "Tax Delinquent",
     docPrefix: "TXD",
     filter: { leadTypes: { include: ["RECENTLY_DELINQUENT"] } },
-    enabled: false,
-    disabledReason: "awaiting RealeFlow entitlement: RECENTLY_DELINQUENT",
+    enabled: true,
   },
 ];
 

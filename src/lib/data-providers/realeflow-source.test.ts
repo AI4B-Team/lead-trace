@@ -36,9 +36,12 @@ describe("filter config → request body", () => {
     });
   });
 
-  it("keeps entitlement-gated types configured but off", () => {
-    expect(preFc.enabled).toBe(false);
+  it("runs the formerly entitlement-gated types now that RealeFlow enabled them", () => {
+    // Fixed vendor-side 2026-08-24 and verified live on 192423 (2026-08-25).
+    expect(preFc.enabled).toBe(true);
     expect(preFc.filter.leadTypes).toEqual({ include: ["PRE_FORECLOSURE"] });
+    const taxDelinquent = REALEFLOW_LEAD_CONFIGS.find((c) => c.recordType === "tax_delinquent")!;
+    expect(taxDelinquent.enabled).toBe(true);
   });
 });
 
