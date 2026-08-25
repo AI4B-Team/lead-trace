@@ -52,7 +52,10 @@ async function search(body) {
 // Boss's list mapped to RealeFlow filters (docs: reference-enums, endpoints-search):
 const PROBES = [
   { label: "pre_foreclosure", body: { leadTypes: { include: ["PRE_FORECLOSURE"] } } },
-  { label: "foreclosure_activity", body: { leadTypes: { include: ["FORECLOSURE_ACTIVITY"] } } },
+  // FORECLOSURE_ACTIVITY was RETIRED by RealeFlow (Tyler, 2026-08-24): a legacy
+  // combined category, removed from the Property Data API. A 400 here is now the
+  // EXPECTED result — use FORECLOSURE + PRE_FORECLOSURE together to recreate it.
+  { label: "foreclosure_activity (RETIRED — 400 expected)", body: { leadTypes: { include: ["FORECLOSURE_ACTIVITY"] } } },
   { label: "tax_delinquent (RECENTLY_DELINQUENT)", body: { leadTypes: { include: ["RECENTLY_DELINQUENT"] } } },
   { label: "tax_lien (TAX_GOVERNMENT_LIEN)", body: { lienTypes: ["TAX_GOVERNMENT_LIEN"] } },
   { label: "probate (DECEASED_PROBATE)", body: { lienTypes: ["DECEASED_PROBATE"] } },
