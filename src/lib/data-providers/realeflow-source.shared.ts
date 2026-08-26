@@ -84,6 +84,17 @@ export const REALEFLOW_COUNTY_BUDGET = 200;
  */
 export const REALEFLOW_COUNTIES_PER_TICK = 6;
 
+/**
+ * Wall-clock budget for one cursor-driven tick. The host kills invocations at
+ * ~25-30s (observed 2026-08-25/26: every tick died after probate × 6 counties,
+ * BEFORE the end-of-run cursor write, so the sweep restarted at county #1 every
+ * night). The sweep stops starting new counties past this budget and persists
+ * the cursor after every completed county, so a kill never loses progress.
+ * One county × all enabled types ≈ 20s, so a tick typically covers 1 county;
+ * the cron therefore runs every 30 minutes instead of nightly.
+ */
+export const REALEFLOW_TICK_TIME_BUDGET_MS = 15_000;
+
 export type CountySlice = {
   /** Counties this tick should process, in list order. */
   slice: string[];

@@ -49,7 +49,7 @@ export const TICK_SCHEDULE: { key: string; label: string; everyMinutes: number }
   { key: "tick-webhook-retries", label: "Webhook Retries", everyMinutes: 1 },
   { key: "tick-agents", label: "Background Agents", everyMinutes: 15 },
   { key: "tick-distress-feed", label: "Distress Feed Sweep", everyMinutes: 1440 },
-  { key: "tick-realeflow-sourcing", label: "Licensed Data Sourcing", everyMinutes: 1440 },
+  { key: "tick-realeflow-sourcing", label: "Licensed Data Sourcing", everyMinutes: 30 },
   { key: "tick-registrations", label: "10DLC Status Sync", everyMinutes: 1440 },
   { key: "tick-template-health", label: "Template Health Canary", everyMinutes: 1440 },
   { key: "tick-plan-renewal", label: "Plan Renewals", everyMinutes: 1440 },

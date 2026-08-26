@@ -14,6 +14,7 @@ import {
   REALEFLOW_COUNTIES_PER_TICK,
   REALEFLOW_LEAD_CONFIGS,
   REALEFLOW_PAGE_SIZE,
+  REALEFLOW_TICK_TIME_BUDGET_MS,
   buildSearchBody,
   isEntitlementError,
   isMailingOptedOut,
@@ -44,7 +45,7 @@ async function readCursor(): Promise<{ position: number; cycles: number }> {
 
 async function writeCursor(position: number, cycles: number, label: string | null): Promise<void> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  await supabaseAdmin.from("sourcing_cursors").upsert(
+  const { error } = await supabaseAdmin.from("sourcing_cursors").upsert(
     {
       key: CURSOR_KEY,
       position,
@@ -54,6 +55,9 @@ async function writeCursor(position: number, cycles: number, label: string | nul
     } as never,
     { onConflict: "key" },
   );
+  // A silent cursor failure means the sweep re-pulls the same slice forever —
+  // that must at least be visible in the logs.
+  if (error) console.error("[realeflow] cursor write failed:", error.message);
 }
 
 function entitlementKey(recordType: string): string {
@@ -186,6 +190,8 @@ export type RealeflowSourcingReport = {
   requests: number;
   results: RealeflowPullResult[];
   awaitingEntitlement: Array<{ recordType: string; reason: string }>;
+  /** Present when the tick stopped before its slice because time ran out. */
+  stoppedEarly?: string;
   /** Cursor bookkeeping — absent when an explicit county list was passed. */
   cursor?: {
     from: number;
@@ -280,12 +286,26 @@ export async function runRealeflowSourcing(
   const results: RealeflowPullResult[] = [];
   let requests = 0;
 
-  for (const config of configs) {
-    let entitlementStop = false;
-    for (const county of counties) {
-      if (entitlementStop) break;
-      const fips = FL_COUNTY_FIPS[county]!;
-      const feedKey = countyKey("FL", county);
+  // County-outer with a per-county cursor checkpoint. The host kills long
+  // invocations (~25-30s observed 2026-08-25/26: every tick died after
+  // probate × 6 counties, BEFORE the old end-of-run cursor write), so a tick
+  // must complete WHOLE counties (every enabled type), persist progress after
+  // each one, and stop starting new counties once the time budget is spent.
+  const stoppedByEntitlement = new Set<string>();
+  const tickStartedAt = Date.now();
+  let countiesCompleted = 0;
+  let timedOut = false;
+
+  for (const county of counties) {
+    if (!explicit && Date.now() - tickStartedAt >= REALEFLOW_TICK_TIME_BUDGET_MS) {
+      timedOut = true;
+      break;
+    }
+    const fips = FL_COUNTY_FIPS[county]!;
+    const feedKey = countyKey("FL", county);
+
+    for (const config of configs) {
+      if (stoppedByEntitlement.has(config.recordType)) continue;
       const startedAt = new Date().toISOString();
       let found = 0;
       let added = 0;
@@ -327,7 +347,7 @@ export async function runRealeflowSourcing(
           // Licensing, not a fault: disable the config and stop hammering.
           await markEntitlementDisabled(config, message);
           awaitingEntitlement.push({ recordType: config.recordType, reason: message });
-          entitlementStop = true;
+          stoppedByEntitlement.add(config.recordType);
           failure = `awaiting entitlement: ${message}`;
         } else {
           failure = message;
@@ -351,6 +371,16 @@ export async function runRealeflowSourcing(
       results.push({ recordType: config.recordType, county, fips, found, added, error: failure });
       await sleep(POLITE_DELAY_MS);
     }
+
+    countiesCompleted += 1;
+    // Checkpoint after EVERY completed county (advancing even when a county
+    // errored — a permanently failing county must never stall the matrix), so
+    // a mid-run kill resumes at the NEXT county instead of restarting.
+    if (cursorReport) {
+      const absolute = cursorReport.from + countiesCompleted;
+      const wrappedNow = absolute >= cursorReport.total;
+      await writeCursor(wrappedNow ? 0 : absolute, wrappedNow ? cycles + 1 : cycles, county);
+    }
   }
 
   const byRecordType = [...new Set(results.map((r) => r.recordType))].map((recordType) => {
@@ -366,14 +396,19 @@ export async function runRealeflowSourcing(
     };
   });
 
-  // Advance the cursor even when a county errored: a permanently failing county
-  // must never stall the rest of the matrix behind it.
+  // The cursor was checkpointed per completed county above; the report must
+  // describe what ACTUALLY ran, not the planned slice (the tick may have
+  // stopped early on the time budget).
   if (cursorReport) {
-    await writeCursor(
-      cursorReport.to,
-      cursorReport.cycles,
-      cursorReport.counties[cursorReport.counties.length - 1] ?? null,
-    );
+    const absolute = cursorReport.from + countiesCompleted;
+    const wrappedNow = absolute >= cursorReport.total;
+    cursorReport = {
+      ...cursorReport,
+      to: wrappedNow ? 0 : absolute,
+      counties: counties.slice(0, countiesCompleted),
+      wrapped: wrappedNow,
+      cycles: wrappedNow ? cycles + 1 : cycles,
+    };
   }
 
   return {
@@ -382,6 +417,7 @@ export async function runRealeflowSourcing(
     results,
     awaitingEntitlement,
     ...(cursorReport ? { cursor: cursorReport } : {}),
+    ...(timedOut ? { stoppedEarly: "tick time budget reached" } : {}),
     byRecordType,
   };
 }
