@@ -55,5 +55,27 @@ export const createWorkspace = createServerFn({ method: "POST" })
       }
     }
 
+    // Per-user RealElite account (Tyler 2026-08-27 spec). No-op while the
+    // 'realeflow_per_user_accounts' platform flag is OFF (the default) — the
+    // super-admin toggle on Platform Overview is the only thing that turns it
+    // on. Never blocks workspace creation: failures are recorded, not thrown.
+    try {
+      const { ensureRealeflowAccount } = await import("./realeflow/accounts.server");
+      const { data: u } = await supabaseAdmin.auth.admin.getUserById(context.userId);
+      const email = u?.user?.email;
+      if (email) {
+        const fullName = (u?.user?.user_metadata?.full_name as string | undefined) ?? "";
+        const [firstName, ...rest] = fullName.split(/\s+/);
+        await ensureRealeflowAccount({
+          userId: context.userId,
+          email,
+          firstName,
+          lastName: rest.join(" "),
+        });
+      }
+    } catch {
+      // Flag off / vendor down — signup must always succeed regardless.
+    }
+
     return { workspaceId: ws.id as string };
   });

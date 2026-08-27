@@ -25,8 +25,13 @@ import {
   listCronHealth,
   purgeLegacyLeads,
 } from "@/lib/admin.functions";
+import {
+  getRealeflowAccountsStatus,
+  setRealeflowAccountsEnabled,
+} from "@/lib/realeflow-accounts.functions";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, KeyRound } from "lucide-react";
 
 function formatEvery(minutes: number): string {
   if (minutes >= 1440) return `Every ${minutes / 1440 === 1 ? "Day" : `${minutes / 1440} Days`}`;
@@ -52,6 +57,12 @@ function PlatformDashboard() {
   const fetchLegacy = useServerFn(countLegacyLeads);
   const runPurge = useServerFn(purgeLegacyLeads);
   const fetchCron = useServerFn(listCronHealth);
+  const fetchRfStatus = useServerFn(getRealeflowAccountsStatus);
+  const setRfEnabled = useServerFn(setRealeflowAccountsEnabled);
+  const rfQ = useQuery({
+    queryKey: ["admin-rf-accounts-status"],
+    queryFn: () => fetchRfStatus(),
+  });
   const legacyQ = useQuery({ queryKey: ["admin-legacy-leads"], queryFn: () => fetchLegacy() });
   const cronQ = useQuery({
     queryKey: ["admin-cron-health"],
@@ -144,6 +155,55 @@ function PlatformDashboard() {
           hint="All Outbound Segments Ever Sent"
         />
       </div>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base font-display">
+            <KeyRound className="h-4 w-4" /> Per-User Realeflow Accounts
+            <Badge
+              variant="outline"
+              className={
+                rfQ.data?.enabled
+                  ? "border-emerald-500/40 text-emerald-600"
+                  : "border-border text-muted-foreground"
+              }
+            >
+              {rfQ.data?.enabled ? "Active" : "Inactive"}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center gap-4 text-sm">
+          <div className="min-w-[16rem] flex-1 text-muted-foreground">
+            When Active, every new signup gets its own RealElite account (SitePlan 589) and
+            property-data requests run under that user's account — the launch model Realeflow
+            requires. When Inactive, everything runs on the single test account (approved for the
+            testing period). Each active account is billable, so only enable this for launch.
+            {rfQ.data && (
+              <span className="mt-1 block text-[11px]">
+                {rfQ.data.activeAccounts} Provisioned · {rfQ.data.erroredAccounts} Errored
+              </span>
+            )}
+          </div>
+          <Switch
+            checked={rfQ.data?.enabled ?? false}
+            disabled={rfQ.isLoading}
+            onCheckedChange={async (checked) => {
+              try {
+                await setRfEnabled({ data: { enabled: checked } });
+                toast.success(
+                  checked
+                    ? "Per-user Realeflow accounts ACTIVATED — new signups now provision real billable accounts."
+                    : "Per-user Realeflow accounts deactivated — back to the single test account.",
+                );
+                await rfQ.refetch();
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : "Failed to update");
+              }
+            }}
+            aria-label="Toggle per-user Realeflow accounts"
+          />
+        </CardContent>
+      </Card>
 
       {(legacyQ.data?.leads ?? 0) > 0 && (
         <Card className="mb-6 border-warn/40 bg-warn/5">
