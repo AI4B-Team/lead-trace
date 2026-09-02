@@ -82,10 +82,13 @@ export async function answerFromKnowledge(opts: {
   question: string;
   knowledge: string;
   mode: "buyer" | "coaching";
-}): Promise<{ answered: boolean; answer: string }> {
+}): Promise<{ answered: boolean; answer: string; unavailable?: boolean }> {
+  // `unavailable: true` = the AI service could not be reached (missing key,
+  // gateway error, network failure). Distinct from a genuine knowledge gap so
+  // the tester UI never mislabels an outage as "your agent doesn't know this".
   if (!opts.knowledge.trim()) return { answered: false, answer: "" };
   const apiKey = process.env.LOVABLE_API_KEY;
-  if (!apiKey) return { answered: false, answer: "" };
+  if (!apiKey) return { answered: false, answer: "", unavailable: true };
 
   const system =
     opts.mode === "buyer"
@@ -106,11 +109,15 @@ export async function answerFromKnowledge(opts: {
         ],
       }),
     });
-    if (!res.ok) return { answered: false, answer: "" };
+    if (!res.ok) {
+      console.error(`answerFromKnowledge: AI gateway returned ${res.status}`);
+      return { answered: false, answer: "", unavailable: true };
+    }
     const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
     text = (json.choices?.[0]?.message?.content ?? "").trim();
-  } catch {
-    return { answered: false, answer: "" };
+  } catch (e) {
+    console.error("answerFromKnowledge: AI gateway unreachable", e);
+    return { answered: false, answer: "", unavailable: true };
   }
   if (!text || /NO_KNOWLEDGE/i.test(text)) return { answered: false, answer: "" };
   return { answered: true, answer: text.slice(0, 1200) };

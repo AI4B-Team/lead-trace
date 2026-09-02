@@ -19,6 +19,8 @@ type ChatMessage =
       /** Set when the agent had no approved knowledge — trainer-only context. */
       gap?: { label: string; card: string } | null;
       unanswered?: boolean;
+      /** AI service outage — not a knowledge gap; shown as an error, not a fallback. */
+      unavailable?: boolean;
     };
 
 /**
@@ -66,7 +68,15 @@ export function AgentQuestionTester({
         ...m,
         data.answered
           ? { role: "agent", text: data.answer }
-          : { role: "agent", text: LEAD_FACING_FALLBACK, unanswered: true, gap: v.gap ?? null },
+          : (data as { unavailable?: boolean }).unavailable
+            ? {
+                role: "agent",
+                text: "The AI service is unreachable right now — this is a system issue, not a knowledge gap. Try again in a moment.",
+                unanswered: true,
+                unavailable: true,
+                gap: null,
+              }
+            : { role: "agent", text: LEAD_FACING_FALLBACK, unanswered: true, gap: v.gap ?? null },
       ]);
     },
     onError: () => {
@@ -149,7 +159,7 @@ export function AgentQuestionTester({
                     <div className="whitespace-pre-wrap rounded-2xl rounded-bl-sm bg-muted px-3.5 py-2 text-sm text-foreground">
                       {m.text}
                     </div>
-                    {m.unanswered && (
+                    {m.unanswered && !m.unavailable && (
                       <div className="mt-1.5 pl-1 text-[11px] leading-snug text-muted-foreground">
                         Trainer note: no approved knowledge covers this — a real lead would see the reply above.
                         {m.gap && (
