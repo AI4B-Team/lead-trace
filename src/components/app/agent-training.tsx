@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { addBotKnowledge, deleteBotKnowledge } from "@/lib/bot-training.functions";
 import { TEXTUAL_FILE, type KnowledgeItem } from "@/lib/knowledge-cards.shared";
+import { classifyKnowledge } from "@/lib/knowledge-classify";
 
 
 type SpeechRecognitionLike = {
@@ -97,14 +98,18 @@ export function AgentComposer({ brandId }: { brandId: string }) {
     if (!text.trim()) return;
     setBusy(true);
     try {
+      // Detect the knowledge category from the pasted text itself so the
+      // readiness score (which counts category breadth) stays honest —
+      // everything used to be hard-stamped "scripts".
+      const detected = classifyKnowledge(text);
       await add({
         data: {
           brandId,
           items: [
             {
               source_type: listening ? ("voice" as const) : ("text" as const),
-              category: "scripts",
-              title: "Agent Notes",
+              category: detected.category,
+              title: detected.title,
               content: text,
             },
           ],
@@ -112,7 +117,7 @@ export function AgentComposer({ brandId }: { brandId: string }) {
       });
       setText("");
       refresh();
-      toast.success("Agent Trained");
+      toast.success("Agent Trained", { description: `Saved As ${LABELS[detected.category] ?? detected.title}` });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save Failed");
     } finally {
