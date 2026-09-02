@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { MessageSquareQuote, RefreshCw, Sparkles, Loader2, Lightbulb, ArrowRight } from "lucide-react";
+import { MessageSquareQuote, RefreshCw, Sparkles, Loader2, Lightbulb, ArrowRight, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { askAgentQuestion } from "@/lib/bot-training.functions";
 import {
   COACHING_PROMPTS,
@@ -13,6 +14,7 @@ import {
 
 type Asked =
   | { kind: "buyer"; question: BuyerQuestion }
+  | { kind: "custom"; question: string }
   | { kind: "coaching"; question: string };
 
 function focusKnowledgeCard(key: string) {
@@ -37,6 +39,7 @@ export function AgentQuestionTester({
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 100000) + 1);
   const [asked, setAsked] = useState<Asked | null>(null);
   const [coaching, setCoaching] = useState(false);
+  const [custom, setCustom] = useState("");
   const ask = useServerFn(askAgentQuestion);
 
   const chips = useMemo(() => pickBuyerQuestions(sources, seed, 6), [sources, seed]);
@@ -50,6 +53,13 @@ export function AgentQuestionTester({
   const askBuyer = (q: BuyerQuestion) => {
     setAsked({ kind: "buyer", question: q });
     run.mutate({ question: q.q, mode: "buyer" });
+  };
+
+  const askCustom = () => {
+    const q = custom.trim();
+    if (q.length < 3 || run.isPending) return;
+    setAsked({ kind: "custom", question: q });
+    run.mutate({ question: q.slice(0, 400), mode: "buyer" });
   };
 
   return (
@@ -93,6 +103,34 @@ export function AgentQuestionTester({
           );
         })}
       </div>
+
+      {trained && (
+        <div className="mt-3 flex items-center gap-2">
+          <Input
+            value={custom}
+            onChange={(e) => setCustom(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") askCustom();
+            }}
+            maxLength={400}
+            placeholder="Or type your own question — e.g. Do you serve Miami?"
+            className="h-9 rounded-full text-sm"
+          />
+          <Button
+            size="sm"
+            className="h-9 shrink-0 rounded-full px-4"
+            disabled={custom.trim().length < 3 || run.isPending}
+            onClick={askCustom}
+          >
+            {run.isPending && asked?.kind === "custom" ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Send className="h-3.5 w-3.5" />
+            )}
+            <span className="ml-1">Ask</span>
+          </Button>
+        </div>
+      )}
 
       {asked && (
         <div className="mt-4 rounded-xl border border-border bg-surface px-4 py-3">
