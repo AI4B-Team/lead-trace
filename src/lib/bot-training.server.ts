@@ -82,13 +82,14 @@ export async function answerFromKnowledge(opts: {
   question: string;
   knowledge: string;
   mode: "buyer" | "coaching";
-}): Promise<{ answered: boolean; answer: string; unavailable?: boolean }> {
+}): Promise<{ answered: boolean; answer: string; unavailable?: boolean; detail?: string }> {
   // `unavailable: true` = the AI service could not be reached (missing key,
   // gateway error, network failure). Distinct from a genuine knowledge gap so
   // the tester UI never mislabels an outage as "your agent doesn't know this".
+  // `detail` is a short trainer-facing hint (never shown to leads).
   if (!opts.knowledge.trim()) return { answered: false, answer: "" };
   const apiKey = process.env.LOVABLE_API_KEY;
-  if (!apiKey) return { answered: false, answer: "", unavailable: true };
+  if (!apiKey) return { answered: false, answer: "", unavailable: true, detail: "AI key is not configured" };
 
   const system =
     opts.mode === "buyer"
@@ -110,14 +111,21 @@ export async function answerFromKnowledge(opts: {
       }),
     });
     if (!res.ok) {
-      console.error(`answerFromKnowledge: AI gateway returned ${res.status}`);
-      return { answered: false, answer: "", unavailable: true };
+      const body = (await res.text().catch(() => "")).slice(0, 300);
+      console.error(`answerFromKnowledge: AI gateway returned ${res.status}: ${body}`);
+      const detail =
+        res.status === 429
+          ? "AI rate limit hit — wait a minute and retry"
+          : res.status === 402
+            ? "AI credits exhausted on the workspace"
+            : `AI gateway error ${res.status}`;
+      return { answered: false, answer: "", unavailable: true, detail };
     }
     const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
     text = (json.choices?.[0]?.message?.content ?? "").trim();
   } catch (e) {
     console.error("answerFromKnowledge: AI gateway unreachable", e);
-    return { answered: false, answer: "", unavailable: true };
+    return { answered: false, answer: "", unavailable: true, detail: "Network error reaching the AI gateway" };
   }
   if (!text || /NO_KNOWLEDGE/i.test(text)) return { answered: false, answer: "" };
   return { answered: true, answer: text.slice(0, 1200) };

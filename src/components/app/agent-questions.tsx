@@ -68,10 +68,10 @@ export function AgentQuestionTester({
         ...m,
         data.answered
           ? { role: "agent", text: data.answer }
-          : (data as { unavailable?: boolean }).unavailable
+          : (data as { unavailable?: boolean; detail?: string }).unavailable
             ? {
                 role: "agent",
-                text: "The AI service is unreachable right now — this is a system issue, not a knowledge gap. Try again in a moment.",
+                text: `The AI service is unreachable right now — this is a system issue, not a knowledge gap. (${(data as { detail?: string }).detail ?? "Unknown cause"}.) Try again in a moment.`,
                 unanswered: true,
                 unavailable: true,
                 gap: null,
