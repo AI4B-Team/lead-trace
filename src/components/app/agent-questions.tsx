@@ -1,7 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { MessageSquareQuote, RefreshCw, Loader2, Lightbulb, ArrowRight, Send, Bot } from "lucide-react";
+import {
+  MessageSquareQuote,
+  RefreshCw,
+  Loader2,
+  Lightbulb,
+  ArrowRight,
+  Send,
+  Bot,
+  ShieldCheck,
+  UserRound,
+  NotebookPen,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { askAgentQuestion } from "@/lib/bot-training.functions";
@@ -105,50 +116,77 @@ export function AgentQuestionTester({
         <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
           <MessageSquareQuote className="h-3.5 w-3.5" /> Chat With Your Agent
         </div>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+        <p className="mt-2 text-sm font-medium leading-snug text-foreground">
           Talk to your agent exactly like a real lead would — before it ever texts a customer.
         </p>
 
-        <ul className="mt-4 space-y-3 text-xs leading-relaxed text-muted-foreground">
-          <li className="flex gap-2">
-            <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-            Answers come only from the knowledge you have approved — nothing invented.
-          </li>
-          <li className="flex gap-2">
-            <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-            Unknown questions get a natural, human-sounding reply — a lead never learns it is a bot.
-          </li>
-          <li className="flex gap-2">
-            <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-            Trainer notes under a reply show you the exact knowledge gap to fill.
-          </li>
-        </ul>
-
-        <div className="mt-6 border-t border-border pt-4">
-          <button
-            type="button"
-            onClick={() => setCoaching((v) => !v)}
-            className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground hover:text-foreground"
-          >
-            <Lightbulb className="h-3.5 w-3.5" /> Ask For Coaching
-          </button>
-          <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-            Different job — these coach you on handling a lead, not test what the agent knows.
-          </p>
-          {coaching && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {COACHING_PROMPTS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  disabled={run.isPending}
-                  onClick={() => send(c, "coaching")}
-                  className="rounded-full border border-dashed border-border bg-background px-3 py-1.5 text-left text-[11px] font-medium text-muted-foreground transition hover:border-primary/60 hover:text-foreground disabled:opacity-50"
-                >
-                  {c}
-                </button>
-              ))}
+        <div className="mt-4 space-y-2.5">
+          <div className="rounded-xl border border-border bg-surface p-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <p className="text-xs font-semibold text-foreground">Approved knowledge only</p>
             </div>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+              Every answer comes from what you have fed it — facts, prices and promises are never invented.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-border bg-surface p-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                <UserRound className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <p className="text-xs font-semibold text-foreground">Sounds human, always</p>
+            </div>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+              Unknown questions get a natural reply — a lead never learns it is talking to a bot.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-border bg-surface p-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                <NotebookPen className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <p className="text-xs font-semibold text-foreground">Gaps become to-dos</p>
+            </div>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+              Trainer notes under a reply point at the exact knowledge gap — one click to fill it.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-xl border border-dashed border-border p-3">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            <Lightbulb className="h-3.5 w-3.5 text-amber-500" /> Ask For Coaching
+          </div>
+          <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+            Different job — these coach <span className="font-medium text-foreground">you</span> on handling a lead,
+            not test what the agent knows.
+          </p>
+          <div className="mt-2.5 flex flex-col gap-1.5">
+            {COACHING_PROMPTS.slice(0, coaching ? COACHING_PROMPTS.length : 2).map((c) => (
+              <button
+                key={c}
+                type="button"
+                disabled={run.isPending}
+                onClick={() => send(c, "coaching")}
+                className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-left text-[11px] font-medium text-muted-foreground transition hover:border-primary/60 hover:text-foreground disabled:opacity-50"
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+          {COACHING_PROMPTS.length > 2 && (
+            <button
+              type="button"
+              onClick={() => setCoaching((v) => !v)}
+              className="mt-2 text-[11px] font-medium text-primary hover:underline"
+            >
+              {coaching ? "Show fewer" : `Show ${COACHING_PROMPTS.length - 2} more`}
+            </button>
           )}
         </div>
       </div>
