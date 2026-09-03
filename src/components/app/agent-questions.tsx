@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { MessageSquareQuote, RefreshCw, Loader2, Lightbulb, ArrowRight, Send, Bot, User } from "lucide-react";
+import { MessageSquareQuote, RefreshCw, Loader2, Lightbulb, ArrowRight, Send, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { askAgentQuestion } from "@/lib/bot-training.functions";
@@ -126,118 +126,137 @@ export function AgentQuestionTester({
         </div>
       </div>
 
-      <p className="mt-1.5 text-xs text-muted-foreground">
-        {trained
-          ? "Talk To Your Agent Like A Real Lead Would — It Answers Only From The Knowledge You've Fed It."
-          : "Add A Knowledge Source First — Right Now Your Agent Has Nothing To Answer From."}
-      </p>
-
-      {messages.length > 0 && (
-        <div
-          ref={scrollRef}
-          className="mt-3 max-h-80 space-y-3 overflow-y-auto rounded-xl border border-border bg-surface px-4 py-4"
-        >
-          {messages.map((m, i) =>
-            m.role === "user" ? (
-              <div key={i} className="flex justify-end">
-                <div className="flex max-w-[80%] items-start gap-2">
-                  <div className="rounded-2xl rounded-br-sm bg-primary px-3.5 py-2 text-sm text-primary-foreground">
-                    {m.text}
-                  </div>
-                  <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                    <User className="h-3.5 w-3.5 text-primary" />
-                  </div>
-                </div>
+      <div className="mt-3 flex h-[30rem] flex-col overflow-hidden rounded-2xl border border-border bg-background">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
+          {messages.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                <Bot className="h-6 w-6 text-muted-foreground" />
               </div>
-            ) : (
-              <div key={i} className="flex justify-start">
-                <div className="flex max-w-[85%] items-start gap-2">
-                  <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted">
-                    <Bot className="h-3.5 w-3.5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <div className="whitespace-pre-wrap rounded-2xl rounded-bl-sm bg-muted px-3.5 py-2 text-sm text-foreground">
+              <p className="mt-4 text-base font-semibold text-foreground">
+                {trained ? "Talk to your agent like a real lead would" : "Your agent has nothing to answer from yet"}
+              </p>
+              <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+                {trained
+                  ? "It answers only from the knowledge you've fed it — nothing invented."
+                  : "Add a knowledge source first, then come back and test it here."}
+              </p>
+              {trained && chips.length > 0 && (
+                <div className="mt-5 flex max-w-lg flex-wrap justify-center gap-2">
+                  {chips.map((q) => (
+                    <button
+                      key={q.id}
+                      type="button"
+                      disabled={run.isPending}
+                      onClick={() => send(q.q, "buyer", { label: q.gapLabel, card: q.gapCard })}
+                      className="rounded-full border border-border bg-background px-3.5 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-primary/60 hover:text-foreground disabled:opacity-50"
+                    >
+                      &ldquo;{q.q}&rdquo;
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="mx-auto max-w-2xl space-y-6">
+              {messages.map((m, i) =>
+                m.role === "user" ? (
+                  <div key={i} className="flex justify-end">
+                    <div className="max-w-[75%] whitespace-pre-wrap rounded-3xl bg-muted px-4 py-2.5 text-sm text-foreground">
                       {m.text}
                     </div>
-                    {m.unanswered && !m.unavailable && (
-                      <div className="mt-1.5 pl-1 text-[11px] leading-snug text-muted-foreground">
-                        Trainer note: no approved knowledge covers this — a real lead would see the reply above.
-                        {m.gap && (
-                          <button
-                            type="button"
-                            className="ml-1 inline-flex items-center font-medium text-primary hover:underline"
-                            onClick={() => focusKnowledgeCard(m.gap!.card)}
-                          >
-                            Add It Under {m.gap.label} <ArrowRight className="ml-0.5 h-3 w-3" />
-                          </button>
-                        )}
-                      </div>
-                    )}
+                  </div>
+                ) : (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-background">
+                      <Bot className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1 pt-0.5">
+                      <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">{m.text}</div>
+                      {m.unanswered && !m.unavailable && (
+                        <div className="mt-2 text-[11px] leading-snug text-muted-foreground">
+                          Trainer note: no approved knowledge covers this — a real lead would see the reply above.
+                          {m.gap && (
+                            <button
+                              type="button"
+                              className="ml-1 inline-flex items-center font-medium text-primary hover:underline"
+                              onClick={() => focusKnowledgeCard(m.gap!.card)}
+                            >
+                              Add It Under {m.gap.label} <ArrowRight className="ml-0.5 h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ),
+              )}
+              {run.isPending && (
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-background">
+                    <Bot className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex items-center gap-1.5 pt-2">
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:-0.3s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:-0.15s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70" />
                   </div>
                 </div>
-              </div>
-            ),
-          )}
-          {run.isPending && (
-            <div className="flex justify-start">
-              <div className="flex items-start gap-2">
-                <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted">
-                  <Bot className="h-3.5 w-3.5 text-muted-foreground" />
-                </div>
-                <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-sm bg-muted px-3.5 py-2.5">
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:-0.3s]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:-0.15s]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70" />
-                </div>
-              </div>
+              )}
             </div>
           )}
         </div>
-      )}
 
-      <div className="mt-3 flex flex-wrap gap-2">
-        {chips.map((q) => (
-          <button
-            key={q.id}
-            type="button"
-            disabled={run.isPending}
-            onClick={() => send(q.q, "buyer", { label: q.gapLabel, card: q.gapCard })}
-            className="rounded-full border border-border bg-background px-3.5 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-primary/60 hover:text-foreground disabled:opacity-50"
-          >
-            &ldquo;{q.q}&rdquo;
-          </button>
-        ))}
-      </div>
-
-      {trained && (
-        <div className="mt-3 flex items-center gap-2">
-          <Input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
+        <div className="border-t border-border bg-background px-4 py-3 sm:px-6">
+          {messages.length > 0 && (
+            <div className="mb-2.5 flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none]">
+              {chips.map((q) => (
+                <button
+                  key={q.id}
+                  type="button"
+                  disabled={run.isPending}
+                  onClick={() => send(q.q, "buyer", { label: q.gapLabel, card: q.gapCard })}
+                  className="shrink-0 rounded-full border border-border bg-background px-3 py-1 text-[11px] font-medium text-muted-foreground transition hover:border-primary/60 hover:text-foreground disabled:opacity-50"
+                >
+                  &ldquo;{q.q}&rdquo;
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="mx-auto flex max-w-2xl items-end gap-2 rounded-3xl border border-border bg-surface px-2 py-1.5 shadow-sm focus-within:border-primary/50">
+            <Input
+              value={draft}
+              disabled={!trained}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  send(draft, "buyer");
+                  setDraft("");
+                }
+              }}
+              maxLength={400}
+              placeholder={trained ? "Message your agent…" : "Add knowledge first to start chatting"}
+              className="h-9 flex-1 border-0 bg-transparent text-sm shadow-none focus-visible:ring-0"
+            />
+            <Button
+              size="icon"
+              className="h-8 w-8 shrink-0 rounded-full"
+              disabled={draft.trim().length < 3 || run.isPending || !trained}
+              aria-label="Send"
+              onClick={() => {
                 send(draft, "buyer");
                 setDraft("");
-              }
-            }}
-            maxLength={400}
-            placeholder="Message your agent — e.g. Do you serve Miami?"
-            className="h-9 rounded-full text-sm"
-          />
-          <Button
-            size="sm"
-            className="h-9 shrink-0 rounded-full px-4"
-            disabled={draft.trim().length < 3 || run.isPending}
-            onClick={() => {
-              send(draft, "buyer");
-              setDraft("");
-            }}
-          >
-            {run.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-            <span className="ml-1">Send</span>
-          </Button>
+              }}
+            >
+              {run.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </Button>
+          </div>
+          <p className="mx-auto mt-1.5 max-w-2xl text-center text-[10px] text-muted-foreground">
+            Your agent answers only from approved knowledge — it never invents facts, prices, or promises.
+          </p>
         </div>
-      )}
+      </div>
 
       <div className="mt-5 border-t border-border pt-4">
         <button
