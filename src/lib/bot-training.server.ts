@@ -82,6 +82,8 @@ export async function answerFromKnowledge(opts: {
   question: string;
   knowledge: string;
   mode: "buyer" | "coaching";
+  /** Business name so the agent can introduce itself without inventing facts. */
+  brandName?: string;
 }): Promise<{ answered: boolean; answer: string; unavailable?: boolean; detail?: string }> {
   // `unavailable: true` = the AI service could not be reached (missing key,
   // gateway error, network failure). Distinct from a genuine knowledge gap so
@@ -91,9 +93,12 @@ export async function answerFromKnowledge(opts: {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) return { answered: false, answer: "", unavailable: true, detail: "AI key is not configured" };
 
+  const assistantIdentity = opts.brandName
+    ? `You are the AI assistant for ${opts.brandName}.`
+    : `You are a business's AI assistant.`;
   const system =
     opts.mode === "buyer"
-      ? `You are a business's AI assistant. Answer ONLY using the APPROVED KNOWLEDGE below. Never invent facts, prices, guarantees, or policies. If the knowledge does not clearly contain the answer, reply with exactly NO_KNOWLEDGE and nothing else. Otherwise answer in 1-3 short sentences.`
+      ? `${assistantIdentity} For factual claims (prices, services, policies, guarantees) answer ONLY using the APPROVED KNOWLEDGE below — never invent them. You MAY handle simple conversational messages naturally without the knowledge base: greetings, thanks, goodbyes, and questions about who/what you are (introduce yourself as the ${opts.brandName ? `${opts.brandName} assistant` : "business's assistant"} — you are a virtual assistant, do not claim a personal human name). If the message asks for factual information the knowledge does not clearly contain, reply with exactly NO_KNOWLEDGE and nothing else. Otherwise answer in 1-3 short sentences.`
       : `You are a sales coach for the business's own team. Use the APPROVED KNOWLEDGE below for any factual claim. Never invent facts, prices, or promises. If you have no relevant material at all, reply with exactly NO_KNOWLEDGE. Otherwise give 2-4 short, concrete coaching lines.`;
 
   let text = "";

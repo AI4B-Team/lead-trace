@@ -139,11 +139,17 @@ export const askAgentQuestion = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(30);
     if (error) throw error;
+    const { data: brand } = await context.supabase
+      .from("brands")
+      .select("name")
+      .eq("id", data.brandId)
+      .maybeSingle();
     const { buildKnowledgeBrief, answerFromKnowledge } = await import("@/lib/bot-training.server");
     const outcome = await answerFromKnowledge({
       question: data.question,
       mode: data.mode,
       knowledge: buildKnowledgeBrief(rows ?? []),
+      brandName: brand?.name ?? undefined,
     });
     return { ...outcome, sourceCount: rows?.length ?? 0 };
   });
