@@ -104,7 +104,7 @@ export function AgentQuestionTester({
 
   const send = (question: string, mode: "buyer" | "coaching", gap?: { label: string; card: string } | null) => {
     const q = question.trim();
-    if (q.length < 3 || run.isPending) return;
+    if (q.length < 1 || run.isPending) return;
     setMessages((m) => [...m, { role: "user", text: q }]);
     run.mutate({ question: q.slice(0, 400), mode, gap });
   };
@@ -330,7 +330,7 @@ export function AgentQuestionTester({
             <Button
               size="icon"
               className="h-8 w-8 shrink-0 rounded-full"
-              disabled={draft.trim().length < 3 || run.isPending || !trained}
+              disabled={draft.trim().length < 1 || run.isPending || !trained}
               aria-label="Send"
               onClick={() => {
                 send(draft, "buyer");

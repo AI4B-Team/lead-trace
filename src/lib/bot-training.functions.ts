@@ -126,7 +126,7 @@ export const askAgentQuestion = createServerFn({ method: "POST" })
     z
       .object({
         brandId: z.string().uuid(),
-        question: z.string().min(3).max(400),
+        question: z.string().min(1).max(400),
         mode: z.enum(["buyer", "coaching"]).default("buyer"),
       })
       .parse(input),
