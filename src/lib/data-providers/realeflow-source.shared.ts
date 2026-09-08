@@ -76,11 +76,12 @@ export const REALEFLOW_COUNTY_BUDGET = 200;
 
 /**
  * Counties processed per cron tick. The sweep is sequential with a ≥1s polite
- * delay per request, so the full 67-county × 3-type matrix cannot finish inside
- * one invocation — the 2026-08-18 run died after ~13 counties and left every
+ * delay per request, so the full roster × type matrix cannot finish inside one
+ * invocation — the 2026-08-18 run died after ~13 counties and left every
  * county past "Columbia" stale. The sweep therefore walks a bounded slice per
- * tick and resumes from a persisted cursor, cycling through the whole list over
- * successive runs. Budgets and page size are untouched.
+ * tick and resumes from a persisted cursor, cycling through the whole
+ * ~134-county MVP roster (us-counties.ts) over successive runs. Budgets and
+ * page size are untouched.
  */
 export const REALEFLOW_COUNTIES_PER_TICK = 6;
 
@@ -95,9 +96,9 @@ export const REALEFLOW_COUNTIES_PER_TICK = 6;
  */
 export const REALEFLOW_TICK_TIME_BUDGET_MS = 15_000;
 
-export type CountySlice = {
+export type CountySlice<T = string> = {
   /** Counties this tick should process, in list order. */
-  slice: string[];
+  slice: T[];
   /** Where the next tick resumes (0 once the matrix has been fully covered). */
   nextCursor: number;
   /** True when this tick reached the end of the county list. */
@@ -107,12 +108,14 @@ export type CountySlice = {
 /**
  * Bounded, resumable slice of the ordered county list. Pure so the resume /
  * bound / wrap behaviour is unit-testable without network or database.
+ * Generic: the nationwide roster slices { state, county, fips } entries while
+ * older callers slice plain county-name strings.
  */
-export function sliceCounties(args: {
-  counties: readonly string[];
+export function sliceCounties<T>(args: {
+  counties: readonly T[];
   cursor: number;
   maxCounties?: number;
-}): CountySlice {
+}): CountySlice<T> {
   const total = args.counties.length;
   if (!total) return { slice: [], nextCursor: 0, wrapped: true };
   const max = Math.min(
@@ -133,11 +136,13 @@ export function sliceCounties(args: {
 export function buildSearchBody(args: {
   fips: string;
   config: RealeflowLeadConfig;
+  /** Two-letter state for the place anchor. Defaults to FL (legacy callers). */
+  state?: string;
   pageSize?: number;
   page?: number;
 }): SearchRequest {
   return {
-    places: [{ state: "FL", fips: Number(args.fips) }],
+    places: [{ state: args.state ?? "FL", fips: Number(args.fips) }],
     page: args.page ?? 1,
     page_size: Math.min(Math.max(args.pageSize ?? REALEFLOW_PAGE_SIZE, 1), 200),
     ...args.config.filter,

@@ -1,14 +1,15 @@
 // ---------------------------------------------------------------------------
-// Nightly RealeFlow sourcing for the Distress Feed.
+// RealeFlow sourcing for the Distress Feed (MVP nationwide roster).
 //
-// Probate / tax-lien / vacancy filings are not published as open data anywhere
-// in Florida, so they are licensed from the RealeFlow Partner API instead of
-// scraped. This runs one polite, sequential /search per county per record type
-// and lands the rows through the SAME upsert path as every other adapter, so
-// dedupe, reconciliation and the nightly report behave identically.
+// Probate / tax-lien / vacancy filings are not published as open data, so they
+// are licensed from the RealeFlow Partner API instead of scraped. The sweep
+// walks MVP_COUNTY_ROSTER (priority trio → FL statewide → expansion metros;
+// territory verified live 2026-09-02) with one polite, sequential /search per
+// county per record type, landing rows through the SAME upsert path as every
+// other adapter so dedupe, reconciliation and the report behave identically.
 // ---------------------------------------------------------------------------
 
-import { FL_COUNTY_FIPS } from "../fl-counties";
+import { MVP_COUNTY_ROSTER, rosterEntriesFor, type RosterEntry } from "../us-counties";
 import {
   REALEFLOW_COUNTY_BUDGET,
   REALEFLOW_COUNTIES_PER_TICK,
@@ -27,6 +28,8 @@ const DOMAIN = "api.realeflow.com";
 const PLATFORM = "realeflow";
 const SOURCE_CLASS = "licensed_api";
 const POLITE_DELAY_MS = 1_000;
+// Key kept from the FL-only era so the live cursor row carries over; the
+// position now indexes MVP_COUNTY_ROSTER (priority trio → FL → metros).
 const CURSOR_KEY = "realeflow-fl-counties";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -105,6 +108,7 @@ async function markEntitlementDisabled(config: RealeflowLeadConfig, reason: stri
 async function recordCoverage(args: {
   config: RealeflowLeadConfig;
   county: string;
+  state: string;
   fips: string;
   rows: number;
   ok: boolean;
@@ -122,10 +126,10 @@ async function recordCoverage(args: {
         dataset_id: `search:${args.config.recordType}:${args.fips}`,
         record_type: args.config.recordType,
         resource_url: "https://api.realeflow.com/api/2.0/leadpipes/search",
-        title: `RealeFlow ${args.config.label} — ${args.county} County, FL`,
-        jurisdiction: `${args.county} County, FL`,
+        title: `RealeFlow ${args.config.label} — ${args.county} County, ${args.state}`,
+        jurisdiction: `${args.county} County, ${args.state}`,
         county_name: args.county,
-        state: "FL",
+        state: args.state,
         fips: args.fips,
         // No case/lien number in /search rows: the stable address hash is the
         // dedupe key, namespaced by record type.
@@ -151,7 +155,7 @@ async function recordCoverage(args: {
   const coverage = {
     source_id: sourceId,
     fips: args.fips,
-    state: "FL",
+    state: args.state,
     county_name: args.county,
     record_type: args.config.recordType,
     status: args.ok ? "verified" : "failed",
@@ -179,6 +183,7 @@ async function recordCoverage(args: {
 export type RealeflowPullResult = {
   recordType: string;
   county: string;
+  state: string;
   fips: string;
   found: number;
   added: number;
@@ -255,11 +260,13 @@ export async function runRealeflowSourcing(
   });
 
   const explicit = Boolean(options.counties?.length);
-  const allCounties = (options.counties ?? Object.keys(FL_COUNTY_FIPS)).filter(
-    (c) => FL_COUNTY_FIPS[c],
-  );
+  // Explicit requests ("Hillsborough", "Harris, TX") resolve through the
+  // roster; the cron path walks the whole MVP roster in priority order.
+  const allCounties: readonly RosterEntry[] = explicit
+    ? rosterEntriesFor(options.counties ?? [])
+    : MVP_COUNTY_ROSTER;
 
-  let counties = allCounties;
+  let counties: readonly RosterEntry[] = allCounties;
   let cursorReport: RealeflowSourcingReport["cursor"];
   let start = 0;
   let cycles = 0;
@@ -277,7 +284,7 @@ export async function runRealeflowSourcing(
       from: start % (allCounties.length || 1),
       to: sliced.nextCursor,
       total: allCounties.length,
-      counties: sliced.slice,
+      counties: sliced.slice.map((c) => `${c.county}, ${c.state}`),
       wrapped: sliced.wrapped,
       cycles: sliced.wrapped ? cycles + 1 : cycles,
     };
@@ -296,13 +303,13 @@ export async function runRealeflowSourcing(
   let countiesCompleted = 0;
   let timedOut = false;
 
-  for (const county of counties) {
+  for (const entry of counties) {
     if (!explicit && Date.now() - tickStartedAt >= REALEFLOW_TICK_TIME_BUDGET_MS) {
       timedOut = true;
       break;
     }
-    const fips = FL_COUNTY_FIPS[county]!;
-    const feedKey = countyKey("FL", county);
+    const { county, state, fips } = entry;
+    const feedKey = countyKey(state, county);
 
     for (const config of configs) {
       if (stoppedByEntitlement.has(config.recordType)) continue;
@@ -316,6 +323,7 @@ export async function runRealeflowSourcing(
         for (let page = 1; filings.length < budget; page += 1) {
           const body = buildSearchBody({
             fips,
+            state,
             config,
             page,
             pageSize: Math.min(REALEFLOW_PAGE_SIZE, budget - filings.length),
@@ -336,10 +344,10 @@ export async function runRealeflowSourcing(
         found = usable.length;
         added = await ingestDistressRecords(
           supabaseAdmin,
-          { state: "FL", county, recordType: config.recordType },
+          { state, county, recordType: config.recordType },
           usable,
         );
-        await recordCoverage({ config, county, fips, rows: found, ok: true });
+        await recordCoverage({ config, county, state, fips, rows: found, ok: true });
       } catch (err) {
         const status = err instanceof RealeflowError ? err.status : 0;
         const message = err instanceof Error ? err.message : String(err);
@@ -351,13 +359,13 @@ export async function runRealeflowSourcing(
           failure = `awaiting entitlement: ${message}`;
         } else {
           failure = message;
-          await recordCoverage({ config, county, fips, rows: 0, ok: false, error: message });
+          await recordCoverage({ config, county, state, fips, rows: 0, ok: false, error: message });
         }
       }
 
       await supabaseAdmin.from("distress_pulls").insert({
         fips: feedKey,
-        state: "FL",
+        state,
         county,
         record_type: config.recordType,
         status: failure ? "error" : "ok",
@@ -368,7 +376,7 @@ export async function runRealeflowSourcing(
         finished_at: new Date().toISOString(),
       } as never);
 
-      results.push({ recordType: config.recordType, county, fips, found, added, error: failure });
+      results.push({ recordType: config.recordType, county, state, fips, found, added, error: failure });
       await sleep(POLITE_DELAY_MS);
     }
 
@@ -405,7 +413,7 @@ export async function runRealeflowSourcing(
     cursorReport = {
       ...cursorReport,
       to: wrappedNow ? 0 : absolute,
-      counties: counties.slice(0, countiesCompleted),
+      counties: counties.slice(0, countiesCompleted).map((c) => `${c.county}, ${c.state}`),
       wrapped: wrappedNow,
       cycles: wrappedNow ? cycles + 1 : cycles,
     };
