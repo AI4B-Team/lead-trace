@@ -21,8 +21,10 @@ import {
   isMailingOptedOut,
   propertyToFiling,
   sliceCounties,
+  sweepCountiesAdvanceFirst,
   type RealeflowLeadConfig,
 } from "./realeflow-source.shared";
+
 
 const DOMAIN = "api.realeflow.com";
 const PLATFORM = "realeflow";
@@ -293,23 +295,28 @@ export async function runRealeflowSourcing(
   const results: RealeflowPullResult[] = [];
   let requests = 0;
 
-  // County-outer with a per-county cursor checkpoint. The host kills long
-  // invocations (~25-30s observed 2026-08-25/26: every tick died after
-  // probate × 6 counties, BEFORE the old end-of-run cursor write), so a tick
-  // must complete WHOLE counties (every enabled type), persist progress after
-  // each one, and stop starting new counties once the time budget is spent.
+  // County-outer with an ADVANCE-FIRST cursor checkpoint. The host kills long
+  // invocations (~25-30s observed 2026-08-25/26), and a heavy county can exceed
+  // that on its own — checkpointing AFTER the county made the sweep re-collect
+  // the same county every tick forever. The cursor is therefore advanced to the
+  // next county BEFORE the work starts; a partially collected county is simply
+  // refreshed on the next cycle.
   const stoppedByEntitlement = new Set<string>();
-  const tickStartedAt = Date.now();
-  let countiesCompleted = 0;
-  let timedOut = false;
+  
 
-  for (const entry of counties) {
-    if (!explicit && Date.now() - tickStartedAt >= REALEFLOW_TICK_TIME_BUDGET_MS) {
-      timedOut = true;
-      break;
-    }
+  const sweep = await sweepCountiesAdvanceFirst<RosterEntry>({
+    slice: counties,
+    from: cursorReport?.from ?? 0,
+    total: cursorReport?.total ?? counties.length,
+    ...(explicit ? {} : { timeBudgetMs: REALEFLOW_TICK_TIME_BUDGET_MS }),
+    checkpoint: async (nextAbsolute, wrapped, entry) => {
+      if (!cursorReport) return;
+      await writeCursor(nextAbsolute, wrapped ? cycles + 1 : cycles, entry.county);
+    },
+    process: async (entry) => {
     const { county, state, fips } = entry;
     const feedKey = countyKey(state, county);
+
 
     for (const config of configs) {
       if (stoppedByEntitlement.has(config.recordType)) continue;
@@ -380,16 +387,11 @@ export async function runRealeflowSourcing(
       await sleep(POLITE_DELAY_MS);
     }
 
-    countiesCompleted += 1;
-    // Checkpoint after EVERY completed county (advancing even when a county
-    // errored — a permanently failing county must never stall the matrix), so
-    // a mid-run kill resumes at the NEXT county instead of restarting.
-    if (cursorReport) {
-      const absolute = cursorReport.from + countiesCompleted;
-      const wrappedNow = absolute >= cursorReport.total;
-      await writeCursor(wrappedNow ? 0 : absolute, wrappedNow ? cycles + 1 : cycles, county);
-    }
-  }
+    },
+
+  });
+  const timedOut = sweep.timedOut;
+
 
   const byRecordType = [...new Set(results.map((r) => r.recordType))].map((recordType) => {
     const rows = results.filter((r) => r.recordType === recordType);
@@ -404,20 +406,20 @@ export async function runRealeflowSourcing(
     };
   });
 
-  // The cursor was checkpointed per completed county above; the report must
-  // describe what ACTUALLY ran, not the planned slice (the tick may have
-  // stopped early on the time budget).
+  // The cursor was advanced before each attempted county; the report describes
+  // what the tick actually touched, not the planned slice.
   if (cursorReport) {
-    const absolute = cursorReport.from + countiesCompleted;
+    const absolute = cursorReport.from + sweep.attempted;
     const wrappedNow = absolute >= cursorReport.total;
     cursorReport = {
       ...cursorReport,
       to: wrappedNow ? 0 : absolute,
-      counties: counties.slice(0, countiesCompleted).map((c) => `${c.county}, ${c.state}`),
+      counties: counties.slice(0, sweep.attempted).map((c) => `${c.county}, ${c.state}`),
       wrapped: wrappedNow,
       cycles: wrappedNow ? cycles + 1 : cycles,
     };
   }
+
 
   return {
     ok: results.every((r) => !r.error),
