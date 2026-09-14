@@ -385,8 +385,8 @@ export async function runRealeflowSourcing(
       await sleep(POLITE_DELAY_MS);
     }
 
-      countiesCompleted += 1;
     },
+
   });
   const timedOut = sweep.timedOut;
 
