@@ -300,7 +300,7 @@ export async function runRealeflowSourcing(
   // next county BEFORE the work starts; a partially collected county is simply
   // refreshed on the next cycle.
   const stoppedByEntitlement = new Set<string>();
-  let countiesCompleted = 0;
+  
 
   const sweep = await sweepCountiesAdvanceFirst({
     slice: counties,
