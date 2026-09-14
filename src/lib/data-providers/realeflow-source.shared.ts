@@ -138,7 +138,53 @@ export function sliceCounties<T>(args: {
   return { slice, nextCursor: wrapped ? 0 : end, wrapped };
 }
 
+/**
+ * Walk a tick's county slice with an ADVANCE-FIRST checkpoint: the cursor is
+ * persisted for the NEXT county *before* the current one is processed. If the
+ * host kills the invocation mid-county, the following tick moves on instead of
+ * re-collecting the same heavy county forever (a partially collected county is
+ * refreshed on the next cycle). Errors thrown by `process` never stall the
+ * cursor either. Pure control flow, so both properties are unit-testable.
+ */
+export async function sweepCountiesAdvanceFirst<T>(args: {
+  slice: readonly T[];
+  /** Absolute index of slice[0] in the full roster. */
+  from: number;
+  /** Roster length, used to wrap the persisted cursor. */
+  total: number;
+  /** Persist the position the NEXT tick should resume from. */
+  checkpoint: (nextAbsolute: number, wrapped: boolean, entry: T) => Promise<void> | void;
+  process: (entry: T, index: number) => Promise<void>;
+  timeBudgetMs?: number;
+  now?: () => number;
+}): Promise<{ attempted: number; timedOut: boolean }> {
+  const now = args.now ?? (() => Date.now());
+  const startedAt = now();
+  let attempted = 0;
+  let timedOut = false;
+
+  for (const [index, entry] of args.slice.entries()) {
+    if (args.timeBudgetMs !== undefined && now() - startedAt >= args.timeBudgetMs) {
+      timedOut = true;
+      break;
+    }
+    const absolute = args.from + index + 1;
+    const wrapped = args.total > 0 && absolute >= args.total;
+    await args.checkpoint(wrapped ? 0 : absolute, wrapped, entry);
+    attempted += 1;
+    try {
+      await args.process(entry, index);
+    } catch (err) {
+      // A county that blows up must never hold the cursor hostage.
+      console.error("[realeflow] county failed:", err instanceof Error ? err.message : err);
+    }
+  }
+
+  return { attempted, timedOut };
+}
+
 /** The proven request shape: a FIPS-anchored place plus the type's filter. */
+
 export function buildSearchBody(args: {
   fips: string;
   config: RealeflowLeadConfig;
