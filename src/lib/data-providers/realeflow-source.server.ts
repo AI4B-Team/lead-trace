@@ -404,20 +404,20 @@ export async function runRealeflowSourcing(
     };
   });
 
-  // The cursor was checkpointed per completed county above; the report must
-  // describe what ACTUALLY ran, not the planned slice (the tick may have
-  // stopped early on the time budget).
+  // The cursor was advanced before each attempted county; the report describes
+  // what the tick actually touched, not the planned slice.
   if (cursorReport) {
-    const absolute = cursorReport.from + countiesCompleted;
+    const absolute = cursorReport.from + sweep.attempted;
     const wrappedNow = absolute >= cursorReport.total;
     cursorReport = {
       ...cursorReport,
       to: wrappedNow ? 0 : absolute,
-      counties: counties.slice(0, countiesCompleted).map((c) => `${c.county}, ${c.state}`),
+      counties: counties.slice(0, sweep.attempted).map((c) => `${c.county}, ${c.state}`),
       wrapped: wrappedNow,
       cycles: wrappedNow ? cycles + 1 : cycles,
     };
   }
+
 
   return {
     ok: results.every((r) => !r.error),
