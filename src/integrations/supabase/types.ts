@@ -3454,6 +3454,30 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_flags: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       portal_sessions: {
         Row: {
           captured_at: string
@@ -3598,6 +3622,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      realeflow_accounts: {
+        Row: {
+          created_at: string
+          error_detail: string | null
+          external_account_id: string
+          realeflow_account_id: string
+          site_plan_id: number | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_detail?: string | null
+          external_account_id: string
+          realeflow_account_id?: string
+          site_plan_id?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_detail?: string | null
+          external_account_id?: string
+          realeflow_account_id?: string
+          site_plan_id?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       record_types: {
         Row: {
