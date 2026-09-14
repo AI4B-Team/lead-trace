@@ -70,9 +70,15 @@ export const REALEFLOW_LEAD_CONFIGS: readonly RealeflowLeadConfig[] = [
   },
 ];
 
-/** Rows requested per county per type per night. Keeps 67 × N inside limits. */
+/**
+ * Rows requested per county per type per tick. Held at 100 (one page) so a
+ * heavy county with all 5 enabled types finishes inside the host's ~25-30s
+ * invocation window; the previous 200-row budget doubled the request count and
+ * pushed heavy counties past the cut-off.
+ */
 export const REALEFLOW_PAGE_SIZE = 100;
-export const REALEFLOW_COUNTY_BUDGET = 200;
+export const REALEFLOW_COUNTY_BUDGET = 100;
+
 
 /**
  * Counties processed per cron tick. The sweep is sequential with a ≥1s polite
