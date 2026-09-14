@@ -385,16 +385,11 @@ export async function runRealeflowSourcing(
       await sleep(POLITE_DELAY_MS);
     }
 
-    countiesCompleted += 1;
-    // Checkpoint after EVERY completed county (advancing even when a county
-    // errored — a permanently failing county must never stall the matrix), so
-    // a mid-run kill resumes at the NEXT county instead of restarting.
-    if (cursorReport) {
-      const absolute = cursorReport.from + countiesCompleted;
-      const wrappedNow = absolute >= cursorReport.total;
-      await writeCursor(wrappedNow ? 0 : absolute, wrappedNow ? cycles + 1 : cycles, county);
-    }
-  }
+      countiesCompleted += 1;
+    },
+  });
+  const timedOut = sweep.timedOut;
+
 
   const byRecordType = [...new Set(results.map((r) => r.recordType))].map((recordType) => {
     const rows = results.filter((r) => r.recordType === recordType);
