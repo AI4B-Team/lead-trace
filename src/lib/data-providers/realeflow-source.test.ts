@@ -151,3 +151,79 @@ describe("resumable county slicing", () => {
     expect(cursor).toBe(0);
   });
 });
+
+describe("advance-first cursor checkpointing", () => {
+  const roster = ["a", "b", "c", "d", "e"];
+
+  it("advances the cursor before the county is processed, even when it throws", async () => {
+    const checkpoints: number[] = [];
+    const result = await sweepCountiesAdvanceFirst({
+      slice: ["a"],
+      from: 0,
+      total: roster.length,
+      checkpoint: (next) => void checkpoints.push(next),
+      process: async () => {
+        throw new Error("host killed the invocation");
+      },
+    });
+    expect(checkpoints).toEqual([1]);
+    expect(result.attempted).toBe(1);
+  });
+
+  it("continues from the next county on the following tick", async () => {
+    let cursor = 0;
+    const touched: string[] = [];
+    for (let tick = 0; tick < 3; tick += 1) {
+      const s = sliceCounties({ counties: roster, cursor, maxCounties: 1 });
+      await sweepCountiesAdvanceFirst({
+        slice: s.slice,
+        from: cursor,
+        total: roster.length,
+        checkpoint: (next) => void (cursor = next),
+        // Every county aborts: the sweep must still walk forward.
+        process: async (entry) => {
+          touched.push(entry);
+          throw new Error("aborted mid-county");
+        },
+      });
+    }
+    expect(touched).toEqual(["a", "b", "c"]);
+    expect(cursor).toBe(3);
+  });
+
+  it("wraps the persisted cursor back to the head of the roster", async () => {
+    const checkpoints: Array<{ next: number; wrapped: boolean }> = [];
+    await sweepCountiesAdvanceFirst({
+      slice: ["e"],
+      from: 4,
+      total: roster.length,
+      checkpoint: (next, wrapped) => void checkpoints.push({ next, wrapped }),
+      process: async () => {},
+    });
+    expect(checkpoints).toEqual([{ next: 0, wrapped: true }]);
+  });
+
+  it("stops starting new counties once the time budget is spent", async () => {
+    let clock = 0;
+    const touched: string[] = [];
+    const result = await sweepCountiesAdvanceFirst({
+      slice: roster,
+      from: 0,
+      total: roster.length,
+      timeBudgetMs: 15_000,
+      now: () => clock,
+      checkpoint: () => {},
+      process: async (entry) => {
+        touched.push(entry);
+        clock += 8_000;
+      },
+    });
+    expect(touched).toEqual(["a", "b"]);
+    expect(result.timedOut).toBe(true);
+  });
+
+  it("keeps the per-county row budget at one page (never below 100)", () => {
+    expect(REALEFLOW_COUNTY_BUDGET).toBe(100);
+    expect(REALEFLOW_COUNTY_BUDGET).toBeGreaterThanOrEqual(100);
+  });
+});
