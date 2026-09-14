@@ -304,7 +304,7 @@ export async function runRealeflowSourcing(
   const stoppedByEntitlement = new Set<string>();
   
 
-  const sweep = await sweepCountiesAdvanceFirst({
+  const sweep = await sweepCountiesAdvanceFirst<RosterEntry>({
     slice: counties,
     from: cursorReport?.from ?? 0,
     total: cursorReport?.total ?? counties.length,
