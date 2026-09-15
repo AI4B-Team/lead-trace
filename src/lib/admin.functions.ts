@@ -266,3 +266,81 @@ export const listCronHealth = createServerFn({ method: "GET" })
     const { readCronHealth } = await import("./cron-health.server");
     return { tasks: await readCronHealth() };
   });
+
+// ---------------------------------------------------------------------------
+// Live sourcing-sweep status for the platform dashboard: cursor progress over
+// the nationwide roster, per-state coverage this cycle, and the latest pulls.
+// Read-only; super_admin only.
+// ---------------------------------------------------------------------------
+
+const SWEEP_CURSOR_KEY = "realeflow-fl-counties";
+/** A tick runs every 30 min; if the cursor is older than this, flag a stall. */
+const SWEEP_STALL_MINUTES = 75;
+
+export const getSweepStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { MVP_COUNTY_ROSTER } = await import("./us-counties");
+
+    const total = MVP_COUNTY_ROSTER.length;
+
+    const { data: cursor } = await supabaseAdmin
+      .from("sourcing_cursors")
+      .select("position, cycles, last_label, updated_at")
+      .eq("key", SWEEP_CURSOR_KEY)
+      .maybeSingle();
+
+    // Cursor position = counties completed this cycle; next entry is roster[position % total].
+    const done = Math.min(cursor?.position ?? 0, total);
+    const next = MVP_COUNTY_ROSTER[(cursor?.position ?? 0) % total];
+    const upcoming = Array.from({ length: 3 }, (_, i) => {
+      const e = MVP_COUNTY_ROSTER[((cursor?.position ?? 0) + i) % total];
+      return `${e.county}, ${e.state}`;
+    });
+    const updatedAt = cursor?.updated_at ?? null;
+    const stalled = updatedAt
+      ? Date.now() - new Date(updatedAt).getTime() > SWEEP_STALL_MINUTES * 60_000
+      : true;
+
+    // One full cycle is ~2.8 days at 2 counties/hour; look back far enough to
+    // cover the whole current cycle when grouping per-state coverage.
+    const since = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: pulls } = await supabaseAdmin
+      .from("distress_pulls")
+      .select("county, state, record_type, records_found, status, started_at")
+      .gte("started_at", since)
+      .order("started_at", { ascending: false })
+      .limit(2000);
+
+    const rosterByState = new Map<string, number>();
+    for (const e of MVP_COUNTY_ROSTER) {
+      rosterByState.set(e.state, (rosterByState.get(e.state) ?? 0) + 1);
+    }
+    const pulledByState = new Map<string, Set<string>>();
+    for (const p of pulls ?? []) {
+      if (!p.state || !p.county) continue;
+      if (!rosterByState.has(p.state)) continue;
+      if (!pulledByState.has(p.state)) pulledByState.set(p.state, new Set());
+      pulledByState.get(p.state)!.add(p.county);
+    }
+    const stateProgress = [...rosterByState.entries()].map(([state, rosterCount]) => ({
+      state,
+      pulled: pulledByState.get(state)?.size ?? 0,
+      total: rosterCount,
+    }));
+
+    return {
+      rosterTotal: total,
+      done,
+      cycles: cursor?.cycles ?? 0,
+      lastLabel: cursor?.last_label ?? null,
+      nextCounty: next ? `${next.county}, ${next.state}` : null,
+      upcoming,
+      updatedAt,
+      stalled,
+      stateProgress,
+      recentPulls: (pulls ?? []).slice(0, 10),
+    };
+  });

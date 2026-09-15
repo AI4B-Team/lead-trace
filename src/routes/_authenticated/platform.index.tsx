@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Clock,
   MessageSquare,
+  Radar,
   TrendingUp,
   Users,
   XCircle,
@@ -21,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HealthRow, planTone, type WsRow } from "@/components/app/admin-shared";
 import {
   countLegacyLeads,
+  getSweepStatus,
   listAllWorkspaces,
   listCronHealth,
   purgeLegacyLeads,
@@ -67,6 +69,12 @@ function PlatformDashboard() {
   const cronQ = useQuery({
     queryKey: ["admin-cron-health"],
     queryFn: () => fetchCron(),
+    refetchInterval: 60_000,
+  });
+  const fetchSweep = useServerFn(getSweepStatus);
+  const sweepQ = useQuery({
+    queryKey: ["admin-sweep-status"],
+    queryFn: () => fetchSweep(),
     refetchInterval: 60_000,
   });
   const wsQ = useQuery({
@@ -202,6 +210,112 @@ function PlatformDashboard() {
             }}
             aria-label="Toggle per-user Realeflow accounts"
           />
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base font-display">
+            <Radar className="h-4 w-4" /> Data Sweep — Live
+            {sweepQ.data && (
+              <Badge
+                variant="outline"
+                className={
+                  sweepQ.data.stalled
+                    ? "border-destructive/40 text-destructive"
+                    : "border-emerald-500/40 text-emerald-600"
+                }
+              >
+                {sweepQ.data.stalled ? "Stalled" : "Running"}
+              </Badge>
+            )}
+          </CardTitle>
+          {sweepQ.data?.updatedAt && (
+            <span className="text-[11px] text-muted-foreground">
+              Last Tick: {new Date(sweepQ.data.updatedAt).toLocaleTimeString()}
+            </span>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm">
+          {!sweepQ.data && (
+            <div className="py-4 text-sm text-muted-foreground">Loading Sweep Status…</div>
+          )}
+          {sweepQ.data && (
+            <>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                <div>
+                  <span className="font-display text-2xl font-bold tabular-nums">
+                    {sweepQ.data.done}
+                  </span>
+                  <span className="text-muted-foreground"> / {sweepQ.data.rosterTotal} Counties This Cycle</span>
+                </div>
+                <div className="text-muted-foreground">
+                  Cycle <span className="font-semibold text-foreground">{sweepQ.data.cycles + 1}</span>
+                  {" · "}Last: <span className="font-semibold text-foreground">{sweepQ.data.lastLabel ?? "—"}</span>
+                  {" · "}Next: <span className="font-semibold text-foreground">{sweepQ.data.upcoming.join(" → ")}</span>
+                </div>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-all"
+                  style={{
+                    width: `${Math.round((sweepQ.data.done / Math.max(1, sweepQ.data.rosterTotal)) * 100)}%`,
+                  }}
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {sweepQ.data.stateProgress.map((s) => (
+                  <Badge
+                    key={s.state}
+                    variant="outline"
+                    className={
+                      s.pulled >= s.total
+                        ? "border-emerald-500/40 text-emerald-600"
+                        : s.pulled > 0
+                          ? "border-amber-500/40 text-amber-600"
+                          : "border-border text-muted-foreground"
+                    }
+                  >
+                    {s.state} {s.pulled}/{s.total}
+                  </Badge>
+                ))}
+              </div>
+              <div>
+                <div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Latest Pulls (Live)
+                </div>
+                <div className="space-y-1">
+                  {sweepQ.data.recentPulls.map((p, i) => (
+                    <div
+                      key={i}
+                      className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-1 text-xs last:border-0"
+                    >
+                      <span className="font-medium">
+                        {p.county}, {p.state}
+                      </span>
+                      <span className="text-muted-foreground">{p.record_type}</span>
+                      <span className="tabular-nums text-muted-foreground">
+                        {p.records_found ?? 0} rows
+                      </span>
+                      <span
+                        className={p.status === "ok" ? "text-emerald-600" : "text-destructive"}
+                      >
+                        {p.status}
+                      </span>
+                      <span className="tabular-nums text-muted-foreground">
+                        {p.started_at ? new Date(p.started_at).toLocaleTimeString() : "—"}
+                      </span>
+                    </div>
+                  ))}
+                  {sweepQ.data.recentPulls.length === 0 && (
+                    <div className="py-2 text-xs text-muted-foreground">
+                      No Pulls In The Last 3 Days.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
