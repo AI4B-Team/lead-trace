@@ -65,6 +65,21 @@ const DISPOSITION_TONE: Record<string, string> = {
   litigator: "bg-danger/10 text-danger border-danger/20",
 };
 
+// Phoneless property leads are stamped "clean" so they surface as deliverable
+// (mail/knock), but until a skip-trace vendor supplies real numbers nothing was
+// actually DNC-scrubbed — so the badge says "Mail Only" instead of implying a
+// verified-textable lead. TODO(phone-vendor): remove once phones + real scrubs land.
+function dispositionBadge(disposition: string, phone: string | null | undefined) {
+  const hasPhone = Boolean((phone ?? "").replace(/\D/g, ""));
+  if (disposition === "clean" && !hasPhone) {
+    return { label: "Mail Only", tone: "bg-info/10 text-info border-info/20" };
+  }
+  return {
+    label: disposition,
+    tone: DISPOSITION_TONE[disposition] ?? "border-border text-muted-foreground",
+  };
+}
+
 function Stat({ icon, label, value, tone, help, sub }: { icon: React.ReactNode; label: string; value: string; tone?: string; help?: string; sub?: string }) {
   return (
     <Card>
@@ -634,9 +649,21 @@ function LeadsPageInner() {
                     );
                   })}
                   <td className="p-4">
-                    <span className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium capitalize ${DISPOSITION_TONE[r.disposition] ?? "border-border text-muted-foreground"}`}>
-                      {r.disposition}
-                    </span>
+                    {(() => {
+                      const badge = dispositionBadge(r.disposition, r.phone);
+                      return (
+                        <span
+                          className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium capitalize ${badge.tone}`}
+                          title={
+                            badge.label === "Mail Only"
+                              ? "Deliverable property lead with no phone yet — DNC scrubbing runs once a phone number is traced."
+                              : undefined
+                          }
+                        >
+                          {badge.label}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="p-4" onClick={(e) => e.stopPropagation()}>
                     <ListMembershipCell leadId={r.id} count={r.list_count} />
