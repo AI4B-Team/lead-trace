@@ -57,6 +57,13 @@ vi.mock("./data-providers/source-registry.server", () => ({
   fetchCatalogedRecords: async () => [],
 }));
 
+// Live pull finds nothing and is NOT account-scoped → the warehouse fallback
+// must still serve the covered county (testing-period behavior).
+vi.mock("./data-providers/realeflow-live.server", () => ({
+  isLiveServable: () => true,
+  liveRealeflowPull: async () => ({ resolved: true, accountScoped: false, leads: [] }),
+}));
+
 describe("recordsAdapter distress_records fallback", () => {
   beforeEach(() => vi.clearAllMocks());
 
@@ -73,5 +80,22 @@ describe("recordsAdapter distress_records fallback", () => {
     expect(leads[0]!.full_name).toBe("Jane Doe");
     expect(out.coverage?.ran).toBe(1);
     expect(progress.some((m) => m.includes("distress feed"))).toBe(true);
+  });
+
+  it("LICENSE GATE: an account-scoped live pull is never backfilled from the warehouse", async () => {
+    vi.resetModules();
+    vi.doMock("./data-providers/realeflow-live.server", () => ({
+      isLiveServable: () => true,
+      // The user's own account ran and found nothing — pooled rows must NOT
+      // be redistributed into their list (Tyler's no-pooling rule).
+      liveRealeflowPull: async () => ({ resolved: true, accountScoped: true, leads: [] }),
+    }));
+    const { recordsAdapter } = await import("./pipeline.server");
+    const leads = await recordsAdapter.run(
+      { counties: ["Hillsborough, FL"], record_types: ["Probate"], actor_user_id: "u1" },
+      undefined,
+      {} as never,
+    );
+    expect(leads.length).toBe(0);
   });
 });

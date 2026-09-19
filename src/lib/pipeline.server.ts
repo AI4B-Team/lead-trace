@@ -125,6 +125,8 @@ export const recordsAdapter: SourceAdapter = {
 
     // Coverage gate first: a county/record type without a verified source is
     // never run and never faked. It is reported back and logged as demand.
+    // (Live-servable RealeFlow types count as covered for any parseable US
+    // county — see hasCountyCoverage — which is what opens all 50 states.)
     const { splitSelections } = await import("./distress/coverage.server");
     const split = await splitSelections(counties, recordTypes);
     if (out) {
@@ -188,10 +190,29 @@ export const recordsAdapter: SourceAdapter = {
         }
       }
 
-      // Last resort: the county is verified because rows for it already live in
-      // distress_records (licensed pulls, clerk intakes, reconciled surplus).
-      // Without this the run passed the gate and returned zero.
+      // Licensed live pull: fetch RealeFlow types on demand, under the list
+      // creator's own vendor account once per-user routing is active (env test
+      // account during the approved testing period). This is the launch data
+      // model — fresh rows, any US county, no shared warehouse involved.
+      let liveAccountScoped = false;
       if (all.length === before) {
+        const { liveRealeflowPull } = await import("./data-providers/realeflow-live.server");
+        const live = await liveRealeflowPull({
+          countyLabel: county,
+          recordTypes: typesHere,
+          actorUserId: (params.actor_user_id as string | null | undefined) ?? null,
+          limitPerType: Number(params.max_results) > 0 ? Number(params.max_results) : 100,
+          onProgress,
+        });
+        liveAccountScoped = live.accountScoped;
+        all.push(...live.leads);
+      }
+
+      // Last resort: rows already warehoused in distress_records (clerk
+      // intakes, reconciled surplus, testing-period sweep). LICENSE GATE: once
+      // a pull ran under the user's OWN account, pooled rows must not backfill
+      // it — RealeFlow forbids redistributing one account's results to others.
+      if (all.length === before && !liveAccountScoped) {
         const fallback = await pullDistressRecords({
           county,
           recordTypes: typesHere,
@@ -543,8 +564,10 @@ async function runPipelineBody(
   await say("scraping", "Searching the source for matching records…");
   const adapter = selectAdapter(job.source_type as string);
   const out: AdapterOut = {};
+  // The creator rides along so account-scoped sources (RealeFlow live pull)
+  // can run under THAT user's own vendor account — Tyler's per-user rule.
   const sourced = await adapter.run(
-    params,
+    { ...params, actor_user_id: actorUserId },
     (message, count) => say("scraping", message, count),
     out,
   );

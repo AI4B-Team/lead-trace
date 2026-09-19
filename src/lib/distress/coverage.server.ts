@@ -149,7 +149,25 @@ export async function hasCountyCoverage(
   countyLabel: string,
   recordType: string,
 ): Promise<boolean> {
-  return (await coveredFipsForCounty(countyLabel, recordType)).length > 0;
+  if ((await coveredFipsForCounty(countyLabel, recordType)).length > 0) return true;
+  return liveServableCoverage(countyLabel, recordType);
+}
+
+/**
+ * RealeFlow's licensed types are pulled live per request (per-user account at
+ * launch), and its dataset is national — so any addressable US county counts
+ * as covered for those types even before a warehouse row exists. Roster
+ * counties are addressable by bare name; everything else needs an explicit
+ * "County, ST" label (bare names outside the roster are ambiguous across
+ * states, and a wrong-state pull would be worse than an honest "not covered").
+ */
+async function liveServableCoverage(countyLabel: string, recordType: string): Promise<boolean> {
+  const { isLiveServable } = await import("../data-providers/realeflow-live.server");
+  if (!isLiveServable(recordType)) return false;
+  const { rosterEntriesFor } = await import("../us-counties");
+  if (rosterEntriesFor([countyLabel]).length > 0) return true;
+  const { county, state } = splitCountyLabel(countyLabel);
+  return Boolean(county && /^[A-Z]{2}$/.test(state));
 }
 
 export type CoveragePair = { county: string; recordType: string };
