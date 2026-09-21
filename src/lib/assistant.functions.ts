@@ -4,9 +4,16 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { jobParamsFromSpec, jobSpecSchema, specStates } from "@/lib/assistant.shared";
 import { screenSourceRequest, TIER_STATUS } from "@/lib/source-request.shared";
 
+const MESSAGE_CONTENT_CAP = 4000;
+
+// Truncate long messages instead of rejecting: the transcript is an audit
+// trail, and a verbose assistant reply must never block job creation
+// ("Generate List" failed with `too_big` on transcript content, 2026-09-21).
 const messageSchema = z.object({
   role: z.enum(["user", "assistant"]),
-  content: z.string().max(4000),
+  content: z
+    .string()
+    .transform((s) => (s.length > MESSAGE_CONTENT_CAP ? `${s.slice(0, MESSAGE_CONTENT_CAP - 1)}…` : s)),
 });
 
 /** One assistant turn: natural-language reply plus a validated Job Spec. */
