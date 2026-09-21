@@ -70,8 +70,8 @@ console.log(`  OK -> ${county.county.county}, WY fips=${fips}`);
 console.log("Step 2: search probate in that county ...");
 const search = await call("POST", "/search", {
   body: {
-    fips: [fips],
-    state: ["WY"],
+    // Proven shape (matches buildSearchBody in realeflow-source.shared.ts):
+    places: [{ state: "WY", fips: Number(fips) }],
     lead_type: ["DECEASED_PROBATE"],
     page: 1,
     page_size: 20,
