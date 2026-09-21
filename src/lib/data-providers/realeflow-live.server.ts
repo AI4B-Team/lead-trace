@@ -48,6 +48,25 @@ export function isLiveServable(recordType: string): boolean {
 }
 
 /**
+ * Normalize a county name for matching: expand the abbreviations people
+ * actually type (St./Ste./Mt./Ft.) to the spelled-out forms vendors return
+ * (SAINT/SAINTE/MOUNT/FORT), then strip everything but letters. RealeFlow's
+ * autocomplete returns "SAINT LOUIS COUNTY" for a user's "St. Louis" — a raw
+ * prefix compare can never match those, which silently zeroed every
+ * St./Ste./Mt./Ft. county in the country.
+ */
+export function normalizeCountyName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\bste\.?(?=\s)/g, "sainte")
+    .replace(/\bst\.?(?=\s)/g, "saint")
+    .replace(/\bmt\.?(?=\s)/g, "mount")
+    .replace(/\bft\.?(?=\s)/g, "fort")
+    .replace(/\s+county$/, "")
+    .replace(/[^a-z]/g, "");
+}
+
+/**
  * Resolve a county label to {state, county, fips}. Roster entries win (static,
  * no network); any other "County, ST" label resolves through the Partner
  * /autocomplete endpoint — which is what makes the reach nationwide. Bare
@@ -62,12 +81,17 @@ export async function resolveCountyLive(label: string): Promise<RosterEntry | nu
 
   const { rfAutocomplete } = await import("../realeflow/client.server");
   const results = await rfAutocomplete(`${county} County, ${state}`);
+  const want = normalizeCountyName(county);
   for (const r of results) {
     if (r.type !== "county") continue;
     const c = r.county;
     if ((c.state ?? "").toUpperCase() !== state) continue;
     const cleanName = String(c.county ?? "").replace(/\s+county$/i, "").trim();
-    if (!cleanName.toLowerCase().startsWith(county.toLowerCase().slice(0, 4))) continue;
+    // Compare on normalized names so "St. Louis" matches "SAINT LOUIS COUNTY".
+    // One side prefixing the other keeps partial user input working without
+    // letting "Saint Louis" collide with "Saint Charles".
+    const got = normalizeCountyName(cleanName);
+    if (!(got.startsWith(want) || want.startsWith(got))) continue;
     const fips = String(c.fips ?? "").padStart(5, "0");
     if (!/^\d{5}$/.test(fips)) continue;
     return { state, county: cleanName, fips };

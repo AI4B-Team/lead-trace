@@ -73,6 +73,32 @@ describe("realeflow-live per-user pull", () => {
     expect(rfAutocomplete).not.toHaveBeenCalled();
   });
 
+  it("matches abbreviated saints: 'St. Louis' ↔ vendor 'SAINT LOUIS COUNTY'", async () => {
+    // Real production shape (2026-09-21): the vendor spells out SAINT while
+    // users type "St." — the raw prefix compare zeroed every St./Mt./Ft.
+    // county in the country. Regression for the normalized-name matcher.
+    rfAutocomplete.mockResolvedValue([
+      {
+        type: "county",
+        text: "SAINT LOUIS COUNTY, MO",
+        county: { county: "SAINT LOUIS COUNTY", state: "MO", fips: 29189 },
+      },
+    ]);
+    const { resolveCountyLive } = await import("./realeflow-live.server");
+    const entry = await resolveCountyLive("St. Louis, MO");
+    expect(entry).toMatchObject({ state: "MO", fips: "29189" });
+  });
+
+  it("normalizeCountyName expands St./Ste./Mt./Ft. and strips punctuation", async () => {
+    const { normalizeCountyName } = await import("./realeflow-live.server");
+    expect(normalizeCountyName("St. Louis")).toBe("saintlouis");
+    expect(normalizeCountyName("SAINT LOUIS COUNTY")).toBe("saintlouis");
+    expect(normalizeCountyName("Ste. Genevieve")).toBe("saintegenevieve");
+    expect(normalizeCountyName("Mt. Vernon")).toBe("mountvernon");
+    expect(normalizeCountyName("Ft. Bend")).toBe("fortbend");
+    expect(normalizeCountyName("O'Brien")).toBe("obrien");
+  });
+
   it("falls back to the env test account while the flag is OFF", async () => {
     const { liveRealeflowPull } = await import("./realeflow-live.server");
     const res = await liveRealeflowPull({
