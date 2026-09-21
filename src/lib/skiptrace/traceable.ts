@@ -17,7 +17,10 @@ export function isTraceableRecordsLead(row: TraceableRow): boolean {
   if (!row.address || !String(row.address).trim()) return false;
   const meta = (row.source_meta ?? {}) as { provider?: unknown; source?: unknown };
   if (typeof meta.provider === "string" && meta.provider.trim()) return true;
-  return meta.source === "distress_feed";
+  // "distress_feed" = warehouse-fallback rows; "realeflow_live" = per-user
+  // live-pull rows (launch model). Both carry a real property address and
+  // legitimately no phone — exactly the rows that must be kept & traced.
+  return meta.source === "distress_feed" || meta.source === "realeflow_live";
 }
 
 export function hasTraceableRecordsRows(rows: TraceableRow[]): boolean {

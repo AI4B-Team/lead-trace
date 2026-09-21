@@ -19,6 +19,14 @@ describe("isTraceableRecordsLead", () => {
     );
   });
 
+  it("treats realeflow_live (per-user live-pull) rows with an address as keepable", () => {
+    // Regression: Laramie WY run — 198 live-pull rows were dropped at the
+    // mobile gate because the keep-gate only recognized "distress_feed".
+    const row = { address: "1 Oak St", source_meta: { source: "realeflow_live" } };
+    expect(isTraceableRecordsLead(row)).toBe(true);
+    expect(isKeepablePropertyLead(row)).toBe(true);
+  });
+
   it("rejects rows with no address", () => {
     expect(isTraceableRecordsLead({ address: null, source_meta: { source: "distress_feed" } })).toBe(
       false,
