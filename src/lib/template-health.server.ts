@@ -132,6 +132,58 @@ function canaries(): Canary[] {
         }
       },
     },
+    {
+      // Warehouse-backed templates read stored distress_records rows. Healthy
+      // means the stored rows still carry owner + address; staleness is shown
+      // to customers as a "data as of" label, not as an outage.
+      key: "records.distress_warehouse",
+      label: "Distress Feed Warehouse",
+      templateIds: ["distress-feed", "absentee", "property-owners"],
+      async run() {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { data, error } = await supabaseAdmin
+          .from("distress_records")
+          .select("owner_first, owner_last, company_entity, property_address")
+          .neq("record_type", "surplus_funds")
+          .order("created_at", { ascending: false })
+          .limit(CANARY_ROW_CAP);
+        if (error) throw new Error(`Distress warehouse read failed: ${error.message}`);
+        return (data ?? []).map((r) => ({
+          business_name: r.company_entity,
+          full_name: [r.owner_first, r.owner_last].filter(Boolean).join(" ") || null,
+          address: r.property_address,
+          phone: null,
+          source_meta: null,
+        })) as CanaryRow[];
+      },
+    },
+    {
+      // Clerk-scraper-backed surplus funds keep updating; if no new rows land
+      // for a week the scraper is genuinely broken and must report so.
+      key: "records.surplus_clerk",
+      label: "County Clerk Surplus Scrapers",
+      templateIds: ["surplus-funds"],
+      async run() {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
+        const { data, error } = await supabaseAdmin
+          .from("distress_records")
+          .select("owner_first, owner_last, company_entity, property_address")
+          .eq("record_type", "surplus_funds")
+          .gte("created_at", since)
+          .order("created_at", { ascending: false })
+          .limit(CANARY_ROW_CAP);
+        if (error) throw new Error(`Surplus read failed: ${error.message}`);
+        if (!data?.length) throw new Error("No clerk surplus rows collected in the last 7 days.");
+        return data.map((r) => ({
+          business_name: r.company_entity,
+          full_name: [r.owner_first, r.owner_last].filter(Boolean).join(" ") || null,
+          address: r.property_address,
+          phone: null,
+          source_meta: null,
+        })) as CanaryRow[];
+      },
+    },
   ];
 }
 
