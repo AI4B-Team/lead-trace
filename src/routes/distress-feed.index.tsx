@@ -109,6 +109,9 @@ const STEPS = [
   },
 ];
 
+/** Warehouse-backed types age while the bulk sweep is paused; show their real date. */
+const WAREHOUSE_TYPES = new Set(["probate", "tax_lien", "vacancy", "pre_foreclosure", "tax_delinquent"]);
+
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div className="rounded-2xl border border-border bg-surface px-5 py-4">
@@ -119,7 +122,8 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 function DistressFeedLanding() {
-  const { totals, states, top, sample, sampleCounty } = Route.useLoaderData();
+  const { totals, states, top, sample, sampleCounty, freshness } = Route.useLoaderData();
+  const asOf = new Map((freshness ?? []).map((f) => [f.record_type, f.data_as_of]));
 
   return (
     <MarketingLayout>
@@ -252,6 +256,11 @@ function DistressFeedLanding() {
                   ) : null}
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">{t.blurb}</p>
+                {WAREHOUSE_TYPES.has(t.id) && asOf.get(t.id) ? (
+                  <p className="mt-2 text-xs font-medium text-muted-foreground">
+                    Data As Of {new Date(asOf.get(t.id) as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  </p>
+                ) : null}
                 {t.id === "surplus_funds" ? (
                   <Link
                     to="/surplus-funds"
