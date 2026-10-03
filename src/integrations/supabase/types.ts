@@ -5611,6 +5611,14 @@ export type Database = {
           total_records: number
         }[]
       }
+      distress_type_freshness: {
+        Args: never
+        Returns: {
+          data_as_of: string
+          record_type: string
+          records: number
+        }[]
+      }
       record_dlr_outcome: {
         Args: {
           _carrier: string
