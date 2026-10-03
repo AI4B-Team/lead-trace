@@ -18,7 +18,7 @@ export async function isSuperAdmin(supabase: any, userId: string): Promise<boole
   return !!data;
 }
 
-async function membershipRole(
+export async function membershipRole(
   supabase: any,
   workspaceId: string,
   userId: string,
