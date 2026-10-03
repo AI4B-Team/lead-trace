@@ -46,3 +46,25 @@ export const setRealeflowAccountsEnabled = createServerFn({ method: "POST" })
     await setPerUserAccountsEnabled(data.enabled, context.userId);
     return { enabled: data.enabled };
   });
+
+// Accounts flagged for (or already) deactivated, for the admin panel.
+export const listRealeflowDeactivationQueue = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { listRealeflowDeactivations } = await import("./realeflow/accounts.server");
+    return { rows: await listRealeflowDeactivations() };
+  });
+
+// Deactivate a user's mapping: stops routing immediately, with an audit note.
+export const deactivateRealeflowUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ userId: z.string().uuid(), note: z.string().trim().min(1).max(500) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { deactivateRealeflowAccount } = await import("./realeflow/accounts.server");
+    await deactivateRealeflowAccount(data.userId, context.userId, data.note);
+    return { ok: true };
+  });

@@ -175,6 +175,18 @@ export const removeMember = createServerFn({ method: "POST" })
       .eq("workspace_id", data.workspaceId)
       .eq("user_id", data.userId);
     if (error) throw error;
+    // Churn hook: a user left with no workspace is no longer billable upstream.
+    const { count: remaining } = await supabaseAdmin
+      .from("workspace_members")
+      .select("user_id", { count: "exact", head: true })
+      .eq("user_id", data.userId);
+    if ((remaining ?? 0) === 0) {
+      const { flagRealeflowAccountForDeactivation } = await import("./realeflow/accounts.server");
+      await flagRealeflowAccountForDeactivation(
+        data.userId,
+        `Removed from workspace ${data.workspaceId} by ${context.userId}; no remaining workspaces.`,
+      ).catch((e) => console.error("[realeflow] flag deactivation failed", e));
+    }
     return { ok: true };
   });
 

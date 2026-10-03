@@ -148,6 +148,8 @@ export async function ensureRealeflowAccount(user: {
   if (existing?.status === "active") {
     return { realeflowAccountId: existing.realeflow_account_id };
   }
+  // A churned account stays off; never silently re-provision a billable seat.
+  if (existing?.status === "pending_deactivation" || existing?.status === "deactivated") return null;
 
   try {
     const accountId = await createRealeliteAccount({
@@ -202,4 +204,63 @@ export async function accountIdForUser(userId: string): Promise<string | null> {
     .maybeSingle();
   if (data?.status !== "active" || !data.realeflow_account_id) return null;
   return data.realeflow_account_id;
+}
+
+// ── Churn / deactivation (vendor rule: active = billable) ───────────────────
+// We only flag + stop routing here. The vendor deactivation endpoint is not
+// called yet; it lands once RealElite confirms it.
+
+export type DeactivationRow = {
+  user_id: string;
+  realeflow_account_id: string;
+  status: string;
+  deactivation_note: string | null;
+  deactivation_requested_at: string | null;
+  deactivated_at: string | null;
+};
+
+/** Soft hook: flag a churned user's mapping. No-op when the flag is OFF or no mapping. */
+export async function flagRealeflowAccountForDeactivation(userId: string, note: string): Promise<boolean> {
+  if (!(await perUserAccountsEnabled())) return false;
+  const { data } = await supabaseAdmin
+    .from("realeflow_accounts")
+    .select("status")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!data || data.status !== "active") return false;
+  // Pending accounts stop routing immediately (accountIdForUser needs "active").
+  await supabaseAdmin
+    .from("realeflow_accounts")
+    .update({
+      status: "pending_deactivation",
+      deactivation_note: note.slice(0, 500),
+      deactivation_requested_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    } as never)
+    .eq("user_id", userId);
+  return true;
+}
+
+export async function deactivateRealeflowAccount(userId: string, actorUserId: string, note: string) {
+  const { error } = await supabaseAdmin
+    .from("realeflow_accounts")
+    .update({
+      status: "deactivated",
+      deactivation_note: note.slice(0, 500),
+      deactivated_at: new Date().toISOString(),
+      deactivated_by: actorUserId,
+      updated_at: new Date().toISOString(),
+    } as never)
+    .eq("user_id", userId);
+  if (error) throw new RealeflowAccountError(500, error.message);
+}
+
+export async function listRealeflowDeactivations(): Promise<DeactivationRow[]> {
+  const { data } = await supabaseAdmin
+    .from("realeflow_accounts")
+    .select("user_id, realeflow_account_id, status, deactivation_note, deactivation_requested_at, deactivated_at")
+    .in("status", ["pending_deactivation", "deactivated"])
+    .order("updated_at", { ascending: false })
+    .limit(100);
+  return (data ?? []) as unknown as DeactivationRow[];
 }
