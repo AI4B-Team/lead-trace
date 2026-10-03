@@ -20,7 +20,7 @@ function SmsTerms() {
     <LegalPage title="SMS Terms And Consent Policy">
       <p>Businesses use LeadTrace, operated by {LEGAL_ENTITY}, to send text messages. Each sending business is responsible for having a lawful basis to message its recipients.</p>
       <h2>Opting Out</h2>
-      <p>Reply STOP (or UNSUBSCRIBE, CANCEL, END, QUIT) to any message to stop receiving texts from that sender. Your number is added to that business's suppression list immediately and is checked before every future send, across all of its campaigns.</p>
+      <p>Reply STOP to any message to stop receiving texts from that sender. Your number is added to that business's suppression list immediately and is checked before every future send, across all of its campaigns.</p>
       <h2>Help</h2>
       <p>Reply HELP for help, or email {LEGAL_EMAIL}. Message and data rates may apply. Message frequency varies.</p>
       <h2>Quiet Hours</h2>
