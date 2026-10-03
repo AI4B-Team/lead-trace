@@ -1,9 +1,10 @@
+import type { ErrorComponentProps } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
 
 /** Shared error boundary for public routes with loaders. */
-export function RouteErrorState({ error, reset }: { error: Error; reset: () => void }) {
+export function RouteErrorState({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
 
   useEffect(() => {
@@ -44,7 +45,7 @@ export function RouteErrorState({ error, reset }: { error: Error; reset: () => v
 
 /** Shared 404 state for public routes. */
 /** Error boundary for signed-in app routes: keeps the user inside the product. */
-export function AppRouteErrorState({ error, reset }: { error: Error; reset: () => void }) {
+export function AppRouteErrorState({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
 
   useEffect(() => {
