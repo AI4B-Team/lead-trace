@@ -407,11 +407,18 @@ export const setMemberRole = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     wsInput.extend({
       userId: z.string().uuid(),
-      role: z.enum(["admin", "member", "viewer"]),
+      role: z.enum(["owner", "admin", "member", "viewer"]),
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
     await requireAdmin(context.supabase, data.workspaceId, context.userId);
+    // Role ceiling: an admin can never promote anyone to owner.
+    const { membershipRole } = await import("./access-checks");
+    const { assertCanAssignRole } = await import("./team-roles.shared");
+    assertCanAssignRole(
+      await membershipRole(context.supabase, data.workspaceId, context.userId),
+      data.role,
+    );
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: target } = await supabaseAdmin
       .from("workspace_members")

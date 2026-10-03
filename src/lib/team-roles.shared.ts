@@ -86,6 +86,31 @@ export function denialMessage(role: string | null | undefined, action: TeamActio
     : `Only Admins Can ${what[action]}.`;
 }
 
+// --- Role ceiling ----------------------------------------------------------
+// Nobody can grant a role above their own. Owner may grant anything; admin may
+// grant admin/member/viewer (never owner); member/viewer may grant nothing.
+const ROLE_RANK: Record<WorkspaceRole, number> = { viewer: 0, member: 1, admin: 2, owner: 3 };
+
+export function assignableRoles(actorRole: string | null | undefined): WorkspaceRole[] {
+  if (!actorRole || !isAdminRole(actorRole)) return [];
+  const rank = ROLE_RANK[roleOf(actorRole)];
+  return WORKSPACE_ROLES.filter((r) => ROLE_RANK[r] <= rank);
+}
+
+export function assertCanAssignRole(
+  actorRole: string | null | undefined,
+  targetRole: string,
+): void {
+  if (!actorRole || !isAdminRole(actorRole)) {
+    throw new Error("Only workspace owners and admins can assign roles.");
+  }
+  if (!(assignableRoles(actorRole) as string[]).includes(targetRole)) {
+    throw new Error(
+      `A workspace ${actorRole} cannot assign the ${targetRole} role — you can't grant a role above your own.`,
+    );
+  }
+}
+
 // --- Plan gating -----------------------------------------------------------
 // Roles and the attributed log are foundational and ship to everyone. Caps,
 // approval workflows and anomaly alerts are a team capability.

@@ -1,7 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { isWorkspaceAdmin, isWorkspaceMember } from "./access-checks";
+import { isWorkspaceAdmin, isWorkspaceMember, membershipRole } from "./access-checks";
+import { assertCanAssignRole } from "./team-roles.shared";
 import { planFor } from "./plans.shared";
 
 async function assertMember(supabase: any, workspaceId: string, userId: string) {
@@ -74,11 +75,13 @@ export const inviteTeamMember = createServerFn({ method: "POST" })
     z.object({
       workspaceId: z.string().uuid(),
       email: z.string().email(),
-      role: z.enum(["admin", "member", "viewer"]).default("member"),
+      role: z.enum(["owner", "admin", "member", "viewer"]).default("member"),
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, data.workspaceId, context.userId);
+    // Role ceiling: the inviter's own role caps what the invite may grant.
+    const inviterRole = await membershipRole(context.supabase, data.workspaceId, context.userId);
+    assertCanAssignRole(inviterRole, data.role);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Seat ceiling is enforced here: pending invites count against the plan so
     // a workspace can't over-invite and then discover the wall on acceptance.
