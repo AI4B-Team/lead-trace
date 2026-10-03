@@ -130,13 +130,13 @@ function DistressFeedLanding() {
       {/* Above the fold: paid traffic, one CTA, no exits. */}
       <section className="mx-auto max-w-6xl px-6 pt-16 pb-12">
         <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-          <Clock className="h-3.5 w-3.5" /> Pulled Every Morning
+          <Clock className="h-3.5 w-3.5" /> County Distress Records
         </span>
         <h1 className="mt-5 max-w-3xl font-display text-4xl font-bold leading-tight text-foreground sm:text-5xl">
-          Yesterday's Probate, Foreclosure And Tax Deed Filings — Already Skip Traced
+          Probate, Foreclosure And Tax Deed Filings — Already Skip Traced
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-          We pull county distress records nightly and hand you the owners with phone numbers
+          We collect county distress records and hand you the owners with phone numbers
           attached, DNC and litigator scrubbed, ready to text. You are not buying a CSV to go clean.
         </p>
 
