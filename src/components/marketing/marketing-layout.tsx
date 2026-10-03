@@ -247,7 +247,13 @@ function MarketingFooter() {
           </span>
           {BRAND_NAME}
         </div>
-        <div className="md:text-right">© {new Date().getFullYear()} {BRAND_NAME}. All Rights Reserved.</div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 md:justify-end">
+          <Link to="/terms" className="hover:text-foreground">Terms</Link>
+          <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
+          <Link to="/sms-terms" className="hover:text-foreground">SMS Terms</Link>
+          <Link to="/compliance" className="hover:text-foreground">Compliance</Link>
+          <span>© {new Date().getFullYear()} {BRAND_NAME}. All Rights Reserved.</span>
+        </div>
       </div>
     </footer>
   );
