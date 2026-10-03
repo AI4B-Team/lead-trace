@@ -3626,6 +3626,10 @@ export type Database = {
       realeflow_accounts: {
         Row: {
           created_at: string
+          deactivated_at: string | null
+          deactivated_by: string | null
+          deactivation_note: string | null
+          deactivation_requested_at: string | null
           error_detail: string | null
           external_account_id: string
           realeflow_account_id: string
@@ -3636,6 +3640,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deactivated_at?: string | null
+          deactivated_by?: string | null
+          deactivation_note?: string | null
+          deactivation_requested_at?: string | null
           error_detail?: string | null
           external_account_id: string
           realeflow_account_id?: string
@@ -3646,6 +3654,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deactivated_at?: string | null
+          deactivated_by?: string | null
+          deactivation_note?: string | null
+          deactivation_requested_at?: string | null
           error_detail?: string | null
           external_account_id?: string
           realeflow_account_id?: string
