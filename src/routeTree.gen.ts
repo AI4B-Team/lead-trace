@@ -10,13 +10,16 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TutorialsRouteImport } from './routes/tutorials'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StreetScanRouteImport } from './routes/street-scan'
 import { Route as StartRouteImport } from './routes/start'
 import { Route as SolarRouteImport } from './routes/solar'
+import { Route as SmsTermsRouteImport } from './routes/sms-terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RealestateRouteImport } from './routes/realestate'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MortgageRouteImport } from './routes/mortgage'
@@ -137,6 +140,11 @@ const TutorialsRoute = TutorialsRouteImport.update({
   path: '/tutorials',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StreetScanRoute = StreetScanRouteImport.update({
   id: '/street-scan',
   path: '/street-scan',
@@ -150,6 +158,11 @@ const StartRoute = StartRouteImport.update({
 const SolarRoute = SolarRouteImport.update({
   id: '/solar',
   path: '/solar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SmsTermsRoute = SmsTermsRouteImport.update({
+  id: '/sms-terms',
+  path: '/sms-terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -170,6 +183,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const RealestateRoute = RealestateRouteImport.update({
   id: '/realestate',
   path: '/realestate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -820,13 +838,16 @@ export interface FileRoutesByFullPath {
   '/mortgage': typeof MortgageRoute
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/realestate': typeof RealestateRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sms-terms': typeof SmsTermsRoute
   '/solar': typeof SolarRoute
   '/start': typeof StartRoute
   '/street-scan': typeof StreetScanRoute
+  '/terms': typeof TermsRoute
   '/tutorials': typeof TutorialsRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/platform': typeof AuthenticatedPlatformRouteWithChildren
@@ -943,13 +964,16 @@ export interface FileRoutesByTo {
   '/mortgage': typeof MortgageRoute
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/realestate': typeof RealestateRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sms-terms': typeof SmsTermsRoute
   '/solar': typeof SolarRoute
   '/start': typeof StartRoute
   '/street-scan': typeof StreetScanRoute
+  '/terms': typeof TermsRoute
   '/tutorials': typeof TutorialsRoute
   '/auth/hub': typeof AuthHubRoute
   '/leads/$slug': typeof LeadsSlugRoute
@@ -1066,13 +1090,16 @@ export interface FileRoutesById {
   '/mortgage': typeof MortgageRoute
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/realestate': typeof RealestateRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sms-terms': typeof SmsTermsRoute
   '/solar': typeof SolarRoute
   '/start': typeof StartRoute
   '/street-scan': typeof StreetScanRoute
+  '/terms': typeof TermsRoute
   '/tutorials': typeof TutorialsRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/platform': typeof AuthenticatedPlatformRouteWithChildren
@@ -1191,13 +1218,16 @@ export interface FileRouteTypes {
     | '/mortgage'
     | '/onboarding'
     | '/pricing'
+    | '/privacy'
     | '/realestate'
     | '/reset-password'
     | '/sign-in'
     | '/sitemap.xml'
+    | '/sms-terms'
     | '/solar'
     | '/start'
     | '/street-scan'
+    | '/terms'
     | '/tutorials'
     | '/app'
     | '/platform'
@@ -1314,13 +1344,16 @@ export interface FileRouteTypes {
     | '/mortgage'
     | '/onboarding'
     | '/pricing'
+    | '/privacy'
     | '/realestate'
     | '/reset-password'
     | '/sign-in'
     | '/sitemap.xml'
+    | '/sms-terms'
     | '/solar'
     | '/start'
     | '/street-scan'
+    | '/terms'
     | '/tutorials'
     | '/auth/hub'
     | '/leads/$slug'
@@ -1436,13 +1469,16 @@ export interface FileRouteTypes {
     | '/mortgage'
     | '/onboarding'
     | '/pricing'
+    | '/privacy'
     | '/realestate'
     | '/reset-password'
     | '/sign-in'
     | '/sitemap.xml'
+    | '/sms-terms'
     | '/solar'
     | '/start'
     | '/street-scan'
+    | '/terms'
     | '/tutorials'
     | '/_authenticated/app'
     | '/_authenticated/platform'
@@ -1561,13 +1597,16 @@ export interface RootRouteChildren {
   MortgageRoute: typeof MortgageRoute
   OnboardingRoute: typeof OnboardingRoute
   PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
   RealestateRoute: typeof RealestateRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignInRoute: typeof SignInRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SmsTermsRoute: typeof SmsTermsRoute
   SolarRoute: typeof SolarRoute
   StartRoute: typeof StartRoute
   StreetScanRoute: typeof StreetScanRoute
+  TermsRoute: typeof TermsRoute
   TutorialsRoute: typeof TutorialsRoute
   LeadsSlugRoute: typeof LeadsSlugRoute
   SurplusFundsStatesRoute: typeof SurplusFundsStatesRoute
@@ -1627,6 +1666,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TutorialsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/street-scan': {
       id: '/street-scan'
       path: '/street-scan'
@@ -1646,6 +1692,13 @@ declare module '@tanstack/react-router' {
       path: '/solar'
       fullPath: '/solar'
       preLoaderRoute: typeof SolarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sms-terms': {
+      id: '/sms-terms'
+      path: '/sms-terms'
+      fullPath: '/sms-terms'
+      preLoaderRoute: typeof SmsTermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -1674,6 +1727,13 @@ declare module '@tanstack/react-router' {
       path: '/realestate'
       fullPath: '/realestate'
       preLoaderRoute: typeof RealestateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -2638,13 +2698,16 @@ const rootRouteChildren: RootRouteChildren = {
   MortgageRoute: MortgageRoute,
   OnboardingRoute: OnboardingRoute,
   PricingRoute: PricingRoute,
+  PrivacyRoute: PrivacyRoute,
   RealestateRoute: RealestateRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignInRoute: SignInRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SmsTermsRoute: SmsTermsRoute,
   SolarRoute: SolarRoute,
   StartRoute: StartRoute,
   StreetScanRoute: StreetScanRoute,
+  TermsRoute: TermsRoute,
   TutorialsRoute: TutorialsRoute,
   LeadsSlugRoute: LeadsSlugRoute,
   SurplusFundsStatesRoute: SurplusFundsStatesRoute,
