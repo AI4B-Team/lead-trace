@@ -10,11 +10,16 @@ import { pgIlikePattern } from "@/lib/pg-filter";
 
 export const getFeedLanding = createServerFn({ method: "GET" }).handler(async () => {
   const s = await import("./distress-feed.server");
-  const [totals, states, top] = await Promise.all([s.feedTotals(), s.stateSummaries(), s.topCounties(20)]);
+  const [totals, states, top, freshness] = await Promise.all([
+    s.feedTotals(),
+    s.stateSummaries(),
+    s.topCounties(20),
+    s.typeFreshness(),
+  ]);
   // Sample table: most recent filings from the highest-volume covered county.
   const lead = top[0];
   const sample = lead ? await s.countyPreview(lead.state, lead.county, 8) : [];
-  return { totals, states, top, sample, sampleCounty: lead ?? null };
+  return { totals, states, top, sample, sampleCounty: lead ?? null, freshness };
 });
 
 export const getFeedStates = createServerFn({ method: "GET" }).handler(async () => {

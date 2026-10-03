@@ -955,3 +955,10 @@ export function configuredTypes(state: string, county: string): string[] {
 }
 
 export const ALL_RECORD_TYPE_IDS = RECORD_TYPES.map((r) => r.id);
+
+export type TypeFreshness = { record_type: string; data_as_of: string | null; records: number };
+
+/** Newest stored row per record type — the honest "data as of" date. */
+export async function typeFreshness(): Promise<TypeFreshness[]> {
+  return (await rpc<TypeFreshness[]>("distress_type_freshness")) ?? [];
+}

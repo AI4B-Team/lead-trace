@@ -30,6 +30,8 @@ import {
 import {
   getRealeflowAccountsStatus,
   setRealeflowAccountsEnabled,
+  listRealeflowDeactivationQueue,
+  deactivateRealeflowUser,
 } from "@/lib/realeflow-accounts.functions";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
@@ -61,6 +63,9 @@ function PlatformDashboard() {
   const fetchCron = useServerFn(listCronHealth);
   const fetchRfStatus = useServerFn(getRealeflowAccountsStatus);
   const setRfEnabled = useServerFn(setRealeflowAccountsEnabled);
+  const fetchRfQueue = useServerFn(listRealeflowDeactivationQueue);
+  const runRfDeactivate = useServerFn(deactivateRealeflowUser);
+  const rfQueueQ = useQuery({ queryKey: ["admin-rf-deactivations"], queryFn: () => fetchRfQueue() });
   const rfQ = useQuery({
     queryKey: ["admin-rf-accounts-status"],
     queryFn: () => fetchRfStatus(),
@@ -210,6 +215,40 @@ function PlatformDashboard() {
             }}
             aria-label="Toggle per-user Realeflow accounts"
           />
+          {(rfQueueQ.data?.rows.length ?? 0) > 0 && (
+            <div className="w-full border-t border-border pt-3">
+              <div className="mb-2 text-xs font-semibold text-foreground">Churned Accounts</div>
+              <ul className="space-y-2">
+                {rfQueueQ.data!.rows.map((r) => (
+                  <li key={r.user_id} className="flex flex-wrap items-center gap-3 text-xs">
+                    <span className="font-mono text-foreground">{r.realeflow_account_id || r.user_id.slice(0, 8)}</span>
+                    <Badge variant="outline">{r.status === "deactivated" ? "Deactivated" : "Pending Deactivation"}</Badge>
+                    <span className="flex-1 text-muted-foreground">{r.deactivation_note}</span>
+                    {r.status !== "deactivated" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          try {
+                            await runRfDeactivate({ data: { userId: r.user_id, note: "Deactivated by admin after churn." } });
+                            toast.success("Account Deactivated — Routing Stopped.");
+                            await rfQueueQ.refetch();
+                          } catch (e) {
+                            toast.error(e instanceof Error ? e.message : "Failed");
+                          }
+                        }}
+                      >
+                        Deactivate
+                      </Button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Routing stops immediately. The vendor-side deactivation call is not wired yet.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

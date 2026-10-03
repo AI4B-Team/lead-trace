@@ -109,6 +109,9 @@ const STEPS = [
   },
 ];
 
+/** Warehouse-backed types age while the bulk sweep is paused; show their real date. */
+const WAREHOUSE_TYPES = new Set(["probate", "tax_lien", "vacancy", "pre_foreclosure", "tax_delinquent"]);
+
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div className="rounded-2xl border border-border bg-surface px-5 py-4">
@@ -119,20 +122,21 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 function DistressFeedLanding() {
-  const { totals, states, top, sample, sampleCounty } = Route.useLoaderData();
+  const { totals, states, top, sample, sampleCounty, freshness } = Route.useLoaderData();
+  const asOf = new Map((freshness ?? []).map((f) => [f.record_type, f.data_as_of]));
 
   return (
     <MarketingLayout>
       {/* Above the fold: paid traffic, one CTA, no exits. */}
       <section className="mx-auto max-w-6xl px-6 pt-16 pb-12">
         <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-          <Clock className="h-3.5 w-3.5" /> Pulled Every Morning
+          <Clock className="h-3.5 w-3.5" /> County Distress Records
         </span>
         <h1 className="mt-5 max-w-3xl font-display text-4xl font-bold leading-tight text-foreground sm:text-5xl">
-          Yesterday's Probate, Foreclosure And Tax Deed Filings — Already Skip Traced
+          Probate, Foreclosure And Tax Deed Filings — Already Skip Traced
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-          We pull county distress records nightly and hand you the owners with phone numbers
+          We collect county distress records and hand you the owners with phone numbers
           attached, DNC and litigator scrubbed, ready to text. You are not buying a CSV to go clean.
         </p>
 
@@ -252,6 +256,11 @@ function DistressFeedLanding() {
                   ) : null}
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">{t.blurb}</p>
+                {WAREHOUSE_TYPES.has(t.id) && asOf.get(t.id) ? (
+                  <p className="mt-2 text-xs font-medium text-muted-foreground">
+                    Data As Of {new Date(asOf.get(t.id) as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  </p>
+                ) : null}
                 {t.id === "surplus_funds" ? (
                   <Link
                     to="/surplus-funds"

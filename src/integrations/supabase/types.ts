@@ -3626,6 +3626,10 @@ export type Database = {
       realeflow_accounts: {
         Row: {
           created_at: string
+          deactivated_at: string | null
+          deactivated_by: string | null
+          deactivation_note: string | null
+          deactivation_requested_at: string | null
           error_detail: string | null
           external_account_id: string
           realeflow_account_id: string
@@ -3636,6 +3640,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deactivated_at?: string | null
+          deactivated_by?: string | null
+          deactivation_note?: string | null
+          deactivation_requested_at?: string | null
           error_detail?: string | null
           external_account_id: string
           realeflow_account_id?: string
@@ -3646,6 +3654,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deactivated_at?: string | null
+          deactivated_by?: string | null
+          deactivation_note?: string | null
+          deactivation_requested_at?: string | null
           error_detail?: string | null
           external_account_id?: string
           realeflow_account_id?: string
@@ -5609,6 +5621,14 @@ export type Database = {
           county: string
           state: string
           total_records: number
+        }[]
+      }
+      distress_type_freshness: {
+        Args: never
+        Returns: {
+          data_as_of: string
+          record_type: string
+          records: number
         }[]
       }
       record_dlr_outcome: {
